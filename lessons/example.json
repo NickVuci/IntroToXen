@@ -1,0 +1,71 @@
+{
+  "title": "Topic",
+  "description": "Short lesson description",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Topic",
+      "body": "Replace this title section with a short description of the lesson. This template keeps the same visual system and transition behavior while letting you swap in different content.",
+      "startButton": "Start lesson"
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "animation",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/example.html",
+      "prompt": "click to make ripples",
+      "ariaLabel": "Click to create ripples"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "Which option best fits this lesson?",
+      "choices": [
+        {
+          "text": "Choice A",
+          "correct": false
+        },
+        {
+          "text": "Choice B",
+          "correct": true
+        },
+        {
+          "text": "Choice C",
+          "correct": false
+        },
+        {
+          "text": "Choice D",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Review the main idea",
+          "body": "Write one sentence that summarizes the lesson."
+        },
+        {
+          "title": "Try the lab",
+          "body": "Use the interactive section and note what changes."
+        },
+        {
+          "title": "Answer the check",
+          "body": "Complete the multiple-choice question before moving on."
+        }
+      ]
+    }
+  }
+}

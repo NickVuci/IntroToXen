@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example Lab Applet</title>
+  <style>
+    :root {
+      --blue: #8fd3ff;
+      --text: #f7f8ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: transparent;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .labSurface {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(143,211,255,0.13), transparent 46%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.07), transparent 72%);
+    }
+
+    .prompt {
+      position: relative;
+      z-index: 2;
+      color: var(--blue);
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .ripple {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      border: 2px solid rgba(143,211,255,0.78);
+      background: rgba(143,211,255,0.12);
+      transform: translate(-50%, -50%) scale(0.2);
+      animation: rippleOut 900ms ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes rippleOut {
+      to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(16);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="labSurface" id="labSurface" role="button" tabindex="0" aria-label="Click to create ripples">
+    <span class="prompt">click to make ripples</span>
+  </main>
+
+  <script>
+    const labSurface = document.getElementById("labSurface");
+
+    function addRipple(event) {
+      const rect = labSurface.getBoundingClientRect();
+      const x = (event.clientX ?? rect.left + rect.width / 2) - rect.left;
+      const y = (event.clientY ?? rect.top + rect.height / 2) - rect.top;
+      const ripple = document.createElement("span");
+      ripple.className = "ripple";
+      ripple.style.left = `${x}px`;
+      ripple.style.top = `${y}px`;
+      labSurface.appendChild(ripple);
+      window.setTimeout(() => ripple.remove(), 920);
+    }
+
+    labSurface.addEventListener("pointerdown", addRipple);
+    labSurface.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      addRipple({ clientX: undefined, clientY: undefined });
+    });
+  </script>
+</body>
+</html>

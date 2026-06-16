@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" class="mapRoot">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Xenharmonic Music Map</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="mapPage">
+  <main class="mapShell">
+    <section class="mapHeader" aria-labelledby="mapTitle">
+      <div>
+        <div class="eyebrow sectionLabel">Concept Map</div>
+        <h1 id="mapTitle">Xenharmonic Music</h1>
+        <p>A minimal path map. Solid lines suggest a good order; dotted lines show ideas that inform each other.</p>
+      </div>
+      <button class="mapResetButton" type="button">Reset</button>
+    </section>
+
+    <section class="conceptMap" aria-label="Xenharmonic concept lesson map">
+      <svg class="mapLines" viewBox="0 0 1000 640" aria-hidden="true" preserveAspectRatio="xMidYMid meet"></svg>
+      <button class="coreNode" type="button" style="--x: 50; --y: 50;">
+        <span>Xenharmonic<br />Music</span>
+      </button>
+      <div class="conceptNodes"></div>
+      <div class="mapLegend" aria-label="Connection legend">
+        <span><i class="legendLine requiredLegend"></i>Suggested order</span>
+        <span><i class="legendLine relatedLegend"></i>Related</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="map.js"></script>
+</body>
+</html>
