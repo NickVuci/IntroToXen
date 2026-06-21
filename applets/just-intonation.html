@@ -453,8 +453,7 @@
       const { width, height } = resizeLissajousCanvas();
       const exact = exactInterval(currentCents());
       const targetRatio = exact ? exact.value : currentRatio();
-      if (exact) renderedRatio = targetRatio;
-      else renderedRatio += (targetRatio - renderedRatio) * 0.08;
+      renderedRatio = targetRatio;
       const lineColor = exact ? "rgba(255,188,102,0.94)" : "rgba(143,211,255,0.88)";
       const glowColor = exact ? "rgba(255,188,102,0.18)" : "rgba(143,211,255,0.16)";
       const centerX = width / 2;
