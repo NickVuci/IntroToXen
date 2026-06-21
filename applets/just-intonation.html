@@ -117,14 +117,13 @@
     .ticks {
       position: relative;
       height: 2rem;
-      padding-inline: 0.55rem;
       color: rgba(255,255,255,0.46);
       font-size: 0.72rem;
     }
 
     .tick {
       position: absolute;
-      left: var(--pct);
+      left: 0;
       min-width: 3rem;
       text-align: center;
       transform: translateX(-50%);
@@ -298,13 +297,24 @@
       const tick = document.createElement("button");
       tick.type = "button";
       tick.className = "tick";
-      tick.style.setProperty("--pct", `${(interval.cents / 1200) * 100}%`);
+      tick.dataset.position = String(interval.cents / 1200);
       tick.textContent = interval.ratio;
       tick.title = interval.name;
       tick.setAttribute("aria-label", `Play ${interval.name}, ${interval.ratio}`);
       tick.addEventListener("click", () => setCents(interval.cents, true));
       ticks.appendChild(tick);
     });
+
+    function layoutIntervalTicks() {
+      const width = ticks.clientWidth;
+      const thumbInset = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.55;
+      const travelWidth = Math.max(1, width - (thumbInset * 2));
+
+      ticks.querySelectorAll(".tick").forEach(tick => {
+        const position = Number(tick.dataset.position);
+        tick.style.left = `${thumbInset + (position * travelWidth)}px`;
+      });
+    }
 
     function ensureAudio() {
       if (audioContext) return;
@@ -462,12 +472,6 @@
       lissajousCtx.save();
       lissajousCtx.translate(centerX, centerY);
 
-      lissajousCtx.strokeStyle = "rgba(255,255,255,0.12)";
-      lissajousCtx.lineWidth = 1;
-      lissajousCtx.beginPath();
-      lissajousCtx.arc(0, 0, radius, 0, Math.PI * 2);
-      lissajousCtx.stroke();
-
       lissajousCtx.beginPath();
       lissajousCtx.lineCap = "round";
       lissajousCtx.lineJoin = "round";
@@ -528,6 +532,8 @@
 
     slider.addEventListener("input", update);
     rootSlider.addEventListener("input", update);
+    window.addEventListener("resize", layoutIntervalTicks);
+    layoutIntervalTicks();
     update();
     window.requestAnimationFrame(drawLissajousFrame);
   </script>
