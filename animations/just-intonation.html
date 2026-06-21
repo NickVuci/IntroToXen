@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Just Intonation Ratio Animation</title>
+  <style>
+    :root {
+      --bg: #080912;
+      --text: #f7f8ff;
+      --muted: #b9bfd1;
+      --blue: #8fd3ff;
+      --gold: #ffd166;
+      --green: #b9fbc0;
+      --line: rgba(255,255,255,0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      background: transparent;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .scene {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      position: relative;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(143,211,255,0.13), transparent 32%),
+        radial-gradient(circle at 82% 24%, rgba(255,209,102,0.11), transparent 34%),
+        #080912;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <main class="scene" aria-label="Just intonation ratio animation">
+    <canvas id="ratioCanvas"></canvas>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("ratioCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let w = 1;
+    let h = 1;
+    let t = 0;
+    let last = performance.now();
+    let progress = 0;
+
+    const stages = [
+      { ratio: "2/1", name: "Octave", numerator: 2, denominator: 1, cents: 1200, inStart: 0.08, fullStart: 0.18, fullEnd: 0.30, outEnd: 0.38 },
+      { ratio: "3/2", name: "Perfect fifth", numerator: 3, denominator: 2, cents: 702, inStart: 0.34, fullStart: 0.44, fullEnd: 0.58, outEnd: 0.68 },
+      { ratio: "5/4", name: "Major third", numerator: 5, denominator: 4, cents: 386, inStart: 0.64, fullStart: 0.74, fullEnd: 0.91, outEnd: 1.00 }
+    ];
+
+    function clamp(value, min = 0, max = 1) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function smoothstep(edge0, edge1, value) {
+      const x = clamp((value - edge0) / (edge1 - edge0));
+      return x * x * (3 - 2 * x);
+    }
+
+    function fadeInOut(stage) {
+      return smoothstep(stage.inStart, stage.fullStart, progress) * (1 - smoothstep(stage.fullEnd, stage.outEnd, progress));
+    }
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.35 : 1.9);
+      w = Math.max(1, rect.width);
+      h = Math.max(1, rect.height);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function roundRect(x, y, width, height, radius) {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      ctx.lineTo(x + r, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+    }
+
+    function drawText(text, x, y, size, color, alpha = 1, weight = 900, align = "center") {
+      if (alpha <= 0.001) return;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+      ctx.textAlign = align;
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function drawWave(y, cycles, color, alpha, left, right) {
+      if (alpha <= 0.001) return;
+      const amp = Math.min(48, h * 0.075);
+      const width = right - left;
+      const phase = t * 0.0014;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(2.2, Math.min(4, w * 0.005));
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+
+      for (let i = 0; i <= 720; i += 1) {
+        const p = i / 720;
+        const x = left + p * width;
+        const yy = y + Math.sin((p * Math.PI * 2 * cycles) + phase * cycles) * amp;
+        if (i === 0) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPeriodBox(x, y, width, height, color, alpha) {
+      if (alpha <= 0.001) return;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color === "#ffd166" ? "rgba(255,209,102,0.075)" : "rgba(143,211,255,0.075)";
+      ctx.lineWidth = 2;
+      roundRect(x, y, width, height, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPeriodBoxes(stage, alpha, left, right, upperY, lowerY) {
+      const width = right - left;
+      const boxHeight = Math.min(110, h * 0.19);
+      const lowerPeriod = width / stage.denominator;
+      const upperPeriod = width / stage.numerator;
+
+      for (let i = 0; i < stage.denominator; i += 1) {
+        drawPeriodBox(left + lowerPeriod * i, lowerY - boxHeight / 2, lowerPeriod, boxHeight, "#8fd3ff", alpha);
+      }
+
+      for (let i = 0; i < stage.numerator; i += 1) {
+        drawPeriodBox(left + upperPeriod * i, upperY - boxHeight / 2, upperPeriod, boxHeight, "#ffd166", alpha);
+      }
+
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.55;
+      ctx.strokeStyle = "rgba(255,255,255,0.28)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 7]);
+      for (let i = 0; i <= stage.numerator; i += 1) {
+        const x = left + upperPeriod * i;
+        ctx.beginPath();
+        ctx.moveTo(x, upperY + boxHeight * 0.62);
+        ctx.lineTo(x, lowerY - boxHeight * 0.62);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawScene() {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#080912";
+      ctx.fillRect(0, 0, w, h);
+
+      const left = w * 0.09;
+      const right = w * 0.91;
+      const upperY = h * 0.28;
+      const lowerY = h * 0.68;
+      const activeAlpha = smoothstep(0.02, 0.08, progress) * (1 - smoothstep(0.96, 1, progress));
+
+      drawText("1/1 drone", w / 2, lowerY + Math.min(90, h * 0.145), Math.min(30, w * 0.052), "#8fd3ff", activeAlpha, 900);
+
+      stages.forEach(stage => {
+        const alpha = fadeInOut(stage);
+        if (alpha <= 0.001) return;
+
+        drawWave(lowerY, stage.denominator, "#8fd3ff", alpha, left, right);
+        drawWave(upperY, stage.numerator, "#ffd166", alpha, left, right);
+        drawPeriodBoxes(stage, alpha * 0.82, left, right, upperY, lowerY);
+
+        drawText(stage.name, w / 2, upperY - Math.min(88, h * 0.14), Math.min(28, w * 0.05), "#f7f8ff", alpha, 900);
+        drawText(stage.ratio, w / 2, h * 0.49, Math.min(112, w * 0.17), "#ffd166", alpha, 1000);
+        drawText(`${stage.cents} cents`, w / 2, h * 0.58, Math.min(22, w * 0.038), "#b9bfd1", alpha, 850);
+      });
+
+      if (progress <= 0.001) {
+        drawText("Simple ratios line up as repeating waves", w / 2, h / 2, Math.min(38, w * 0.07), "rgba(255,255,255,0.72)", 1, 900);
+      }
+    }
+
+    function setProgress(value) {
+      progress = clamp(Number(value) || 0);
+      drawScene();
+    }
+
+    function frame(now) {
+      const dt = Math.min(48, now - last);
+      last = now;
+      t += dt;
+      drawScene();
+      requestAnimationFrame(frame);
+    }
+
+    window.addEventListener("message", event => {
+      if (event.origin !== window.location.origin) return;
+      const message = event.data || {};
+
+      if (message.type === "lesson-animation-progress") setProgress(message.progress);
+      if (message.type === "lesson-animation-reset") setProgress(0);
+      if (message.type === "lesson-animation-finish") setProgress(1);
+    });
+
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        resize();
+        drawScene();
+      }, 120);
+    });
+
+    resize();
+    setProgress(0);
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

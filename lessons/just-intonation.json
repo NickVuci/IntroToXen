@@ -12,9 +12,9 @@
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/example.html",
+      "file": "animations/just-intonation.html",
       "word": "ratios",
-      "durationMs": 7800,
+      "durationMs": 38000,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },

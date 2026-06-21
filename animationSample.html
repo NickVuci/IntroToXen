@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Harmonic Series Lesson</title>
+  <style>
+    :root {
+      --bg: #080912;
+      --panel: rgba(255,255,255,0.075);
+      --panel2: rgba(0,0,0,0.22);
+      --line: rgba(255,255,255,0.14);
+      --text: #f7f8ff;
+      --muted: #b9bfd1;
+      --blue: #8fd3ff;
+      --gold: #ffd166;
+      --green: #b9fbc0;
+      --pink: #ff8fab;
+      --purple: #c8a0ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(143,211,255,0.16), transparent 24rem),
+        radial-gradient(circle at 95% 22%, rgba(255,209,102,0.12), transparent 22rem),
+        radial-gradient(circle at 50% 100%, rgba(255,143,171,0.08), transparent 28rem),
+        var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-x: hidden;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .crossfadeLesson {
+      height: 220vh;
+      position: relative;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(143,211,255,0.16), transparent 24rem),
+        radial-gradient(circle at 95% 22%, rgba(255,209,102,0.12), transparent 22rem),
+        var(--bg);
+    }
+
+    .crossfadeSticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      padding: max(0.8rem, env(safe-area-inset-top)) 0.8rem max(0.8rem, env(safe-area-inset-bottom));
+    }
+
+    .crossfadeLayer {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: max(0.8rem, env(safe-area-inset-top)) 0.8rem max(0.8rem, env(safe-area-inset-bottom));
+      will-change: opacity, transform;
+    }
+
+    .titleLayer {
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    .ratioLayer {
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ratioLayer .sectionInner {
+      width: min(1180px, 100%);
+    }
+
+    .crossfadeLesson .note {
+      margin-top: 0.55rem;
+    }
+
+    .crossfadeLesson .canvasBox {
+      height: min(52vh, 560px);
+      min-height: 330px;
+    }
+
+    .ratioStageOnly {
+      border-top: 1px solid var(--line);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(1px);
+      pointer-events: none;
+    }
+
+    .hero::before {
+      width: min(62vw, 28rem);
+      height: min(62vw, 28rem);
+      background: rgba(143,211,255,0.10);
+      border: 1px solid rgba(143,211,255,0.18);
+      left: -8rem;
+      top: 8vh;
+    }
+
+    .hero::after {
+      width: min(52vw, 22rem);
+      height: min(52vw, 22rem);
+      background: rgba(255,209,102,0.10);
+      border: 1px solid rgba(255,209,102,0.18);
+      right: -7rem;
+      bottom: 10vh;
+    }
+
+    .heroCard {
+      width: min(980px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      padding: clamp(1.25rem, 5vw, 3rem);
+      box-shadow: 0 24px 90px rgba(0,0,0,0.35);
+      position: relative;
+      z-index: 2;
+      will-change: opacity, transform;
+    }
+
+    #ratio-animation .sectionInner {
+      will-change: opacity, transform;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font-size: 0.74rem;
+      font-weight: 950;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 0.7rem;
+    }
+
+    h1 {
+      margin: 0 0 0.9rem;
+      font-size: clamp(2.6rem, 10vw, 7rem);
+      line-height: 0.9;
+      letter-spacing: -0.07em;
+    }
+
+    h2 {
+      margin: 0 0 0.6rem;
+      font-size: clamp(1.9rem, 6vw, 4.2rem);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.48;
+      font-size: clamp(0.98rem, 2.3vw, 1.12rem);
+    }
+
+    .hero p {
+      max-width: 62rem;
+      margin: 0 auto;
+    }
+
+    .heroActions {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 1.35rem;
+    }
+
+    a.buttonLink,
+    button {
+      min-height: 44px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      padding: 0.66rem 0.95rem;
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      font: inherit;
+      text-decoration: none;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    a.buttonLink.primary,
+    button.buttonLink.primary,
+    button.active {
+      border-color: rgba(255,209,102,0.66);
+      background: rgba(255,209,102,0.22);
+      color: var(--gold);
+    }
+
+    .lessonSection {
+      min-height: 100vh;
+      padding: 0.8rem;
+      display: grid;
+      align-items: center;
+    }
+
+    .sectionInner {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .sectionHeader {
+      border: 1px solid var(--line);
+      border-radius: 24px 24px 0 0;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(12px);
+      padding: clamp(1rem, 3vw, 1.6rem);
+      text-align: center;
+    }
+
+    .stage {
+      border: 1px solid var(--line);
+      border-top: none;
+      border-radius: 0 0 24px 24px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.045);
+      box-shadow: 0 22px 80px rgba(0,0,0,0.35);
+    }
+
+    .canvasBox {
+      height: min(66vh, 680px);
+      min-height: 460px;
+      position: relative;
+      background: var(--panel2);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #080912;
+      touch-action: manipulation;
+    }
+
+    .controls {
+      display: grid;
+      gap: 0.8rem;
+      padding: 0.95rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.16);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    label {
+      color: #e9ecf7;
+      display: flex;
+      gap: 0.55rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="range"] {
+      width: min(340px, 70vw);
+      accent-color: var(--gold);
+    }
+
+    .readout {
+      min-width: 4.4rem;
+      color: var(--gold);
+      text-align: center;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progressBar {
+      width: min(560px, 76vw);
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      overflow: hidden;
+    }
+
+    .progressFill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--gold));
+      border-radius: 999px;
+    }
+
+    .note {
+      margin-top: 0.85rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+    }
+
+    .note strong {
+      color: var(--gold);
+    }
+
+    .footer {
+      min-height: 40vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 680px) {
+      .lessonSection {
+        padding: 0.65rem;
+      }
+
+      .canvasBox {
+        height: 64vh;
+        min-height: 490px;
+      }
+
+      .sectionHeader {
+        border-radius: 20px 20px 0 0;
+      }
+
+      .stage {
+        border-radius: 0 0 20px 20px;
+      }
+
+      h1 {
+        font-size: clamp(2.4rem, 13vw, 4.4rem);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <section class="crossfadeLesson" id="ratio-animation">
+    <div class="crossfadeSticky">
+      <div class="crossfadeLayer titleLayer">
+        <div class="heroCard">
+          <div class="eyebrow">Interactive lesson</div>
+          <h1>The harmonic series</h1>
+          <p>First, watch simple frequency ratios become visible as waveforms. Then explore the harmonic series directly by clicking partials, hearing them, and combining them into colon-notated harmonic sets.</p>
+          <div class="heroActions">
+            <button id="startLessonButton" class="buttonLink primary" type="button">Start lesson</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="crossfadeLayer ratioLayer">
+        <div class="sectionInner">
+          <div class="stage ratioStageOnly">
+            <div class="canvasBox">
+              <canvas id="ratioCanvas"></canvas>
+            </div>
+
+            <div class="controls">
+              <div class="row">
+                <button id="ratioPlayButton">Play animation</button>
+                <button id="ratioRestartButton">Restart</button>
+                <button id="ratioStopButton">Stop sound</button>
+              </div>
+              <div class="row">
+                <div class="progressBar">
+                  <div class="progressFill" id="ratioProgressFill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note">
+            <p><strong>What to notice:</strong> 2/1 fits two upper periods into one lower period. 3/1 fits three. 4/1 fits four. Higher harmonic numbers mean more cycles in the same amount of time.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lessonSection" id="interactive-series">
+    <div class="sectionInner">
+      <div class="sectionHeader">
+        <div class="eyebrow">Part 2</div>
+        <h2>Click the harmonic series</h2>
+        <p>Click a partial to start it. Click it again to stop it. Multiple partials can sound together; when two or more are active, they appear as colon notation such as 4:5:6.</p>
+      </div>
+
+      <div class="stage">
+        <div class="canvasBox">
+          <canvas id="seriesCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+          <div class="row">
+            <button id="playSelectedButton">Toggle selected partial</button>
+            <button id="playStackButton">Toggle harmonic stack</button>
+            <button id="sweepButton">Sweep 1 → 16</button>
+            <button id="seriesStopButton">Stop</button>
+          </div>
+
+          <div class="row">
+            <label>
+              Fundamental
+              <input id="baseSlider" type="range" min="55" max="220" value="110" step="1" />
+              <span id="baseReadout" class="readout">110 Hz</span>
+            </label>
+
+            <label>
+              Partials
+              <input id="partialsSlider" type="range" min="8" max="32" value="16" step="1" />
+              <span id="partialsReadout" class="readout">16</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <p><strong>How to read it:</strong> partial 1 is the fundamental. Partial 2 is twice the frequency, partial 3 is three times the frequency, and so on. A single partial is shown as n/1. Multiple sounding partials are notated as a colon-separated harmonic set.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="footer">
+    <p>End of harmonic series lesson.</p>
+  </section>
+
+  <script>
+    (() => {
+      const crossfade = document.querySelector(".crossfadeLesson");
+      const titleLayer = document.querySelector(".titleLayer");
+      const ratioLayer = document.querySelector(".ratioLayer");
+      const startButton = document.getElementById("startLessonButton");
+
+      let buttonTransitionActive = false;
+      let buttonTransitionFade = 0;
+      let buttonTransitionComplete = false;
+
+      function clamp(value, min = 0, max = 1) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function smoothstep(x) {
+        x = clamp(x);
+        return x * x * (3 - 2 * x);
+      }
+
+      function applyCrossfade(fade) {
+        const safeFade = clamp(fade);
+
+        titleLayer.style.opacity = String(1 - safeFade);
+        titleLayer.style.transform = `scale(${1 - safeFade * 0.035})`;
+        titleLayer.style.visibility = safeFade >= 0.995 ? "hidden" : "visible";
+        titleLayer.style.pointerEvents = safeFade > 0.92 ? "none" : "auto";
+
+        ratioLayer.style.opacity = String(safeFade);
+        ratioLayer.style.transform = `scale(${0.985 + safeFade * 0.015})`;
+        ratioLayer.style.visibility = safeFade <= 0.005 ? "hidden" : "visible";
+        ratioLayer.style.pointerEvents = safeFade > 0.72 ? "auto" : "none";
+      }
+
+      function getScrollFade() {
+        const vh = window.innerHeight || 1;
+        const rect = crossfade.getBoundingClientRect();
+        const total = Math.max(1, rect.height - vh);
+        const progress = clamp(-rect.top / total);
+
+        // Both layers are fixed inside the same sticky viewport.
+        // The user sees a crossfade, not a visible page transition.
+        return smoothstep((progress - 0.12) / 0.42);
+      }
+
+      function updateScrollFade() {
+        if (buttonTransitionActive) {
+          applyCrossfade(buttonTransitionFade);
+          return;
+        }
+
+        // After the Start button finishes, keep the animation layer locked on.
+        // This prevents a one-frame flicker where a scroll event briefly recalculates
+        // the fade from the pre-scroll position and makes the title reappear.
+        if (buttonTransitionComplete) {
+          applyCrossfade(1);
+          return;
+        }
+
+        applyCrossfade(getScrollFade());
+      }
+
+      function startButtonTransition() {
+        if (buttonTransitionActive) return;
+
+        buttonTransitionActive = true;
+        buttonTransitionComplete = false;
+
+        const start = performance.now();
+        const duration = 1200;
+
+        function step(now) {
+          const p = clamp((now - start) / duration);
+          buttonTransitionFade = smoothstep(p);
+          applyCrossfade(buttonTransitionFade);
+
+          if (p < 1) {
+            requestAnimationFrame(step);
+            return;
+          }
+
+          // Lock the final visual state before moving scroll position.
+          // This guarantees no intermediate scroll event can redraw the title.
+          buttonTransitionFade = 1;
+          buttonTransitionComplete = true;
+          applyCrossfade(1);
+
+          const vh = window.innerHeight || 1;
+          const target = crossfade.offsetTop + (crossfade.offsetHeight - vh) * 0.60;
+          window.scrollTo({ top: target, behavior: "auto" });
+
+          requestAnimationFrame(() => {
+            buttonTransitionActive = false;
+            applyCrossfade(1);
+          });
+        }
+
+        requestAnimationFrame(step);
+      }
+
+      startButton.addEventListener("click", startButtonTransition);
+      window.addEventListener("scroll", updateScrollFade, { passive: true });
+      window.addEventListener("resize", updateScrollFade);
+      updateScrollFade();
+    })();
+
+    (() => {
+      const canvas = document.getElementById("ratioCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const playButton = document.getElementById("ratioPlayButton");
+      const restartButton = document.getElementById("ratioRestartButton");
+      const stopButton = document.getElementById("ratioStopButton");
+      const progressFill = document.getElementById("ratioProgressFill");
+      const section = document.getElementById("ratio-animation");
+
+      let w = 1;
+      let h = 1;
+      let t = 0;
+      let last = performance.now();
+      let playing = false;
+      let startTime = 0;
+      let progress = 0;
+
+      let audioCtx = null;
+      let osc110 = null;
+      let oscUpper = null;
+      let gain110 = null;
+      let gainUpper = null;
+
+      const totalDuration = 38000;
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.35 : 1.9);
+        w = Math.max(1, rect.width);
+        h = Math.max(1, rect.height);
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function clamp(v, min = 0, max = 1) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      function smoothstep(edge0, edge1, x) {
+        x = clamp((x - edge0) / (edge1 - edge0));
+        return x * x * (3 - 2 * x);
+      }
+
+      function fadeInOut(x, inStart, inEnd, outStart, outEnd) {
+        return smoothstep(inStart, inEnd, x) * (1 - smoothstep(outStart, outEnd, x));
+      }
+
+      function isVisible() {
+        const rect = section.getBoundingClientRect();
+        return rect.bottom > 0 && rect.top < window.innerHeight;
+      }
+
+      function drawText(text, x, y, size, color, alpha = 1) {
+        if (alpha <= 0.001) return;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+        ctx.font = `900 ${size}px system-ui, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, x, y);
+        ctx.restore();
+      }
+
+      function roundRect(x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+      }
+
+      function drawWave(y, period, color, alpha) {
+        if (alpha <= 0.001) return;
+
+        const amp = Math.min(52, h * 0.08);
+        const left = w * 0.08;
+        const right = w * 0.92;
+        const phase = t * 0.018;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+
+        for (let x = left; x <= right; x += 2) {
+          const wave = Math.sin(((x + phase) / period) * Math.PI * 2);
+          const yy = y + wave * amp;
+          if (x === left) ctx.moveTo(x, yy);
+          else ctx.lineTo(x, yy);
+        }
+
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawPeriodBox(x, y, width, height, color, alpha) {
+        if (alpha <= 0.001) return;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color === "#ffd166" ? "rgba(255,209,102,0.075)" : "rgba(143,211,255,0.075)";
+        ctx.lineWidth = 3;
+        roundRect(x, y, width, height, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.setLineDash([6, 7]);
+        ctx.globalAlpha = alpha * 0.8;
+        ctx.beginPath();
+        ctx.moveTo(x, y + height / 2);
+        ctx.lineTo(x + width, y + height / 2);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawPeriodBoxes(lowerY, upperY, basePeriod, multiplier, alpha) {
+        if (alpha <= 0.001) return;
+
+        const amp = Math.min(52, h * 0.08);
+        const startX = (w - basePeriod) / 2;
+        const boxH = amp * 2.45;
+        const upperPeriod = basePeriod / multiplier;
+
+        drawPeriodBox(startX, lowerY - boxH / 2, basePeriod, boxH, "#8fd3ff", alpha);
+
+        for (let i = 0; i < multiplier; i++) {
+          drawPeriodBox(startX + upperPeriod * i, upperY - boxH / 2, upperPeriod, boxH, "#ffd166", alpha);
+        }
+
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.7;
+        ctx.strokeStyle = "rgba(255,255,255,0.28)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 7]);
+
+        const y1 = upperY + boxH / 2 + 12;
+        const y2 = lowerY - boxH / 2 - 12;
+
+        for (let i = 0; i <= multiplier; i++) {
+          const x = startX + upperPeriod * i;
+          ctx.beginPath();
+          ctx.moveTo(x, y1);
+          ctx.lineTo(x, y2);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      function getStage(x) {
+        const stages = [
+          { multiplier: 2, upperAlpha: fadeInOut(x, 0.18, 0.26, 0.39, 0.45), boxAlpha: fadeInOut(x, 0.27, 0.34, 0.39, 0.45), ratioAlpha: fadeInOut(x, 0.33, 0.40, 0.41, 0.47), freq: 220, ratio: "2/1" },
+          { multiplier: 3, upperAlpha: fadeInOut(x, 0.45, 0.52, 0.65, 0.71), boxAlpha: fadeInOut(x, 0.53, 0.60, 0.65, 0.71), ratioAlpha: fadeInOut(x, 0.59, 0.66, 0.67, 0.73), freq: 330, ratio: "3/1" },
+          { multiplier: 4, upperAlpha: fadeInOut(x, 0.71, 0.78, 0.93, 1.00), boxAlpha: fadeInOut(x, 0.79, 0.86, 0.93, 1.00), ratioAlpha: fadeInOut(x, 0.85, 0.92, 0.94, 1.00), freq: 440, ratio: "4/1" }
+        ];
+
+        let active = stages[0];
+
+        for (const stage of stages) {
+          const total = stage.upperAlpha + stage.boxAlpha + stage.ratioAlpha;
+          if (total > 0.001) active = stage;
+        }
+
+        return active;
+      }
+
+      function getSceneFade(x) {
+        return 1 - smoothstep(0.94, 1.00, x);
+      }
+
+      function updateAudio(lowerAlpha, upperAlpha, upperFreq) {
+        if (!audioCtx || !gain110 || !gainUpper || !oscUpper) return;
+
+        if (!isVisible() || !playing) {
+          silenceAudio(0.02);
+          return;
+        }
+
+        const now = audioCtx.currentTime;
+
+        gain110.gain.cancelScheduledValues(now);
+        gainUpper.gain.cancelScheduledValues(now);
+
+        gain110.gain.setTargetAtTime(lowerAlpha * 0.18, now, 0.035);
+        gainUpper.gain.setTargetAtTime(upperAlpha * 0.14, now, 0.035);
+        oscUpper.frequency.setTargetAtTime(upperFreq, now, 0.035);
+      }
+
+      function silenceAudio(timeConstant = 0.025) {
+        if (!audioCtx || !gain110 || !gainUpper) return;
+
+        const now = audioCtx.currentTime;
+        gain110.gain.cancelScheduledValues(now);
+        gainUpper.gain.cancelScheduledValues(now);
+        gain110.gain.setTargetAtTime(0.000001, now, timeConstant);
+        gainUpper.gain.setTargetAtTime(0.000001, now, timeConstant);
+      }
+
+      function draw() {
+        const sceneFade = getSceneFade(progress);
+        const lowerAlpha = smoothstep(0.04, 0.14, progress) * sceneFade;
+        const lowerY = h * 0.68;
+        const upperY = h * 0.28;
+        const stage = getStage(progress);
+        const upperAlpha = stage.upperAlpha * sceneFade;
+        const boxAlpha = stage.boxAlpha * sceneFade;
+        const ratioAlpha = stage.ratioAlpha * sceneFade;
+        const basePeriod = Math.min(280, w * 0.38);
+        const upperPeriod = basePeriod / stage.multiplier;
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "#080912";
+        ctx.fillRect(0, 0, w, h);
+
+        drawWave(lowerY, basePeriod, "#8fd3ff", lowerAlpha);
+        drawWave(upperY, upperPeriod, "#ffd166", upperAlpha);
+
+        drawText("110 Hz", w / 2, lowerY + Math.min(95, h * 0.15), 34, "#8fd3ff", lowerAlpha);
+        drawText(String(stage.freq) + " Hz", w / 2, upperY - Math.min(95, h * 0.15), 34, "#ffd166", upperAlpha);
+
+        drawPeriodBoxes(lowerY, upperY, basePeriod, stage.multiplier, boxAlpha);
+        drawText(stage.ratio, w / 2, h / 2, Math.min(120, w * 0.2), "#ffd166", ratioAlpha);
+
+        if (progress <= 0.001 && !playing) {
+          drawText("Press Play", w / 2, h / 2, Math.min(54, w * 0.11), "rgba(255,255,255,0.72)", 1);
+        }
+
+        progressFill.style.width = `${progress * 100}%`;
+        updateAudio(lowerAlpha, upperAlpha, stage.freq);
+      }
+
+      function getAudioContext() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+      }
+
+      function startAudio() {
+        const ctxA = getAudioContext();
+
+        if (!osc110 || !oscUpper) {
+          osc110 = ctxA.createOscillator();
+          oscUpper = ctxA.createOscillator();
+          gain110 = ctxA.createGain();
+          gainUpper = ctxA.createGain();
+
+          osc110.type = "sine";
+          oscUpper.type = "sine";
+          osc110.frequency.value = 110;
+          oscUpper.frequency.value = 220;
+          gain110.gain.value = 0.000001;
+          gainUpper.gain.value = 0.000001;
+
+          osc110.connect(gain110);
+          oscUpper.connect(gainUpper);
+          gain110.connect(ctxA.destination);
+          gainUpper.connect(ctxA.destination);
+
+          osc110.start();
+          oscUpper.start();
+        }
+      }
+
+      function playAnimation() {
+        startAudio();
+        progress = 0;
+        playing = true;
+        startTime = performance.now();
+        playButton.classList.add("active");
+        playButton.textContent = "Playing";
+      }
+
+      function restartAnimation() {
+        progress = 0;
+        playing = false;
+        silenceAudio(0.015);
+        playButton.classList.remove("active");
+        playButton.textContent = "Play animation";
+        draw();
+      }
+
+      function stopSound() {
+        playing = false;
+        silenceAudio(0.015);
+        playButton.classList.remove("active");
+        playButton.textContent = "Play animation";
+      }
+
+      function frame(now) {
+        const dt = Math.min(48, now - last);
+        last = now;
+        t += dt;
+
+        if (playing) {
+          progress = clamp((now - startTime) / totalDuration);
+          if (progress >= 1) {
+            progress = 1;
+            playing = false;
+            silenceAudio(0.035);
+            playButton.classList.remove("active");
+            playButton.textContent = "Play again";
+          }
+        }
+
+        draw();
+        requestAnimationFrame(frame);
+      }
+
+      let resizeTimer = null;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resize, 120);
+      });
+      window.addEventListener("scroll", () => {
+        if (!isVisible()) silenceAudio(0.01);
+      }, { passive: true });
+
+      playButton.addEventListener("click", playAnimation);
+      restartButton.addEventListener("click", restartAnimation);
+      stopButton.addEventListener("click", stopSound);
+
+      resize();
+      draw();
+      requestAnimationFrame(frame);
+    })();
+
+    (() => {
+      const canvas = document.getElementById("seriesCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const playSelectedButton = document.getElementById("playSelectedButton");
+      const playStackButton = document.getElementById("playStackButton");
+      const sweepButton = document.getElementById("sweepButton");
+      const stopButton = document.getElementById("seriesStopButton");
+      const baseSlider = document.getElementById("baseSlider");
+      const baseReadout = document.getElementById("baseReadout");
+      const partialsSlider = document.getElementById("partialsSlider");
+      const partialsReadout = document.getElementById("partialsReadout");
+      const section = document.getElementById("interactive-series");
+
+      const C = {
+        bg: "#080912",
+        text: "#f7f8ff",
+        muted: "#b9bfd1",
+        blue: "#8fd3ff",
+        gold: "#ffd166",
+        green: "#b9fbc0",
+        pink: "#ff8fab",
+        purple: "#c8a0ff"
+      };
+
+      let w = 1;
+      let h = 1;
+      let dpr = 1;
+      let t = 0;
+      let last = performance.now();
+      let selectedPartial = 1;
+      let hoverPartial = null;
+      let audioCtx = null;
+      let activeNodes = [];
+      let activePartials = new Map();
+      let sweepTimer = null;
+      let partialPositions = [];
+
+      function isSmall() {
+        return window.innerWidth < 680;
+      }
+
+      function getBaseHz() {
+        return Number(baseSlider.value);
+      }
+
+      function getPartialCount() {
+        return Number(partialsSlider.value);
+      }
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        dpr = Math.min(window.devicePixelRatio || 1, isSmall() ? 1.35 : 1.9);
+        w = Math.max(1, rect.width);
+        h = Math.max(1, rect.height);
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function sectionIsVisible() {
+        const rect = section.getBoundingClientRect();
+        return rect.bottom > 0 && rect.top < window.innerHeight;
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function drawText(text, x, y, size, color, align = "center", alpha = 1, weight = 850) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+        ctx.font = `${weight} ${size}px system-ui, sans-serif`;
+        ctx.textAlign = align;
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, x, y);
+        ctx.restore();
+      }
+
+      function roundRect(x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+      }
+
+      function drawBackground() {
+        ctx.fillStyle = C.bg;
+        ctx.fillRect(0, 0, w, h);
+
+        const grad = ctx.createRadialGradient(w * 0.5, h * 0.12, 0, w * 0.5, h * 0.12, Math.max(w, h) * 0.85);
+        grad.addColorStop(0, "rgba(143,211,255,0.13)");
+        grad.addColorStop(0.52, "rgba(255,209,102,0.045)");
+        grad.addColorStop(1, "rgba(8,9,18,0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      function getAudioContext() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+      }
+
+      function stopNode(item, timeConstant = 0.025) {
+        if (!audioCtx || !item) return;
+        const now = audioCtx.currentTime;
+        try {
+          item.gain.gain.cancelScheduledValues(now);
+          item.gain.gain.setTargetAtTime(0.000001, now, timeConstant);
+          item.osc.stop(now + 0.14);
+        } catch (error) {}
+      }
+
+      function stopAll() {
+        clearTimeout(sweepTimer);
+        sweepTimer = null;
+
+        for (const item of activeNodes) stopNode(item, 0.025);
+        for (const item of activePartials.values()) stopNode(item, 0.025);
+
+        activeNodes = [];
+        activePartials.clear();
+        playStackButton.classList.remove("active");
+        sweepButton.classList.remove("active");
+      }
+
+      function playTone(freq, duration = 1.1, gainAmount = 0.18, type = "sine") {
+        const ctxA = getAudioContext();
+        const now = ctxA.currentTime;
+        const osc = ctxA.createOscillator();
+        const gain = ctxA.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.000001, now);
+        gain.gain.linearRampToValueAtTime(gainAmount, now + 0.035);
+        gain.gain.setTargetAtTime(0.000001, now + duration * 0.78, 0.08);
+
+        osc.connect(gain);
+        gain.connect(ctxA.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.35);
+
+        activeNodes.push({ osc, gain });
+
+        setTimeout(() => {
+          activeNodes = activeNodes.filter(item => item.osc !== osc);
+        }, (duration + 0.5) * 1000);
+      }
+
+      function startSustainedPartial(n) {
+        const ctxA = getAudioContext();
+        const now = ctxA.currentTime;
+        const freq = getBaseHz() * n;
+        const osc = ctxA.createOscillator();
+        const gain = ctxA.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now);
+
+        const amount = Math.min(0.16, 0.22 / Math.sqrt(n));
+
+        gain.gain.setValueAtTime(0.000001, now);
+        gain.gain.linearRampToValueAtTime(amount, now + 0.045);
+
+        osc.connect(gain);
+        gain.connect(ctxA.destination);
+        osc.start(now);
+
+        activePartials.set(n, { osc, gain, freq });
+      }
+
+      function stopSustainedPartial(n) {
+        const item = activePartials.get(n);
+        if (!item) return;
+        stopNode(item, 0.025);
+        activePartials.delete(n);
+      }
+
+      function togglePartial(n) {
+        selectedPartial = n;
+        if (activePartials.has(n)) stopSustainedPartial(n);
+        else startSustainedPartial(n);
+      }
+
+      function updateActivePartialFrequencies() {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const base = getBaseHz();
+
+        for (const [n, item] of activePartials.entries()) {
+          const freq = base * n;
+          item.freq = freq;
+          item.osc.frequency.setTargetAtTime(freq, now, 0.035);
+        }
+      }
+
+      function getActivePartialList() {
+        return Array.from(activePartials.keys()).sort((a, b) => a - b);
+      }
+
+      function getActiveColonNotation() {
+        const active = getActivePartialList();
+        if (active.length < 2) return "";
+        return active.join(":");
+      }
+
+      function playPartial(n) {
+        togglePartial(n);
+      }
+
+      function playMomentaryPartial(n, duration = 0.55) {
+        selectedPartial = n;
+        const freq = getBaseHz() * n;
+        playTone(freq, duration, Math.min(0.18, 0.23 / Math.sqrt(n)), "sine");
+      }
+
+      function playHarmonicStack() {
+        if (playStackButton.classList.contains("active")) {
+          stopAll();
+          return;
+        }
+
+        stopAll();
+        playStackButton.classList.add("active");
+
+        const count = getPartialCount();
+        for (let n = 1; n <= count; n++) startSustainedPartial(n);
+      }
+
+      function sweepPartials() {
+        stopAll();
+        sweepButton.classList.add("active");
+
+        let n = 1;
+        const count = getPartialCount();
+
+        function next() {
+          if (n > count) {
+            sweepButton.classList.remove("active");
+            return;
+          }
+
+          playMomentaryPartial(n, 0.55);
+          n++;
+          sweepTimer = setTimeout(next, 430);
+        }
+
+        next();
+      }
+
+      function getPartialPosition(n, count) {
+        const left = w * 0.08;
+        const right = w * 0.92;
+        const bottom = h * 0.78;
+        const top = h * 0.42;
+        const x = left + ((n - 1) / Math.max(1, count - 1)) * (right - left);
+        const heightRatio = Math.pow(n / count, 0.72);
+        const y = bottom - heightRatio * (bottom - top);
+        return { x, y, bottom };
+      }
+
+      function drawSelectedWave() {
+        const active = getActivePartialList();
+        if (!active.length) return;
+
+        const wavePartials = active;
+        const y = h * 0.18;
+        const left = w * 0.08;
+        const right = w * 0.92;
+        const amp = Math.min(38, h * 0.052);
+        const width = right - left;
+        const phase = t * 0.0013;
+
+        if (wavePartials.length > 1) {
+          for (const n of wavePartials) {
+            ctx.save();
+            ctx.globalAlpha = 0.13;
+            ctx.strokeStyle = n === 1 ? C.blue : C.gold;
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+
+            for (let i = 0; i <= 360; i++) {
+              const p = i / 360;
+              const x = left + p * width;
+              const component = Math.sin(p * Math.PI * 2 * n + phase * n);
+              const yy = y + component * amp * 0.72;
+              if (i === 0) ctx.moveTo(x, yy);
+              else ctx.lineTo(x, yy);
+            }
+
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        let weightSum = 0;
+        for (const n of wavePartials) weightSum += 1 / n;
+
+        ctx.save();
+        ctx.strokeStyle = wavePartials.length > 1 ? C.green : C.gold;
+        ctx.lineWidth = wavePartials.length > 1 ? 4 : 3;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+
+        for (let i = 0; i <= 620; i++) {
+          const p = i / 620;
+          const x = left + p * width;
+          let sum = 0;
+
+          for (const n of wavePartials) {
+            const weight = 1 / n;
+            sum += weight * Math.sin(p * Math.PI * 2 * n + phase * n);
+          }
+
+          const normalized = weightSum > 0 ? sum / weightSum : 0;
+          const yy = y + normalized * amp;
+          if (i === 0) ctx.moveTo(x, yy);
+          else ctx.lineTo(x, yy);
+        }
+
+        ctx.stroke();
+        ctx.restore();
+
+        const notation = wavePartials.length > 1 ? wavePartials.join(":") : `${wavePartials[0]}/1`;
+        const label = wavePartials.length > 1 ? "composite waveform" : `${wavePartials[0]}× ${getBaseHz()} Hz = ${Math.round(getBaseHz() * wavePartials[0])} Hz`;
+
+        drawText(notation, left, y - 58, isSmall() ? 24 : 30, wavePartials.length > 1 ? C.green : C.gold, "left", 1, 1000);
+        drawText(label, right, y - 58, isSmall() ? 14 : 18, C.text, "right", 0.95, 900);
+
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.strokeStyle = wavePartials.length > 1 ? C.green : C.gold;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawSeries() {
+        const count = getPartialCount();
+        partialPositions = [];
+        const left = w * 0.08;
+        const right = w * 0.92;
+        const baseline = h * 0.80;
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255,0.14)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(left, baseline);
+        ctx.lineTo(right, baseline);
+        ctx.stroke();
+        ctx.restore();
+
+        for (let n = 1; n <= count; n++) {
+          const pos = getPartialPosition(n, count);
+          const selected = n === selectedPartial;
+          const sounding = activePartials.has(n);
+          const active = selected || sounding;
+          const hovered = n === hoverPartial;
+          const pulse = sounding ? 1 + Math.sin(t * 0.006 + n) * 0.16 : selected ? 1.08 : 1;
+          const radius = (sounding ? 12 : selected ? 10 : hovered ? 9 : 6.5) * pulse;
+          const color = sounding ? C.gold : selected ? C.green : hovered ? C.green : C.blue;
+          const alpha = active || hovered ? 1 : 0.72;
+
+          partialPositions.push({ n, x: pos.x, y: pos.y, r: radius + 8 });
+
+          ctx.save();
+          ctx.globalAlpha = alpha * 0.55;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = active ? 3 : 1.5;
+          ctx.beginPath();
+          ctx.moveTo(pos.x, baseline);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalAlpha = sounding ? 0.22 : hovered ? 0.16 : 0.06;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, radius * 2.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          const showLabel = count <= 16 || n === 1 || n === 2 || n === 3 || n === 4 || n === selectedPartial || n % 4 === 0;
+          if (showLabel) {
+            drawText(String(n), pos.x, baseline + 18, 11, activePartials.has(n) ? C.gold : n === selectedPartial ? C.green : C.muted, "center", 0.95, 850);
+          }
+        }
+
+        drawText("partial number", w / 2, baseline + 48, 13, C.muted, "center", 0.75, 800);
+      }
+
+      function drawInfoCard() {
+        const n = selectedPartial;
+        const freq = getBaseHz() * n;
+        const colonNotation = getActiveColonNotation();
+        const activeCount = activePartials.size;
+        const hasChord = activeCount >= 2;
+        const cardW = Math.min(w * 0.84, 620);
+        const cardH = hasChord ? (isSmall() ? 96 : 112) : (isSmall() ? 78 : 86);
+        const x = (w - cardW) / 2;
+        const y = hasChord ? h * 0.255 : h * 0.27;
+
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.34)";
+        ctx.strokeStyle = "rgba(255,255,255,0.14)";
+        ctx.lineWidth = 1.4;
+        roundRect(x, y, cardW, cardH, 20);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        if (hasChord) {
+          drawText(
+            colonNotation,
+            w / 2,
+            y + cardH * 0.45,
+            Math.min(isSmall() ? 34 : 44, Math.max(20, cardW / Math.max(7, colonNotation.length * 0.72))),
+            C.gold,
+            "center",
+            1,
+            1000
+          );
+        } else {
+          drawText(`Partial ${n}`, x + cardW * 0.18, y + cardH * 0.42, isSmall() ? 18 : 22, C.gold, "center", 1, 1000);
+          drawText(`${n}/1`, x + cardW * 0.50, y + cardH * 0.42, isSmall() ? 24 : 30, C.text, "center", 1, 1000);
+          drawText(`${Math.round(freq)} Hz`, x + cardW * 0.80, y + cardH * 0.42, isSmall() ? 18 : 22, C.blue, "center", 1, 1000);
+        }
+
+        const instruction = activeCount
+          ? `${activeCount} partial${activeCount === 1 ? "" : "s"} sounding — click again to stop`
+          : "click partials to toggle them on/off";
+        drawText(instruction, w / 2, y + cardH * 0.78, isSmall() ? 11 : 13, C.muted, "center", 0.85, 800);
+      }
+
+      function draw() {
+        drawBackground();
+        drawSelectedWave();
+        drawInfoCard();
+        drawSeries();
+      }
+
+      function getCanvasPoint(event) {
+        const rect = canvas.getBoundingClientRect();
+        return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      }
+
+      function findPartialAt(x, y) {
+        let closest = null;
+        let closestD = Infinity;
+
+        for (const p of partialPositions) {
+          const dx = x - p.x;
+          const dy = y - p.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < p.r && d < closestD) {
+            closest = p.n;
+            closestD = d;
+          }
+
+          const baseline = h * 0.80;
+          if (Math.abs(x - p.x) < 12 && y >= p.y && y <= baseline) {
+            closest = p.n;
+            closestD = 0;
+          }
+        }
+
+        return closest;
+      }
+
+      function pointerDown(event) {
+        const p = getCanvasPoint(event);
+        const n = findPartialAt(p.x, p.y);
+        if (n) playPartial(n);
+      }
+
+      function pointerMove(event) {
+        const p = getCanvasPoint(event);
+        hoverPartial = findPartialAt(p.x, p.y);
+      }
+
+      function frame(now) {
+        const dt = Math.min(48, now - last);
+        last = now;
+        t += dt;
+        draw();
+        requestAnimationFrame(frame);
+      }
+
+      playSelectedButton.addEventListener("click", () => playPartial(selectedPartial));
+      playStackButton.addEventListener("click", playHarmonicStack);
+      sweepButton.addEventListener("click", sweepPartials);
+      stopButton.addEventListener("click", stopAll);
+
+      baseSlider.addEventListener("input", () => {
+        baseReadout.textContent = `${baseSlider.value} Hz`;
+        updateActivePartialFrequencies();
+      });
+
+      partialsSlider.addEventListener("input", () => {
+        partialsReadout.textContent = partialsSlider.value;
+        selectedPartial = clamp(selectedPartial, 1, getPartialCount());
+        const count = getPartialCount();
+        for (const n of Array.from(activePartials.keys())) {
+          if (n > count) stopSustainedPartial(n);
+        }
+      });
+
+      canvas.addEventListener("pointerdown", pointerDown);
+      canvas.addEventListener("pointermove", pointerMove);
+      canvas.addEventListener("pointerleave", () => { hoverPartial = null; });
+
+      let resizeTimer = null;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resize, 120);
+      });
+
+      window.addEventListener("scroll", () => {
+        if (!sectionIsVisible()) stopAll();
+      }, { passive: true });
+
+      resize();
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
