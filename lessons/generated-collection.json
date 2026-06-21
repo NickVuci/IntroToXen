@@ -1,0 +1,77 @@
+{
+  "title": "Generated Collection",
+  "description": "A pitch collection made by stacking a generator within a period.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Generated Collection",
+      "body": "A generated collection is made by repeatedly applying one interval, called a generator, and folding the results into a period. This is a compact way to build scales with strong internal structure.",
+      "startButton": "Start lesson",
+      "prerequisites": [
+        {
+          "label": "Period",
+          "body": "The period is the frame that the generator folds into.",
+          "href": "template.html?lesson=lessons/period.json"
+        }
+      ],
+      "relatedConcepts": [
+        {
+          "label": "Moments of Symmetry",
+          "body": "Many generated collections become MOS scales at special cardinalities.",
+          "href": "template.html?lesson=lessons/moments-of-symmetry.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "generator",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": false
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "How is a generated collection built?",
+      "choices": [
+        {
+          "text": "By stacking a generator and reducing each result into a period.",
+          "correct": true
+        },
+        {
+          "text": "By choosing only unrelated pitches.",
+          "correct": false
+        },
+        {
+          "text": "By ignoring the period entirely.",
+          "correct": false
+        },
+        {
+          "text": "By using only one pitch class.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Choose a generator",
+          "body": "Pick an interval and describe what happens when it is stacked several times."
+        },
+        {
+          "title": "Fold into a period",
+          "body": "Explain why reducing generated notes into the period makes a scale easier to compare."
+        }
+      ]
+    }
+  }
+}

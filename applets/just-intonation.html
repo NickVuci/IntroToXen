@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Just Intonation Applet</title>
+  <style>
+    :root {
+      --bg: #110d18;
+      --bg-2: #1f1630;
+      --ink: #fff9f2;
+      --soft: rgba(255, 249, 242, 0.72);
+      --line: rgba(255, 255, 255, 0.14);
+      --accent: #ffbc66;
+      --accent-2: #8fd3ff;
+      --ghost: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(143, 211, 255, 0.16), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(255, 188, 102, 0.16), transparent 38%),
+        linear-gradient(165deg, var(--bg), var(--bg-2));
+    }
+
+    body { padding: 1rem; }
+
+    .panel {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 1.25rem;
+      border: 1px solid var(--line);
+      background: rgba(9, 4, 15, 0.55);
+    }
+
+    h1,
+    p {
+      margin: 0;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .subtle {
+      color: var(--soft);
+      line-height: 1.4;
+    }
+
+    .audioButton {
+      min-height: 2.7rem;
+      border: 1px solid rgba(255, 188, 102, 0.62);
+      border-radius: 999px;
+      padding: 0.65rem 0.95rem;
+      background: rgba(255, 188, 102, 0.16);
+      color: var(--accent);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .audioButton.playing {
+      background: linear-gradient(135deg, var(--accent), #ffd79d);
+      color: #201204;
+    }
+
+    .body {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+      gap: 1rem;
+    }
+
+    .instrument,
+    .visualizer {
+      border: 1px solid var(--line);
+      border-radius: 1.1rem;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 1rem;
+    }
+
+    .instrument {
+      display: grid;
+      align-content: center;
+      gap: 1.4rem;
+      min-width: 0;
+    }
+
+    .sliderWrap {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .ticks {
+      position: relative;
+      height: 2rem;
+      padding-inline: 0.55rem;
+      color: rgba(255,255,255,0.46);
+      font-size: 0.72rem;
+    }
+
+    .tick {
+      position: absolute;
+      left: var(--pct);
+      min-width: 3rem;
+      text-align: center;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      border: 0;
+      padding: 0.18rem 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      transition: color 160ms ease, transform 160ms ease;
+    }
+
+    .tick:hover,
+    .tick:focus-visible,
+    .tick.active {
+      color: var(--accent);
+      transform: translateX(-50%) translateY(-1px);
+      outline: none;
+    }
+
+    .rootControl {
+      display: grid;
+      gap: 0.55rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--line);
+    }
+
+    .rootHeader {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--soft);
+      font-size: 0.9rem;
+    }
+
+    .rootValue {
+      color: var(--accent-2);
+      font-weight: 850;
+    }
+
+    .visualizer {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+    }
+
+    .lissajousCanvas {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      display: block;
+    }
+
+    .visualizerOverlay {
+      position: absolute;
+      left: 1rem;
+      right: 1rem;
+      bottom: 1rem;
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 0.75rem;
+      align-items: end;
+      color: var(--soft);
+      font-size: 0.86rem;
+      pointer-events: none;
+    }
+
+    .visualizerOverlay strong {
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    .centsText {
+      grid-column: 1 / -1;
+      justify-self: end;
+      color: var(--accent-2);
+      font-weight: 800;
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 0.6rem; }
+      .panel { padding: 0.8rem; }
+      .top,
+      .body { grid-template-columns: 1fr; }
+      .top { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <section class="top">
+      <div>
+        <h1>Just Intonation</h1>
+        <p class="subtle">Start the 1/1 drone, then move the second pitch through exact ratio landmarks inside the octave.</p>
+      </div>
+      <button class="audioButton" id="audioButton" type="button">Start audio</button>
+    </section>
+
+    <section class="body">
+      <div class="instrument">
+        <label class="sliderWrap" for="ratioSlider">
+          <span class="subtle">Second pitch</span>
+          <input id="ratioSlider" type="range" min="0" max="1200" step="1" value="702" />
+          <span class="ticks" id="ticks"></span>
+        </label>
+
+        <label class="rootControl" for="rootSlider">
+          <span class="rootHeader">
+            <span>Root frequency</span>
+            <span class="rootValue" id="rootValue">220 Hz</span>
+          </span>
+          <input id="rootSlider" type="range" min="80" max="440" step="1" value="220" />
+        </label>
+      </div>
+
+      <aside class="visualizer" aria-label="Lissajous figure for the current interval">
+        <canvas class="lissajousCanvas" id="lissajousCanvas"></canvas>
+        <div class="visualizerOverlay" aria-live="polite">
+          <strong id="ratioText">3/2</strong>
+          <span id="nameText">Perfect fifth</span>
+          <span class="centsText" id="centsText">702c</span>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const intervals = [
+      { ratio: "1/1", name: "Unison", value: 1 },
+      { ratio: "16/15", name: "Minor second", value: 16 / 15 },
+      { ratio: "9/8", name: "Major second", value: 9 / 8 },
+      { ratio: "6/5", name: "Minor third", value: 6 / 5 },
+      { ratio: "5/4", name: "Major third", value: 5 / 4 },
+      { ratio: "4/3", name: "Perfect fourth", value: 4 / 3 },
+      { ratio: "3/2", name: "Perfect fifth", value: 3 / 2 },
+      { ratio: "8/5", name: "Minor sixth", value: 8 / 5 },
+      { ratio: "5/3", name: "Major sixth", value: 5 / 3 },
+      { ratio: "7/4", name: "Harmonic seventh", value: 7 / 4 },
+      { ratio: "15/8", name: "Major seventh", value: 15 / 8 },
+      { ratio: "2/1", name: "Octave", value: 2 }
+    ].map(item => ({ ...item, cents: 1200 * Math.log2(item.value) }));
+
+    const audioButton = document.getElementById("audioButton");
+    const slider = document.getElementById("ratioSlider");
+    const rootSlider = document.getElementById("rootSlider");
+    const rootValue = document.getElementById("rootValue");
+    const ticks = document.getElementById("ticks");
+    const lissajousCanvas = document.getElementById("lissajousCanvas");
+    const ratioText = document.getElementById("ratioText");
+    const nameText = document.getElementById("nameText");
+    const centsText = document.getElementById("centsText");
+    const lissajousCtx = lissajousCanvas.getContext("2d");
+
+    let audioContext;
+    let droneOsc;
+    let movingOsc;
+    let droneGain;
+    let movingGain;
+    let playing = false;
+    let renderedRatio = 2 ** (Number(slider.value) / 1200);
+    let lissajousPhase = Math.PI / 2;
+
+    function baseFrequency() {
+      return Number(rootSlider.value);
+    }
+
+    intervals.forEach(interval => {
+      const tick = document.createElement("button");
+      tick.type = "button";
+      tick.className = "tick";
+      tick.style.setProperty("--pct", `${(interval.cents / 1200) * 100}%`);
+      tick.textContent = interval.ratio;
+      tick.title = interval.name;
+      tick.setAttribute("aria-label", `Play ${interval.name}, ${interval.ratio}`);
+      tick.addEventListener("click", () => setCents(interval.cents, true));
+      ticks.appendChild(tick);
+    });
+
+    function ensureAudio() {
+      if (audioContext) return;
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      audioContext = new AudioContextClass();
+
+      droneGain = audioContext.createGain();
+      movingGain = audioContext.createGain();
+      droneGain.gain.value = 0;
+      movingGain.gain.value = 0;
+      droneGain.connect(audioContext.destination);
+      movingGain.connect(audioContext.destination);
+
+      droneOsc = audioContext.createOscillator();
+      movingOsc = audioContext.createOscillator();
+      droneOsc.type = "sine";
+      movingOsc.type = "sine";
+      droneOsc.frequency.value = baseFrequency();
+      movingOsc.frequency.value = currentFrequency();
+      droneOsc.connect(droneGain);
+      movingOsc.connect(movingGain);
+      droneOsc.start();
+      movingOsc.start();
+    }
+
+    function currentCents() {
+      return Number(slider.value);
+    }
+
+    function currentRatio() {
+      return 2 ** (currentCents() / 1200);
+    }
+
+    function currentFrequency() {
+      return baseFrequency() * currentRatio();
+    }
+
+    function nearestInterval(cents) {
+      return intervals.reduce((best, item) => {
+        return Math.abs(item.cents - cents) < Math.abs(best.cents - cents) ? item : best;
+      }, intervals[0]);
+    }
+
+    function exactInterval(cents) {
+      return intervals.find(item => Math.abs(item.cents - cents) < 0.75);
+    }
+
+    function lissajousFrequenciesFor(interval) {
+      if (!interval) {
+        return {
+          xFrequency: renderedRatio,
+          yFrequency: 1,
+          turnCount: 12
+        };
+      }
+
+      const [numerator, denominator] = interval.ratio.split("/").map(Number);
+      return {
+        xFrequency: numerator || 1,
+        yFrequency: denominator || 1,
+        turnCount: 1
+      };
+    }
+
+    function setCents(cents, playExact) {
+      slider.value = String(Math.round(cents));
+      update();
+      if (playExact && !playing) {
+        startAudio().catch(() => {
+          playing = false;
+          audioButton.textContent = "Start audio";
+          audioButton.classList.remove("playing");
+        });
+      }
+    }
+
+    async function startAudio() {
+      ensureAudio();
+      if (!audioContext) {
+        audioButton.textContent = "Audio unavailable";
+        return;
+      }
+
+      await audioContext.resume();
+      const now = audioContext.currentTime;
+      updateAudioFrequency();
+      droneGain.gain.cancelScheduledValues(now);
+      movingGain.gain.cancelScheduledValues(now);
+      droneGain.gain.setValueAtTime(droneGain.gain.value, now);
+      movingGain.gain.setValueAtTime(movingGain.gain.value, now);
+      droneGain.gain.linearRampToValueAtTime(0.13, now + 0.08);
+      movingGain.gain.linearRampToValueAtTime(0.11, now + 0.08);
+      playing = true;
+      audioButton.textContent = "Stop audio";
+      audioButton.classList.add("playing");
+    }
+
+    function stopAudio() {
+      if (!audioContext) return;
+      const now = audioContext.currentTime;
+      droneGain.gain.cancelScheduledValues(now);
+      movingGain.gain.cancelScheduledValues(now);
+      droneGain.gain.setValueAtTime(droneGain.gain.value, now);
+      movingGain.gain.setValueAtTime(movingGain.gain.value, now);
+      droneGain.gain.linearRampToValueAtTime(0, now + 0.08);
+      movingGain.gain.linearRampToValueAtTime(0, now + 0.08);
+      playing = false;
+      audioButton.textContent = "Start audio";
+      audioButton.classList.remove("playing");
+    }
+
+    function updateAudioFrequency() {
+      if (!audioContext || !movingOsc || !droneOsc) return;
+      const now = audioContext.currentTime;
+      droneOsc.frequency.setTargetAtTime(baseFrequency(), now, 0.015);
+      movingOsc.frequency.setTargetAtTime(currentFrequency(), now, 0.015);
+    }
+
+    function resizeLissajousCanvas() {
+      const rect = lissajousCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.round(rect.width * dpr));
+      const height = Math.max(1, Math.round(rect.height * dpr));
+
+      if (lissajousCanvas.width !== width || lissajousCanvas.height !== height) {
+        lissajousCanvas.width = width;
+        lissajousCanvas.height = height;
+      }
+
+      lissajousCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { width: rect.width, height: rect.height };
+    }
+
+    function drawLissajousFrame() {
+      const { width, height } = resizeLissajousCanvas();
+      const exact = exactInterval(currentCents());
+      const targetRatio = exact ? exact.value : currentRatio();
+      if (exact) renderedRatio = targetRatio;
+      else renderedRatio += (targetRatio - renderedRatio) * 0.08;
+      const lineColor = exact ? "rgba(255,188,102,0.94)" : "rgba(143,211,255,0.88)";
+      const glowColor = exact ? "rgba(255,188,102,0.18)" : "rgba(143,211,255,0.16)";
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.max(12, Math.min(width, height) * 0.36);
+      const { xFrequency, yFrequency, turnCount } = lissajousFrequenciesFor(exact);
+      const fullTurn = Math.PI * 2 * turnCount;
+      const pointCount = Math.max(1400, Math.ceil(Math.max(xFrequency, yFrequency) * turnCount * 700));
+      const phase = lissajousPhase;
+
+      lissajousCtx.clearRect(0, 0, width, height);
+      lissajousCtx.fillStyle = "rgba(5, 3, 10, 0.34)";
+      lissajousCtx.fillRect(0, 0, width, height);
+
+      lissajousCtx.save();
+      lissajousCtx.translate(centerX, centerY);
+
+      lissajousCtx.strokeStyle = "rgba(255,255,255,0.12)";
+      lissajousCtx.lineWidth = 1;
+      lissajousCtx.beginPath();
+      lissajousCtx.arc(0, 0, radius, 0, Math.PI * 2);
+      lissajousCtx.stroke();
+
+      lissajousCtx.beginPath();
+      lissajousCtx.lineCap = "round";
+      lissajousCtx.lineJoin = "round";
+
+      for (let i = 0; i <= pointCount; i += 1) {
+        const progress = i / pointCount;
+        const t = progress * fullTurn;
+        const x = Math.sin(t * xFrequency) * radius;
+        const y = Math.sin((t * yFrequency) + phase) * radius;
+        if (i === 0) lissajousCtx.moveTo(x, y);
+        else lissajousCtx.lineTo(x, y);
+      }
+
+      lissajousCtx.shadowColor = glowColor;
+      lissajousCtx.shadowBlur = 16;
+      lissajousCtx.strokeStyle = lineColor;
+      lissajousCtx.lineWidth = 1.85;
+      lissajousCtx.stroke();
+      lissajousCtx.restore();
+
+      lissajousPhase = (lissajousPhase + (playing ? 0.0007 : 0.00025)) % (Math.PI * 2);
+      window.requestAnimationFrame(drawLissajousFrame);
+    }
+
+    function update() {
+      const cents = currentCents();
+      const exact = exactInterval(cents);
+      const nearest = nearestInterval(cents);
+      const ratio = currentRatio();
+      const root = baseFrequency();
+
+      ratioText.textContent = exact ? exact.ratio : `${ratio.toFixed(4)}:1`;
+      nameText.textContent = exact ? exact.name : `Near ${nearest.name}`;
+      centsText.textContent = `${Math.round(cents)}c`;
+      rootValue.textContent = `${root.toFixed(0)} Hz`;
+
+      ticks.querySelectorAll(".tick").forEach((tick, index) => {
+        tick.classList.toggle("active", intervals[index] === exact);
+      });
+
+      updateAudioFrequency();
+    }
+
+    audioButton.addEventListener("click", async () => {
+      if (playing) {
+        stopAudio();
+        return;
+      }
+
+      try {
+        await startAudio();
+      } catch (error) {
+        playing = false;
+        audioButton.textContent = "Start audio";
+        audioButton.classList.remove("playing");
+      }
+    });
+
+    slider.addEventListener("input", update);
+    rootSlider.addEventListener("input", update);
+    update();
+    window.requestAnimationFrame(drawLissajousFrame);
+  </script>
+</body>
+</html>

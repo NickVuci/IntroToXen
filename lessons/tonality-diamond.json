@@ -1,0 +1,77 @@
+{
+  "title": "Tonality Diamond",
+  "description": "A ratio map for organizing related just-intonation chords.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Tonality Diamond",
+      "body": "A tonality diamond arranges ratios into a compact harmonic map. It shows how otonal and utonal relationships mirror each other, making it easier to see chord families inside a chosen odd limit.",
+      "startButton": "Start lesson",
+      "prerequisites": [
+        {
+          "label": "Just Intonation",
+          "body": "Review whole-number ratios before reading the diamond as a chord map.",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        }
+      ],
+      "relatedConcepts": [
+        {
+          "label": "Subharmonic Series",
+          "body": "Compare utonal diamond relationships with inverted ratio families.",
+          "href": "template.html?lesson=lessons/subharmonic-series.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "diamond",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": false
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What does a tonality diamond primarily organize?",
+      "choices": [
+        {
+          "text": "Related just-intonation ratios and chord families.",
+          "correct": true
+        },
+        {
+          "text": "Only equal-tempered semitone names.",
+          "correct": false
+        },
+        {
+          "text": "Random pitches without ratio relationships.",
+          "correct": false
+        },
+        {
+          "text": "Only rhythmic subdivisions.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Choose an odd limit",
+          "body": "Pick 5-limit or 7-limit and list a few ratios you expect to appear in its diamond."
+        },
+        {
+          "title": "Compare two sides",
+          "body": "Describe how an otonal set and a utonal set can feel related but inverted."
+        }
+      ]
+    }
+  }
+}

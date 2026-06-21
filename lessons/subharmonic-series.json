@@ -1,0 +1,67 @@
+{
+  "title": "Subharmonic Series",
+  "description": "A related ratio family built by dividing a reference pitch by whole numbers.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Subharmonic Series",
+      "body": "The subharmonic series mirrors the harmonic series by stepping downward through whole-number divisions of a reference pitch. It is often used to think about undertones, inversional relationships, and alternate chordal colors.",
+      "startButton": "Start lesson"
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "undertones",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/subharmonic-series.html",
+      "prompt": "Compare descending divisions to ascending overtones.",
+      "ariaLabel": "Explore the subharmonic series"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "How is the subharmonic series commonly described relative to the harmonic series?",
+      "choices": [
+        {
+          "text": "As a downward or inverted whole-number ratio family.",
+          "correct": true
+        },
+        {
+          "text": "As the same series with every pitch rounded to 12-EDO.",
+          "correct": false
+        },
+        {
+          "text": "As a list of unrelated frequencies.",
+          "correct": false
+        },
+        {
+          "text": "As a sequence that removes octave relationships.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Invert a ratio set",
+          "body": "Take one harmonic-series ratio and write the corresponding inverted or subharmonic relationship."
+        },
+        {
+          "title": "Describe the sound",
+          "body": "Write a short note on how you expect undertone-based sonorities to differ from overtone-based ones."
+        }
+      ]
+    }
+  }
+}

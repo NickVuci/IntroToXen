@@ -3,32 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Xenharmonic Music Map</title>
+  <meta
+    name="description"
+    content="An interactive concept map for learning the harmonic series, just intonation, and the subharmonic series."
+  />
+  <title>Intro to Xenharmonic Music</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body class="mapPage">
   <main class="mapShell">
-    <section class="mapHeader" aria-labelledby="mapTitle">
+    <header class="mapHeader" aria-labelledby="mapTitle">
       <div>
-        <div class="eyebrow sectionLabel">Concept Map</div>
+        <div class="eyebrow sectionLabel">Intro to Xen</div>
         <h1 id="mapTitle">Xenharmonic Music</h1>
-        <p>A minimal path map. Solid lines suggest a good order; dotted lines show ideas that inform each other.</p>
+        <p>
+          Explore tuning from the inside out. Start with the harmonic series,
+          branch into just intonation, then compare the shadow logic of the
+          subharmonic series.
+        </p>
       </div>
-      <button class="mapResetButton" type="button">Reset</button>
-    </section>
 
-    <section class="conceptMap" aria-label="Xenharmonic concept lesson map">
-      <svg class="mapLines" viewBox="0 0 1000 640" aria-hidden="true" preserveAspectRatio="xMidYMid meet"></svg>
-      <button class="coreNode" type="button" style="--x: 50; --y: 50;">
-        <span>Xenharmonic<br />Music</span>
-      </button>
-      <div class="conceptNodes"></div>
-      <div class="mapLegend" aria-label="Connection legend">
-        <span><i class="legendLine requiredLegend"></i>Suggested order</span>
-        <span><i class="legendLine relatedLegend"></i>Related</span>
+      <div class="mapHeaderTools" aria-label="Map controls">
+        <div class="mapProgress" aria-label="Course map contains three lessons">
+          <span class="mapProgressText">3 lesson path</span>
+          <span class="mapProgressTrack" aria-hidden="true">
+            <span class="mapProgressFill"></span>
+          </span>
+        </div>
+        <button class="mapResetButton" type="button">Reset</button>
       </div>
-    </section>
+    </header>
+
+    <div class="mapWorkspace">
+      <section class="conceptMap" aria-label="Interactive xenharmonic lesson map">
+        <svg
+          class="mapLines"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        ></svg>
+
+        <div class="conceptNodes"></div>
+
+        <div class="mapLegend" aria-label="Connection legend">
+          <span><i class="legendLine requiredLegend"></i>Suggested order</span>
+          <span><i class="legendLine relatedLegend"></i>Related idea</span>
+        </div>
+      </section>
+
+      <aside class="mapInspector" hidden aria-live="polite"></aside>
+    </div>
+
+    <noscript>
+      <section class="mapInspector">
+        <h2>Lessons</h2>
+        <p>JavaScript is needed for the interactive map, but the lessons are still available.</p>
+        <div class="inspectorActions">
+          <a class="inspectorLessonLink" href="harmonic-series.html">Harmonic Series</a>
+          <a class="inspectorLessonLink" href="template.html?lesson=lessons/just-intonation.json">Just Intonation</a>
+          <a class="inspectorLessonLink" href="template.html?lesson=lessons/subharmonic-series.json">Subharmonic Series</a>
+        </div>
+      </section>
+    </noscript>
   </main>
 
   <script src="map.js"></script>

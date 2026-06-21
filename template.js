@@ -10,7 +10,9 @@
       label: "Title",
       heading: "Untitled lesson",
       body: "",
-      startButton: "Start"
+      startButton: "Start",
+      prerequisites: [],
+      relatedConcepts: []
     },
     animation: {
       enabled: true,
@@ -134,7 +136,46 @@
     appendText(titleHeader, "p", config.body);
 
     const titleBody = el("div", "titleBody");
-    titleBody.setAttribute("aria-hidden", "true");
+    const groups = [
+      { title: "Prerequisites", items: Array.isArray(config.prerequisites) ? config.prerequisites : [] },
+      { title: "Related Concepts", items: Array.isArray(config.relatedConcepts) ? config.relatedConcepts : [] }
+    ].filter(group => group.items.length);
+
+    if (!groups.length) {
+      titleBody.setAttribute("aria-hidden", "true");
+    } else {
+      card.classList.add("hasTitleResources");
+      const resourceGrid = el("div", "titleResourceGrid");
+
+      groups.forEach(group => {
+        const panel = el("section", "titleResourcePanel");
+        appendText(panel, "h2", group.title, "titleResourceHeading");
+        const list = el("div", "titleResourceList");
+
+        group.items.forEach(item => {
+          const href = asText(item?.href);
+          if (!href) return;
+          const link = el("a", "titleResourceLink");
+          link.href = href;
+          appendText(link, "strong", item?.label || href, "titleResourceLabel");
+          if (item?.body) appendText(link, "span", item.body, "titleResourceBody");
+          list.appendChild(link);
+        });
+
+        if (list.childElementCount) {
+          panel.appendChild(list);
+          resourceGrid.appendChild(panel);
+        }
+      });
+
+      if (resourceGrid.childElementCount) {
+        titleBody.appendChild(resourceGrid);
+      } else {
+        titleBody.setAttribute("aria-hidden", "true");
+        card.classList.remove("hasTitleResources");
+      }
+    }
+
     const spacer = el("div", "note spacerNote");
     spacer.setAttribute("aria-hidden", "true");
     const actions = el("div", "heroActions");
@@ -237,10 +278,7 @@
         choiceButton.setAttribute("aria-pressed", "false");
         choiceList.appendChild(choiceButton);
       });
-      const feedback = el("div", "qaFeedback");
-      feedback.setAttribute("aria-live", "polite");
-      feedback.textContent = "Choose an answer.";
-      box.append(prompt, choiceList, feedback);
+      box.append(prompt, choiceList);
     } else {
       const answer = el("div", "qaAnswer");
       appendText(answer, "strong", config.answerTitle);
@@ -282,7 +320,7 @@
 
   function lessonPath() {
     const params = new URLSearchParams(window.location.search);
-    return params.get("lesson") || DEFAULT_LESSON_PATH;
+    return params.get("lesson") || document.body.dataset.lesson || DEFAULT_LESSON_PATH;
   }
 
   function showMessage(title, body) {
@@ -613,8 +651,6 @@
     });
 
     document.querySelectorAll(".qaChoices").forEach(choiceList => {
-      const box = choiceList.closest(".qaBox");
-      const feedback = box?.querySelector(".qaFeedback");
       const choices = Array.from(choiceList.querySelectorAll(".qaChoice"));
 
       choices.forEach(choice => {
@@ -626,7 +662,6 @@
           });
           choice.classList.add("selected", isCorrect ? "correct" : "incorrect");
           choice.setAttribute("aria-pressed", "true");
-          if (feedback) feedback.textContent = isCorrect ? "Correct" : "Try another choice";
         });
       });
     });

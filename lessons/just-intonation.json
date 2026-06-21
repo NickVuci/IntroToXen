@@ -1,0 +1,67 @@
+{
+  "title": "Just Intonation",
+  "description": "Simple whole-number ratios used as musical intervals and chords.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Just Intonation",
+      "body": "Just intonation builds intervals from precise whole-number frequency ratios. It turns the harmonic relationships you hear in overtone structures into a practical tuning language for scales and chords.",
+      "startButton": "Start lesson"
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "ratios",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/just-intonation.html",
+      "prompt": "Try mapping simple ratios onto a scale.",
+      "ariaLabel": "Explore just intonation ratios"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What defines a just-intonation interval?",
+      "choices": [
+        {
+          "text": "Its frequency relationship can be described by a simple whole-number ratio.",
+          "correct": true
+        },
+        {
+          "text": "It always equals one step in 12-EDO.",
+          "correct": false
+        },
+        {
+          "text": "It is generated only by stacked perfect fifths.",
+          "correct": false
+        },
+        {
+          "text": "It ignores octave equivalence.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Identify a ratio",
+          "body": "Choose one interval such as 5/4 or 7/4 and write what makes it useful musically."
+        },
+        {
+          "title": "Compare with equal temperament",
+          "body": "Describe one way a just interval differs from its nearest equal-tempered approximation."
+        }
+      ]
+    }
+  }
+}

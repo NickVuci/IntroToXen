@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmonic Series Applet</title>
+  <style>
+    :root {
+      --bg-1: #09131f;
+      --bg-2: #10253e;
+      --ink: #f5f8ff;
+      --soft: rgba(245, 248, 255, 0.72);
+      --line: rgba(255, 255, 255, 0.12);
+      --accent: #7fd6ff;
+      --accent-2: #ffd479;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: var(--ink);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(127, 214, 255, 0.15), transparent 42%),
+        linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    }
+
+    body {
+      padding: 1rem;
+    }
+
+    .panel {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 0.9rem;
+      padding: 1rem;
+      border-radius: 1.25rem;
+      border: 1px solid var(--line);
+      background: rgba(6, 13, 24, 0.58);
+      backdrop-filter: blur(10px);
+    }
+
+    h1,
+    p {
+      margin: 0;
+    }
+
+    .subtle {
+      color: var(--soft);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .stack {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 0.55rem;
+      align-items: end;
+      min-height: 0;
+    }
+
+    .partial {
+      display: grid;
+      gap: 0.45rem;
+      align-content: end;
+      min-height: 0;
+    }
+
+    .barWrap {
+      height: 100%;
+      min-height: 120px;
+      display: grid;
+      align-items: end;
+    }
+
+    .bar {
+      width: 100%;
+      border-radius: 0.9rem 0.9rem 0.35rem 0.35rem;
+      background: linear-gradient(180deg, var(--accent), #2b6fff);
+      opacity: 0.3;
+      transition: height 180ms ease, opacity 180ms ease, transform 180ms ease;
+      box-shadow: 0 10px 22px rgba(43, 111, 255, 0.24);
+    }
+
+    .partial.active .bar {
+      opacity: 1;
+      transform: translateY(-2px);
+      background: linear-gradient(180deg, var(--accent-2), #ff8f5a);
+      box-shadow: 0 12px 30px rgba(255, 143, 90, 0.28);
+    }
+
+    .partialLabel {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--soft);
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .card {
+      padding: 0.8rem 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--soft);
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 0.6rem;
+      }
+
+      .panel {
+        grid-template-rows: auto auto 1fr auto;
+        gap: 0.7rem;
+        padding: 0.8rem;
+      }
+
+      .stack {
+        gap: 0.35rem;
+      }
+
+      .readout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <div>
+      <h1>Harmonic Series</h1>
+      <p class="subtle">Move through the first eight partials. Higher partials are faster whole-number multiples of one fundamental.</p>
+    </div>
+
+    <label class="controls" for="partialSlider">
+      <span>Partial</span>
+      <input id="partialSlider" type="range" min="1" max="8" value="4" />
+      <strong id="partialValue">4</strong>
+    </label>
+
+    <section class="stack" id="stack" aria-label="Harmonic partial bars"></section>
+
+    <section class="readout">
+      <div class="card">
+        <strong>Ratio</strong>
+        <span id="ratioText">4/1</span>
+      </div>
+      <div class="card">
+        <strong>Frequency</strong>
+        <span id="frequencyText">440 Hz</span>
+      </div>
+      <div class="card">
+        <strong>Normalized Interval</strong>
+        <span id="intervalText">2/1 octave</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const baseFrequency = 110;
+    const intervalNames = {
+      "1/1": "unison",
+      "5/4": "major third",
+      "3/2": "perfect fifth",
+      "7/4": "harmonic seventh",
+      "2/1": "octave"
+    };
+    const slider = document.getElementById("partialSlider");
+    const partialValue = document.getElementById("partialValue");
+    const ratioText = document.getElementById("ratioText");
+    const frequencyText = document.getElementById("frequencyText");
+    const intervalText = document.getElementById("intervalText");
+    const stack = document.getElementById("stack");
+
+    for (let partial = 1; partial <= 8; partial += 1) {
+      const node = document.createElement("article");
+      node.className = "partial";
+      node.dataset.partial = String(partial);
+      node.innerHTML = `
+        <div class="barWrap"><div class="bar" style="height:${18 + partial * 10}%"></div></div>
+        <div class="partialLabel">${partial}<br />${partial}/1</div>
+      `;
+      stack.appendChild(node);
+    }
+
+    function normalize(partial) {
+      let numerator = partial;
+      let denominator = 1;
+      while (numerator >= 2 * denominator) denominator *= 2;
+      const divisor = gcd(numerator, denominator);
+      return `${numerator / divisor}/${denominator / divisor}`;
+    }
+
+    function gcd(a, b) {
+      return b ? gcd(b, a % b) : a;
+    }
+
+    function render() {
+      const partial = Number(slider.value);
+      const normalized = normalize(partial);
+      partialValue.textContent = String(partial);
+      ratioText.textContent = `${partial}/1`;
+      frequencyText.textContent = `${baseFrequency * partial} Hz`;
+      intervalText.textContent = `${normalized} ${intervalNames[normalized] || "within the octave"}`;
+      stack.querySelectorAll(".partial").forEach(node => {
+        node.classList.toggle("active", Number(node.dataset.partial) === partial);
+      });
+    }
+
+    slider.addEventListener("input", render);
+    render();
+  </script>
+</body>
+</html>

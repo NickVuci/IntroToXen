@@ -1,0 +1,77 @@
+{
+  "title": "Moments of Symmetry",
+  "description": "Generated scales with two step sizes and balanced structure.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Moments of Symmetry",
+      "body": "A moment of symmetry, or MOS, is a generated scale where the notes divide the period into only two step sizes. MOS scales are important because they balance regular construction with musically useful variety.",
+      "startButton": "Start lesson",
+      "prerequisites": [
+        {
+          "label": "Generated Collection",
+          "body": "MOS scales arise from generated collections at special sizes.",
+          "href": "template.html?lesson=lessons/generated-collection.json"
+        }
+      ],
+      "relatedConcepts": [
+        {
+          "label": "Temperaments",
+          "body": "MOS patterns often appear in temperament-based scale design.",
+          "href": "template.html?lesson=lessons/temperaments.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "symmetry",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": false
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is a hallmark of a MOS scale?",
+      "choices": [
+        {
+          "text": "It has only two step sizes around the period.",
+          "correct": true
+        },
+        {
+          "text": "It must always have twelve notes.",
+          "correct": false
+        },
+        {
+          "text": "It has no generator.",
+          "correct": false
+        },
+        {
+          "text": "It cannot be used melodically.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Spot two step sizes",
+          "body": "Imagine a scale with large and small steps and describe how it might still feel balanced."
+        },
+        {
+          "title": "Connect to a generator",
+          "body": "Explain how stacking one interval can produce a scale with only two step sizes."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "title": "Equal Tuning",
+  "description": "Tuning systems built by dividing a period into equal steps.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Equal Tuning",
+      "body": "Equal tuning divides a chosen period into equal logarithmic steps. In xenharmonic music this often means EDOs, but the period can be an octave, a tritave, or another repeating interval.",
+      "startButton": "Start lesson",
+      "prerequisites": [
+        {
+          "label": "Period",
+          "body": "The period defines what span is being divided equally.",
+          "href": "template.html?lesson=lessons/period.json"
+        }
+      ],
+      "relatedConcepts": [
+        {
+          "label": "Temperaments",
+          "body": "Equal tunings often approximate or realize temperament mappings.",
+          "href": "template.html?lesson=lessons/temperaments.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "steps",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": false
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is equal in an equal tuning?",
+      "choices": [
+        {
+          "text": "The logarithmic size of each step within the period.",
+          "correct": true
+        },
+        {
+          "text": "The numerator and denominator of every interval ratio.",
+          "correct": false
+        },
+        {
+          "text": "The loudness of each pitch.",
+          "correct": false
+        },
+        {
+          "text": "The number of notes in every melody.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Define an EDO",
+          "body": "Write what 19-EDO or 31-EDO means in one sentence."
+        },
+        {
+          "title": "Pick a target ratio",
+          "body": "Choose a simple ratio and think about how an equal tuning might approximate it."
+        }
+      ]
+    }
+  }
+}

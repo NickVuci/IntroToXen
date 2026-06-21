@@ -1,0 +1,85 @@
+{
+  "title": "The Harmonic Series",
+  "description": "A quick introduction to overtones and the ratios they create.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "The Harmonic Series",
+      "body": "The harmonic series is the ladder of overtones above a fundamental pitch. Each partial adds a whole-number multiple of the base frequency, which is why it is so useful for understanding consonance and tuning.",
+      "startButton": "Start lesson",
+      "prerequisites": [
+        {
+          "label": "Just Intonation",
+          "body": "Review how simple frequency ratios become intervals, triads, and tuning systems.",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        }
+      ],
+      "relatedConcepts": [
+        {
+          "label": "Subharmonic Series",
+          "body": "Compare the harmonic ladder with its inverted counterpart and hear how the ratio family changes.",
+          "href": "template.html?lesson=lessons/subharmonic-series.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "partials",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/harmonic-series.html",
+      "prompt": "Tap to explore overtone relationships.",
+      "ariaLabel": "Explore harmonic relationships"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "Why does the harmonic series matter in xenharmonic music?",
+      "choices": [
+        {
+          "text": "It shows how many unrelated pitches fit inside one octave.",
+          "correct": false
+        },
+        {
+          "text": "It reveals simple frequency ratios that inspire intervals, chords, and tunings.",
+          "correct": true
+        },
+        {
+          "text": "It proves equal temperament is always the most accurate tuning.",
+          "correct": false
+        },
+        {
+          "text": "It removes the need to compare one pitch to another.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Name three partials",
+          "body": "List the 2nd, 3rd, and 5th partials as ratios above the fundamental."
+        },
+        {
+          "title": "Connect ratio to interval",
+          "body": "Match one ratio from the lesson, such as 3/2 or 5/4, to the interval quality it suggests."
+        },
+        {
+          "title": "Listen for color",
+          "body": "Describe how adding higher partials changes the sound or timbre you imagine."
+        }
+      ]
+    }
+  }
+}

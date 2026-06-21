@@ -1,0 +1,75 @@
+{
+  "title": "Period",
+  "description": "The interval span that repeats or frames a tuning system.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Period",
+      "body": "A period is the interval after which a tuning pattern repeats or is treated as equivalent. The octave is the most familiar period, but xenharmonic systems can use non-octave periods too.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Equal Tuning",
+          "body": "Equal tunings divide a chosen period into equal steps.",
+          "href": "template.html?lesson=lessons/equal-tuning.json"
+        },
+        {
+          "label": "Generated Collection",
+          "body": "Generated collections stack a generator inside a period.",
+          "href": "template.html?lesson=lessons/generated-collection.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/example.html",
+      "word": "period",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": false
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What role does a period play in a tuning?",
+      "choices": [
+        {
+          "text": "It defines the repeating or equivalence span of the system.",
+          "correct": true
+        },
+        {
+          "text": "It always forces the system to use twelve notes.",
+          "correct": false
+        },
+        {
+          "text": "It only describes tempo.",
+          "correct": false
+        },
+        {
+          "text": "It removes all interval relationships.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "title": "Compare periods",
+          "body": "Write one difference between an octave period and a non-octave period."
+        },
+        {
+          "title": "Name a repeat span",
+          "body": "Choose a ratio, such as 2/1 or 3/1, and describe what repeats at that span."
+        }
+      ]
+    }
+  }
+}

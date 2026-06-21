@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subharmonic Series Applet</title>
+  <style>
+    :root {
+      --bg: #0d1815;
+      --bg-2: #183229;
+      --ink: #f3fff6;
+      --soft: rgba(243, 255, 246, 0.74);
+      --line: rgba(255, 255, 255, 0.14);
+      --accent: #9be7b2;
+      --accent-2: #4ec99b;
+      --ghost: rgba(255, 255, 255, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(155, 231, 178, 0.16), transparent 36%),
+        linear-gradient(160deg, var(--bg), var(--bg-2));
+    }
+
+    body { padding: 1rem; }
+
+    .panel {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 0.85rem;
+      padding: 1rem;
+      border-radius: 1.25rem;
+      border: 1px solid var(--line);
+      background: rgba(7, 14, 11, 0.58);
+    }
+
+    h1,
+    p { margin: 0; }
+
+    .subtle {
+      color: var(--soft);
+      line-height: 1.42;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .series {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 0.5rem;
+      align-items: end;
+      min-height: 0;
+    }
+
+    .tone {
+      display: grid;
+      gap: 0.45rem;
+      align-content: end;
+    }
+
+    .beamWrap {
+      min-height: 120px;
+      display: grid;
+      align-items: end;
+    }
+
+    .beam {
+      width: 100%;
+      border-radius: 0.85rem 0.85rem 0.35rem 0.35rem;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      opacity: 0.28;
+      transition: height 180ms ease, opacity 180ms ease, transform 180ms ease;
+    }
+
+    .tone.active .beam {
+      opacity: 1;
+      transform: translateY(-2px);
+      background: linear-gradient(180deg, #d8ff9c, #62da85);
+    }
+
+    .toneLabel {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--soft);
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .card {
+      padding: 0.8rem 0.9rem;
+      border-radius: 1rem;
+      border: 1px solid var(--line);
+      background: var(--ghost);
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--soft);
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 0.6rem; }
+      .panel { padding: 0.8rem; }
+      .readout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <div>
+      <h1>Subharmonic Series</h1>
+      <p class="subtle">Choose a denominator in the 8:n undertone family. The larger the denominator, the lower the pitch before octave reduction.</p>
+    </div>
+
+    <label class="controls" for="undertoneSlider">
+      <span>8:n</span>
+      <input id="undertoneSlider" type="range" min="1" max="8" value="5" />
+      <strong id="undertoneValue">8:5</strong>
+    </label>
+
+    <section class="series" id="series" aria-label="Subharmonic ratio bars"></section>
+
+    <section class="readout">
+      <div class="card">
+        <strong>Ratio</strong>
+        <span id="ratioText">8/5</span>
+      </div>
+      <div class="card">
+        <strong>Octave-Reduced</strong>
+        <span id="normalizedText">8/5 minor sixth</span>
+      </div>
+      <div class="card">
+        <strong>Interpretation</strong>
+        <span id="meaningText">A descending division that can be heard as an inverted overtone relationship.</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const names = {
+      "1/1": "unison",
+      "8/7": "septimal whole tone",
+      "4/3": "perfect fourth",
+      "8/5": "minor sixth",
+      "2/1": "octave"
+    };
+    const slider = document.getElementById("undertoneSlider");
+    const undertoneValue = document.getElementById("undertoneValue");
+    const ratioText = document.getElementById("ratioText");
+    const normalizedText = document.getElementById("normalizedText");
+    const meaningText = document.getElementById("meaningText");
+    const series = document.getElementById("series");
+
+    for (let denominator = 1; denominator <= 8; denominator += 1) {
+      const node = document.createElement("article");
+      node.className = "tone";
+      node.dataset.denominator = String(denominator);
+      const height = 110 - denominator * 8;
+      node.innerHTML = `
+        <div class="beamWrap"><div class="beam" style="height:${height}%"></div></div>
+        <div class="toneLabel">8/${denominator}</div>
+      `;
+      series.appendChild(node);
+    }
+
+    function gcd(a, b) {
+      return b ? gcd(b, a % b) : a;
+    }
+
+    function normalize(numerator, denominator) {
+      while (numerator < denominator) numerator *= 2;
+      while (numerator >= 2 * denominator) denominator *= 2;
+      const factor = gcd(numerator, denominator);
+      return `${numerator / factor}/${denominator / factor}`;
+    }
+
+    function meaning(denominator) {
+      if (denominator <= 2) return "These low denominators stay close to octave or unison relationships.";
+      if (denominator <= 5) return "This is a clear undertone color that still maps onto familiar just intervals.";
+      return "Higher denominators emphasize more unusual undertone colors and septimal flavor.";
+    }
+
+    function render() {
+      const denominator = Number(slider.value);
+      const normalized = normalize(8, denominator);
+      undertoneValue.textContent = `8:${denominator}`;
+      ratioText.textContent = `8/${denominator}`;
+      normalizedText.textContent = `${normalized} ${names[normalized] || "within the octave"}`;
+      meaningText.textContent = meaning(denominator);
+      series.querySelectorAll(".tone").forEach(node => {
+        node.classList.toggle("active", Number(node.dataset.denominator) === denominator);
+      });
+    }
+
+    slider.addEventListener("input", render);
+    render();
+  </script>
+</body>
+</html>
