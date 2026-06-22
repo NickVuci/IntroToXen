@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Just Intonation Ratio Animation</title>
+  <title>Just Intonation Animation</title>
   <style>
     :root {
       --bg: #080912;
@@ -11,7 +11,6 @@
       --muted: #b9bfd1;
       --blue: #8fd3ff;
       --gold: #ffd166;
-      --green: #b9fbc0;
       --line: rgba(255,255,255,0.14);
     }
 
@@ -31,54 +30,42 @@
     .scene {
       width: 100%;
       height: 100%;
-      min-height: 260px;
       position: relative;
       background:
-        radial-gradient(circle at 18% 12%, rgba(143,211,255,0.13), transparent 32%),
-        radial-gradient(circle at 82% 24%, rgba(255,209,102,0.11), transparent 34%),
-        #080912;
+        radial-gradient(circle at 8% 0%, rgba(143,211,255,0.16), transparent 24rem),
+        radial-gradient(circle at 95% 22%, rgba(255,209,102,0.12), transparent 22rem),
+        var(--bg);
     }
 
     canvas {
       display: block;
       width: 100%;
       height: 100%;
+      background: #080912;
+      touch-action: manipulation;
     }
   </style>
 </head>
 <body>
-  <main class="scene" aria-label="Just intonation ratio animation">
+  <main class="scene" id="ratio-animation" aria-label="Ratio animation">
     <canvas id="ratioCanvas"></canvas>
   </main>
 
+  <script src="../audio/synth.js"></script>
   <script>
     const canvas = document.getElementById("ratioCanvas");
     const ctx = canvas.getContext("2d");
+    const section = document.getElementById("ratio-animation");
 
     let w = 1;
     let h = 1;
     let t = 0;
     let last = performance.now();
     let progress = 0;
+    let playing = false;
+    let muted = false;
 
-    const stages = [
-      { ratio: "2/1", name: "Octave", numerator: 2, denominator: 1, cents: 1200, inStart: 0.08, fullStart: 0.18, fullEnd: 0.30, outEnd: 0.38 },
-      { ratio: "3/2", name: "Perfect fifth", numerator: 3, denominator: 2, cents: 702, inStart: 0.34, fullStart: 0.44, fullEnd: 0.58, outEnd: 0.68 },
-      { ratio: "5/4", name: "Major third", numerator: 5, denominator: 4, cents: 386, inStart: 0.64, fullStart: 0.74, fullEnd: 0.91, outEnd: 1.00 }
-    ];
-
-    function clamp(value, min = 0, max = 1) {
-      return Math.max(min, Math.min(max, value));
-    }
-
-    function smoothstep(edge0, edge1, value) {
-      const x = clamp((value - edge0) / (edge1 - edge0));
-      return x * x * (3 - 2 * x);
-    }
-
-    function fadeInOut(stage) {
-      return smoothstep(stage.inStart, stage.fullStart, progress) * (1 - smoothstep(stage.fullEnd, stage.outEnd, progress));
-    }
+    let audioStarted = false;
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
@@ -88,6 +75,36 @@
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function clamp(v, min = 0, max = 1) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function smoothstep(edge0, edge1, x) {
+      x = clamp((x - edge0) / (edge1 - edge0));
+      return x * x * (3 - 2 * x);
+    }
+
+    function fadeInOut(x, inStart, inEnd, outStart, outEnd) {
+      return smoothstep(inStart, inEnd, x) * (1 - smoothstep(outStart, outEnd, x));
+    }
+
+    function isVisible() {
+      const rect = section.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < window.innerHeight;
+    }
+
+    function drawText(text, x, y, size, color, alpha = 1) {
+      if (alpha <= 0.001) return;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.font = `900 ${size}px system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, x, y);
+      ctx.restore();
     }
 
     function roundRect(x, y, width, height, radius) {
@@ -104,37 +121,26 @@
       ctx.quadraticCurveTo(x, y, x + r, y);
     }
 
-    function drawText(text, x, y, size, color, alpha = 1, weight = 900, align = "center") {
+    function drawWave(y, period, color, alpha) {
       if (alpha <= 0.001) return;
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = color;
-      ctx.font = `${weight} ${size}px system-ui, sans-serif`;
-      ctx.textAlign = align;
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, x, y);
-      ctx.restore();
-    }
 
-    function drawWave(y, cycles, color, alpha, left, right) {
-      if (alpha <= 0.001) return;
-      const amp = Math.min(48, h * 0.075);
-      const width = right - left;
-      const phase = t * 0.0014;
+      const amp = Math.min(52, h * 0.08);
+      const left = w * 0.08;
+      const right = w * 0.92;
+      const phase = t * 0.018;
 
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.strokeStyle = color;
-      ctx.lineWidth = Math.max(2.2, Math.min(4, w * 0.005));
+      ctx.lineWidth = 4;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.beginPath();
 
-      for (let i = 0; i <= 720; i += 1) {
-        const p = i / 720;
-        const x = left + p * width;
-        const yy = y + Math.sin((p * Math.PI * 2 * cycles) + phase * cycles) * amp;
-        if (i === 0) ctx.moveTo(x, yy);
+      for (let x = left; x <= right; x += 2) {
+        const wave = Math.sin(((x + phase) / period) * Math.PI * 2);
+        const yy = y + wave * amp;
+        if (x === left) ctx.moveTo(x, yy);
         else ctx.lineTo(x, yy);
       }
 
@@ -144,87 +150,180 @@
 
     function drawPeriodBox(x, y, width, height, color, alpha) {
       if (alpha <= 0.001) return;
+
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.strokeStyle = color;
       ctx.fillStyle = color === "#ffd166" ? "rgba(255,209,102,0.075)" : "rgba(143,211,255,0.075)";
-      ctx.lineWidth = 2;
-      roundRect(x, y, width, height, 10);
+      ctx.lineWidth = 3;
+      roundRect(x, y, width, height, 12);
       ctx.fill();
       ctx.stroke();
+
+      ctx.setLineDash([6, 7]);
+      ctx.globalAlpha = alpha * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(x, y + height / 2);
+      ctx.lineTo(x + width, y + height / 2);
+      ctx.stroke();
+
       ctx.restore();
     }
 
-    function drawPeriodBoxes(stage, alpha, left, right, upperY, lowerY) {
-      const width = right - left;
-      const boxHeight = Math.min(110, h * 0.19);
-      const lowerPeriod = width / stage.denominator;
-      const upperPeriod = width / stage.numerator;
+    function drawPeriodBoxes(lowerY, upperY, spanWidth, stage, alpha) {
+      if (alpha <= 0.001) return;
 
-      for (let i = 0; i < stage.denominator; i += 1) {
-        drawPeriodBox(left + lowerPeriod * i, lowerY - boxHeight / 2, lowerPeriod, boxHeight, "#8fd3ff", alpha);
+      const amp = Math.min(52, h * 0.08);
+      const startX = (w - spanWidth) / 2;
+      const boxH = amp * 2.45;
+      const lowerPeriod = spanWidth / stage.denominator;
+      const upperPeriod = spanWidth / stage.numerator;
+
+      for (let i = 0; i < stage.denominator; i++) {
+        drawPeriodBox(startX + lowerPeriod * i, lowerY - boxH / 2, lowerPeriod, boxH, "#8fd3ff", alpha);
       }
 
-      for (let i = 0; i < stage.numerator; i += 1) {
-        drawPeriodBox(left + upperPeriod * i, upperY - boxHeight / 2, upperPeriod, boxHeight, "#ffd166", alpha);
+      for (let i = 0; i < stage.numerator; i++) {
+        drawPeriodBox(startX + upperPeriod * i, upperY - boxH / 2, upperPeriod, boxH, "#ffd166", alpha);
       }
 
       ctx.save();
-      ctx.globalAlpha = alpha * 0.55;
+      ctx.globalAlpha = alpha * 0.7;
       ctx.strokeStyle = "rgba(255,255,255,0.28)";
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.5;
       ctx.setLineDash([5, 7]);
-      for (let i = 0; i <= stage.numerator; i += 1) {
-        const x = left + upperPeriod * i;
+
+      const y1 = upperY + boxH / 2 + 12;
+      const y2 = lowerY - boxH / 2 - 12;
+
+      for (let i = 0; i <= stage.numerator; i++) {
+        const x = startX + upperPeriod * i;
         ctx.beginPath();
-        ctx.moveTo(x, upperY + boxHeight * 0.62);
-        ctx.lineTo(x, lowerY - boxHeight * 0.62);
+        ctx.moveTo(x, y1);
+        ctx.lineTo(x, y2);
         ctx.stroke();
       }
+
       ctx.restore();
     }
 
-    function drawScene() {
+    function getStage(x) {
+      const stages = [
+        { numerator: 2, denominator: 1, upperAlpha: fadeInOut(x, 0.06, 0.12, 0.22, 0.27), boxAlpha: fadeInOut(x, 0.12, 0.18, 0.22, 0.27), ratioAlpha: fadeInOut(x, 0.17, 0.23, 0.24, 0.29), freq: 220, ratio: "2/1" },
+        { numerator: 3, denominator: 2, upperAlpha: fadeInOut(x, 0.25, 0.31, 0.41, 0.46), boxAlpha: fadeInOut(x, 0.31, 0.37, 0.41, 0.46), ratioAlpha: fadeInOut(x, 0.36, 0.42, 0.43, 0.48), freq: 165, ratio: "3/2" },
+        { numerator: 4, denominator: 3, upperAlpha: fadeInOut(x, 0.44, 0.50, 0.60, 0.65), boxAlpha: fadeInOut(x, 0.50, 0.56, 0.60, 0.65), ratioAlpha: fadeInOut(x, 0.55, 0.61, 0.62, 0.67), freq: 147, ratio: "4/3" },
+        { numerator: 5, denominator: 4, upperAlpha: fadeInOut(x, 0.63, 0.69, 0.79, 0.84), boxAlpha: fadeInOut(x, 0.69, 0.75, 0.79, 0.84), ratioAlpha: fadeInOut(x, 0.74, 0.80, 0.81, 0.86), freq: 138, ratio: "5/4" },
+        { numerator: 3, denominator: 1, upperAlpha: fadeInOut(x, 0.82, 0.88, 0.96, 1.00), boxAlpha: fadeInOut(x, 0.88, 0.93, 0.96, 1.00), ratioAlpha: fadeInOut(x, 0.92, 0.97, 0.98, 1.00), freq: 330, ratio: "3/1" }
+      ];
+
+      let active = stages[0];
+
+      for (const stage of stages) {
+        const total = stage.upperAlpha + stage.boxAlpha + stage.ratioAlpha;
+        if (total > 0.001) active = stage;
+      }
+
+      return active;
+    }
+
+    function getSceneFade(x) {
+      return 1 - smoothstep(0.94, 1.00, x);
+    }
+
+    function updateAudio(lowerAlpha, upperAlpha, upperFreq) {
+      if (!isVisible() || !playing || muted) {
+        silenceAudio(0.02);
+        return;
+      }
+
+      if (!audioStarted || !window.XenAudio) return;
+      XenAudio.updateDrone({
+        id: "ji-animation-root",
+        frequency: 110,
+        gain: lowerAlpha * 0.15,
+        rampTime: 0.035
+      });
+      XenAudio.updateDrone({
+        id: "ji-animation-upper",
+        frequency: upperFreq,
+        gain: upperAlpha * 0.12,
+        rampTime: 0.035
+      });
+    }
+
+    function silenceAudio(timeConstant = 0.025) {
+      if (!audioStarted || !window.XenAudio) return;
+      XenAudio.updateDrone({
+        id: "ji-animation-root",
+        frequency: 110,
+        gain: 0,
+        rampTime: timeConstant
+      });
+      XenAudio.updateDrone({
+        id: "ji-animation-upper",
+        frequency: getStage(progress).freq,
+        gain: 0,
+        rampTime: timeConstant
+      });
+    }
+
+    function draw() {
+      const sceneFade = getSceneFade(progress);
+      const lowerAlpha = smoothstep(0.04, 0.14, progress) * sceneFade;
+      const lowerY = h * 0.68;
+      const upperY = h * 0.28;
+      const stage = getStage(progress);
+      const upperAlpha = stage.upperAlpha * sceneFade;
+      const boxAlpha = stage.boxAlpha * sceneFade;
+      const ratioAlpha = stage.ratioAlpha * sceneFade;
+      const spanWidth = Math.min(420, w * 0.56);
+      const lowerPeriod = spanWidth / stage.denominator;
+      const upperPeriod = spanWidth / stage.numerator;
+
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = "#080912";
       ctx.fillRect(0, 0, w, h);
 
-      const left = w * 0.09;
-      const right = w * 0.91;
-      const upperY = h * 0.28;
-      const lowerY = h * 0.68;
-      const activeAlpha = smoothstep(0.02, 0.08, progress) * (1 - smoothstep(0.96, 1, progress));
+      drawWave(lowerY, lowerPeriod, "#8fd3ff", lowerAlpha);
+      drawWave(upperY, upperPeriod, "#ffd166", upperAlpha);
 
-      drawText("1/1 drone", w / 2, lowerY + Math.min(90, h * 0.145), Math.min(30, w * 0.052), "#8fd3ff", activeAlpha, 900);
+      drawText("110 Hz", w / 2, lowerY + Math.min(95, h * 0.15), 34, "#8fd3ff", lowerAlpha);
+      drawText(String(stage.freq) + " Hz", w / 2, upperY - Math.min(95, h * 0.15), 34, "#ffd166", upperAlpha);
 
-      stages.forEach(stage => {
-        const alpha = fadeInOut(stage);
-        if (alpha <= 0.001) return;
+      drawPeriodBoxes(lowerY, upperY, spanWidth, stage, boxAlpha);
+      drawText(stage.ratio, w / 2, h / 2, Math.min(120, w * 0.2), "#ffd166", ratioAlpha);
 
-        drawWave(lowerY, stage.denominator, "#8fd3ff", alpha, left, right);
-        drawWave(upperY, stage.numerator, "#ffd166", alpha, left, right);
-        drawPeriodBoxes(stage, alpha * 0.82, left, right, upperY, lowerY);
+      updateAudio(lowerAlpha, upperAlpha, stage.freq);
+    }
 
-        drawText(stage.name, w / 2, upperY - Math.min(88, h * 0.14), Math.min(28, w * 0.05), "#f7f8ff", alpha, 900);
-        drawText(stage.ratio, w / 2, h * 0.49, Math.min(112, w * 0.17), "#ffd166", alpha, 1000);
-        drawText(`${stage.cents} cents`, w / 2, h * 0.58, Math.min(22, w * 0.038), "#b9bfd1", alpha, 850);
+    async function startAudio() {
+      if (!window.XenAudio || !XenAudio.isAvailable()) return;
+      await XenAudio.resume();
+      await XenAudio.startDrone({
+        id: "ji-animation-root",
+        frequency: 110,
+        gain: 0,
+        voice: "soft"
       });
-
-      if (progress <= 0.001) {
-        drawText("Simple ratios line up as repeating waves", w / 2, h / 2, Math.min(38, w * 0.07), "rgba(255,255,255,0.72)", 1, 900);
-      }
+      await XenAudio.startDrone({
+        id: "ji-animation-upper",
+        frequency: getStage(progress).freq,
+        gain: 0,
+        voice: "soft"
+      });
+      audioStarted = true;
     }
 
     function setProgress(value) {
       progress = clamp(Number(value) || 0);
-      drawScene();
+      draw();
     }
 
     function frame(now) {
       const dt = Math.min(48, now - last);
       last = now;
       t += dt;
-      drawScene();
+      draw();
       requestAnimationFrame(frame);
     }
 
@@ -233,8 +332,32 @@
       const message = event.data || {};
 
       if (message.type === "lesson-animation-progress") setProgress(message.progress);
-      if (message.type === "lesson-animation-reset") setProgress(0);
-      if (message.type === "lesson-animation-finish") setProgress(1);
+      if (message.type === "lesson-animation-play") {
+        playing = true;
+        startAudio().catch(() => {
+          playing = false;
+          silenceAudio(0.015);
+        });
+        setProgress(message.progress);
+      }
+      if (message.type === "lesson-animation-pause") {
+        playing = false;
+        silenceAudio(0.015);
+      }
+      if (message.type === "lesson-animation-reset") {
+        playing = false;
+        setProgress(0);
+        silenceAudio(0.015);
+      }
+      if (message.type === "lesson-animation-finish") {
+        playing = false;
+        setProgress(1);
+        silenceAudio(0.035);
+      }
+      if (message.type === "lesson-animation-mute") {
+        muted = Boolean(message.muted);
+        if (muted) silenceAudio(0.015);
+      }
     });
 
     let resizeTimer = null;
@@ -242,12 +365,12 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         resize();
-        drawScene();
+        draw();
       }, 120);
     });
 
     resize();
-    setProgress(0);
+    draw();
     requestAnimationFrame(frame);
   </script>
 </body>

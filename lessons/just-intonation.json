@@ -5,14 +5,15 @@
   "sections": {
     "title": {
       "label": "Title",
+      "showLabel": false,
       "heading": "Just Intonation",
-      "body": "Just intonation builds intervals from precise whole-number frequency ratios. It turns the harmonic relationships you hear in overtone structures into a practical tuning language for scales and chords.",
+      "body": "",
       "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/just-intonation.html",
+      "file": "animations/just-intonation.html?v=20260621-no-caption",
       "word": "ratios",
       "durationMs": 38000,
       "startButton": "Start animation",
@@ -54,12 +55,16 @@
       "label": "Exercises",
       "items": [
         {
-          "title": "Identify a ratio",
-          "body": "Choose one interval such as 5/4 or 7/4 and write what makes it useful musically."
+          "title": "Create a JI scale",
+          "body": "Choose a root and build a scale from just-intonation ratios."
         },
         {
-          "title": "Compare with equal temperament",
-          "body": "Describe one way a just interval differs from its nearest equal-tempered approximation."
+          "title": "Find a chord in a JI scale",
+          "body": "Pick three or more notes from your JI scale and describe the ratios they form above the root."
+        },
+        {
+          "title": "Make a melody in a JI scale",
+          "body": "Use notes from your JI scale to write a short melody that emphasizes one or two clear ratios."
         }
       ]
     }

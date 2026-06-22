@@ -131,9 +131,9 @@
   function renderTitle(config) {
     const card = el("div", "heroCard");
     const titleHeader = el("div", "titleHeader");
-    appendText(titleHeader, "div", config.label, "eyebrow sectionLabel");
+    if (config.showLabel !== false) appendText(titleHeader, "div", config.label, "eyebrow sectionLabel");
     appendText(titleHeader, "h1", config.heading);
-    appendText(titleHeader, "p", config.body);
+    if (config.body) appendText(titleHeader, "p", config.body);
 
     const titleBody = el("div", "titleBody");
     const groups = [
@@ -193,6 +193,7 @@
       frame.src = asText(config.file);
       frame.title = asText(config.label, defaults.animation.label);
       frame.loading = "eager";
+      frame.allow = "autoplay";
       anim.appendChild(frame);
     } else {
       appendText(anim, "div", config.word, "animationWord");
@@ -244,6 +245,7 @@
       frame.src = asText(config.file);
       frame.title = asText(config.label, defaults.lab.label);
       frame.loading = "eager";
+      frame.allow = "autoplay";
       content = frame;
     } else {
       const surface = el("div", "labSurface");
@@ -614,6 +616,7 @@
       animationControls.sound?.addEventListener("click", () => {
         animationMuted = !animationMuted;
         updateMediaControls();
+        postAnimationMessage("lesson-animation-mute", { muted: animationMuted });
       });
       animationControls.timeline?.addEventListener("input", () => {
         const progress = Number(animationControls.timeline.value) / 1000;

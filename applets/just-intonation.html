@@ -6,14 +6,16 @@
   <title>Just Intonation Applet</title>
   <style>
     :root {
-      --bg: #110d18;
-      --bg-2: #1f1630;
+      --bg: #100c17;
+      --bg-2: #1d152b;
       --ink: #fff9f2;
       --soft: rgba(255, 249, 242, 0.72);
+      --muted: rgba(255, 249, 242, 0.48);
       --line: rgba(255, 255, 255, 0.14);
       --accent: #ffbc66;
       --accent-2: #8fd3ff;
-      --ghost: rgba(255, 255, 255, 0.08);
+      --green: #98f5b4;
+      --panel: rgba(255, 255, 255, 0.045);
     }
 
     * { box-sizing: border-box; }
@@ -27,56 +29,80 @@
       color: var(--ink);
       font-family: "Segoe UI", system-ui, sans-serif;
       background:
-        radial-gradient(circle at top right, rgba(143, 211, 255, 0.16), transparent 34%),
-        radial-gradient(circle at bottom left, rgba(255, 188, 102, 0.16), transparent 38%),
+        radial-gradient(circle at top right, rgba(143, 211, 255, 0.14), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(255, 188, 102, 0.15), transparent 38%),
         linear-gradient(165deg, var(--bg), var(--bg-2));
     }
 
-    body { padding: 1rem; }
+    body { padding: 0.55rem; }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      min-height: 2.15rem;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 0.42rem 0.68rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    button:hover,
+    button:focus-visible {
+      border-color: rgba(255, 188, 102, 0.7);
+      color: var(--accent);
+      outline: none;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
 
     .panel {
       width: 100%;
       height: 100%;
-      min-height: 260px;
+      min-height: 0;
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
-      gap: 1rem;
-      padding: 1rem;
-      border-radius: 1.25rem;
+      gap: 0.55rem;
+      padding: 0.65rem;
+      border-radius: 1.15rem;
       border: 1px solid var(--line);
       background: rgba(9, 4, 15, 0.55);
-    }
-
-    h1,
-    p {
-      margin: 0;
     }
 
     .top {
       display: flex;
       justify-content: space-between;
-      gap: 1rem;
-      align-items: start;
+      align-items: center;
+      gap: 0.8rem;
     }
 
-    .subtle {
+    .status {
       color: var(--soft);
-      line-height: 1.4;
+      font-size: 0.82rem;
     }
 
-    .audioButton {
-      min-height: 2.7rem;
-      border: 1px solid rgba(255, 188, 102, 0.62);
-      border-radius: 999px;
-      padding: 0.65rem 0.95rem;
+    .audioButton,
+    .primaryButton {
+      border-color: rgba(255, 188, 102, 0.62);
       background: rgba(255, 188, 102, 0.16);
       color: var(--accent);
-      font: inherit;
-      font-weight: 800;
-      cursor: pointer;
+      font-weight: 850;
     }
 
-    .audioButton.playing {
+    .audioButton.playing,
+    .loopCell.playing .playCell {
       background: linear-gradient(135deg, var(--accent), #ffd79d);
       color: #201204;
     }
@@ -84,28 +110,49 @@
     .body {
       min-height: 0;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
-      gap: 1rem;
+      grid-template-columns: minmax(0, 1fr) minmax(15rem, 24rem);
+      gap: 0.65rem;
     }
 
-    .instrument,
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 0.55rem;
+    }
+
+    .card,
     .visualizer {
       border: 1px solid var(--line);
-      border-radius: 1.1rem;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 1rem;
-    }
-
-    .instrument {
-      display: grid;
-      align-content: center;
-      gap: 1.4rem;
+      border-radius: 1rem;
+      background: var(--panel);
+      padding: 0.68rem;
       min-width: 0;
     }
 
-    .sliderWrap {
+    .cardHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.45rem;
+      color: var(--soft);
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .intervalGrid {
       display: grid;
-      gap: 0.75rem;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .sliderStack,
+    .rootControl {
+      min-width: 0;
+      display: grid;
+      gap: 0.42rem;
     }
 
     input[type="range"] {
@@ -116,53 +163,165 @@
 
     .ticks {
       position: relative;
-      height: 2rem;
-      color: rgba(255,255,255,0.46);
-      font-size: 0.72rem;
+      height: 1.55rem;
+      color: rgba(255, 255, 255, 0.52);
+      font-size: 0.65rem;
     }
 
     .tick {
       position: absolute;
       left: 0;
-      min-width: 3rem;
+      top: 0;
+      min-width: 2.65rem;
       text-align: center;
       transform: translateX(-50%);
       white-space: nowrap;
       border: 0;
-      padding: 0.18rem 0;
+      padding: 0.12rem 0;
       background: transparent;
       color: inherit;
-      font: inherit;
-      cursor: pointer;
-      transition: color 160ms ease, transform 160ms ease;
+      font-size: inherit;
+      min-height: 1.4rem;
     }
 
     .tick:hover,
     .tick:focus-visible,
     .tick.active {
       color: var(--accent);
-      transform: translateX(-50%) translateY(-1px);
       outline: none;
     }
 
-    .rootControl {
-      display: grid;
-      gap: 0.55rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--line);
+    .tick:active {
+      transform: translateX(-50%);
     }
 
-    .rootHeader {
+    .rootHeader,
+    .scaleMeta {
       display: flex;
       justify-content: space-between;
-      gap: 1rem;
+      gap: 0.8rem;
       color: var(--soft);
-      font-size: 0.9rem;
+      font-size: 0.82rem;
     }
 
-    .rootValue {
+    .rootValue,
+    .ratioValue {
       color: var(--accent-2);
       font-weight: 850;
+    }
+
+    .scaleChips,
+    .keyboardRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.34rem;
+      align-items: center;
+    }
+
+    .scaleChip {
+      display: inline-flex;
+      gap: 0.38rem;
+      align-items: center;
+      min-height: 1.82rem;
+      border-color: rgba(143, 211, 255, 0.28);
+      background: rgba(143, 211, 255, 0.08);
+      color: var(--ink);
+    }
+
+    .scaleChip.root {
+      border-color: rgba(255, 188, 102, 0.56);
+      background: rgba(255, 188, 102, 0.13);
+    }
+
+    .removeNote {
+      display: inline-grid;
+      place-items: center;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 999px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .keyCap {
+      display: inline-grid;
+      grid-template-columns: auto minmax(2rem, auto);
+      gap: 0.32rem;
+      align-items: center;
+      padding: 0.28rem 0.46rem;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 0.55rem;
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--soft);
+      font-size: 0.72rem;
+    }
+
+    .keyCap strong {
+      color: var(--accent);
+      font-size: 0.78rem;
+    }
+
+    .loopGrid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.45rem;
+      overflow: auto;
+      padding-right: 0.15rem;
+    }
+
+    .loopCell {
+      min-height: 6.2rem;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 0.28rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.85rem;
+      background: rgba(0, 0, 0, 0.16);
+      padding: 0.48rem;
+    }
+
+    .loopCell.playing {
+      border-color: rgba(255, 188, 102, 0.72);
+      box-shadow: 0 0 26px rgba(255, 188, 102, 0.12);
+    }
+
+    .cellTop,
+    .cellActions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .cellTop {
+      color: var(--soft);
+      font-size: 0.78rem;
+      font-weight: 850;
+    }
+
+    .cellType {
+      color: var(--accent-2);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .cellSummary {
+      color: var(--muted);
+      font-size: 0.7rem;
+      line-height: 1.2;
+      overflow: hidden;
+    }
+
+    .cellActions {
+      flex-wrap: wrap;
+    }
+
+    .cellActions button {
+      min-height: 1.55rem;
+      padding: 0.2rem 0.38rem;
+      font-size: 0.66rem;
     }
 
     .visualizer {
@@ -170,6 +329,7 @@
       min-height: 0;
       overflow: hidden;
       display: grid;
+      padding: 0.52rem;
     }
 
     .lissajousCanvas {
@@ -184,8 +344,8 @@
       left: 1rem;
       right: 1rem;
       bottom: 1rem;
-      display: grid;
-      grid-template-columns: auto auto;
+      display: flex;
+      justify-content: space-between;
       gap: 0.75rem;
       align-items: end;
       color: var(--soft);
@@ -199,158 +359,163 @@
     }
 
     .centsText {
-      grid-column: 1 / -1;
-      justify-self: end;
       color: var(--accent-2);
       font-weight: 800;
       font-size: 0.82rem;
     }
 
-    @media (max-width: 760px) {
-      body { padding: 0.6rem; }
-      .panel { padding: 0.8rem; }
-      .top,
+    @media (max-width: 1020px) {
+      body { overflow: auto; }
+      .panel { height: auto; min-height: 100%; }
       .body { grid-template-columns: 1fr; }
-      .top { display: grid; }
+      .workspace { grid-template-rows: auto auto auto; }
+      .loopGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
+      .visualizer { min-height: 320px; }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 0.55rem; }
+      .panel { padding: 0.65rem; }
+      .top,
+      .intervalGrid,
+      .rootHeader,
+      .scaleMeta { display: grid; }
+      .audioButton,
+      .primaryButton { width: 100%; }
+      .loopGrid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <main class="panel">
     <section class="top">
-      <div>
-        <h1>Just Intonation</h1>
-        <p class="subtle">Start the 1/1 drone, then move the second pitch through exact ratio landmarks inside the octave.</p>
-      </div>
-      <button class="audioButton" id="audioButton" type="button">Start audio</button>
+      <div class="status" id="statusText">Build a scale, play A-K, then generate loop cells.</div>
+      <button class="audioButton" id="audioButton" type="button">Start drone</button>
     </section>
 
     <section class="body">
-      <div class="instrument">
-        <label class="sliderWrap" for="ratioSlider">
-          <span class="subtle">Second pitch</span>
-          <input id="ratioSlider" type="range" min="0" max="1200" step="1" value="702" />
-          <span class="ticks" id="ticks"></span>
-        </label>
+      <div class="workspace">
+        <section class="card" aria-label="Interval picker">
+          <div class="cardHeader">
+            <span>Interval picker</span>
+            <span class="ratioValue" id="ratioReadout">3/2 - 702c</span>
+          </div>
+          <div class="intervalGrid">
+            <label class="sliderStack" for="ratioSlider">
+              <input id="ratioSlider" type="range" min="0" max="1200" step="1" value="702" />
+              <span class="ticks" id="ticks"></span>
+            </label>
+            <button class="primaryButton" id="addNoteButton" type="button">Add note</button>
+          </div>
+          <label class="rootControl" for="rootSlider">
+            <span class="rootHeader">
+              <span>Root frequency</span>
+              <span class="rootValue" id="rootValue">220 Hz</span>
+            </span>
+            <input id="rootSlider" type="range" min="80" max="440" step="1" value="220" />
+          </label>
+        </section>
 
-        <label class="rootControl" for="rootSlider">
-          <span class="rootHeader">
-            <span>Root frequency</span>
-            <span class="rootValue" id="rootValue">220 Hz</span>
-          </span>
-          <input id="rootSlider" type="range" min="80" max="440" step="1" value="220" />
-        </label>
+        <section class="card" aria-label="Scale keyboard">
+          <div class="cardHeader">
+            <span>Scale</span>
+            <span class="scaleMeta"><span id="scaleCount">2 notes</span></span>
+          </div>
+          <div class="scaleChips" id="scaleChips"></div>
+          <div class="keyboardRow" id="keyboardRow" aria-label="Computer keyboard mapping"></div>
+        </section>
+
+        <section class="card" aria-label="Loop cells">
+          <div class="cardHeader">
+            <span>Loop cells</span>
+            <span>4 bars - 90 BPM</span>
+          </div>
+          <div class="loopGrid" id="loopGrid"></div>
+        </section>
       </div>
 
       <aside class="visualizer" aria-label="Lissajous figure for the current interval">
         <canvas class="lissajousCanvas" id="lissajousCanvas"></canvas>
         <div class="visualizerOverlay" aria-live="polite">
           <strong id="ratioText">3/2</strong>
-          <span id="nameText">Perfect fifth</span>
           <span class="centsText" id="centsText">702c</span>
         </div>
       </aside>
     </section>
   </main>
 
+  <script src="../audio/synth.js"></script>
   <script>
     const intervals = [
       { ratio: "1/1", name: "Unison", value: 1 },
       { ratio: "16/15", name: "Minor second", value: 16 / 15 },
       { ratio: "9/8", name: "Major second", value: 9 / 8 },
+      { ratio: "7/6", name: "Septimal minor third", value: 7 / 6 },
       { ratio: "6/5", name: "Minor third", value: 6 / 5 },
       { ratio: "5/4", name: "Major third", value: 5 / 4 },
       { ratio: "4/3", name: "Perfect fourth", value: 4 / 3 },
+      { ratio: "11/8", name: "Undecimal semi-augmented fourth", value: 11 / 8 },
+      { ratio: "10/7", name: "Septimal tritone", value: 10 / 7 },
       { ratio: "3/2", name: "Perfect fifth", value: 3 / 2 },
       { ratio: "8/5", name: "Minor sixth", value: 8 / 5 },
       { ratio: "5/3", name: "Major sixth", value: 5 / 3 },
       { ratio: "7/4", name: "Harmonic seventh", value: 7 / 4 },
       { ratio: "15/8", name: "Major seventh", value: 15 / 8 },
       { ratio: "2/1", name: "Octave", value: 2 }
-    ].map(item => ({ ...item, cents: 1200 * Math.log2(item.value) }));
+    ].map(item => ({ ...item, cents: 1200 * Math.log2(item.value), exact: true }));
+
+    const keyboardKeys = ["a", "s", "d", "f", "g", "h", "j", "k"];
+    const bpm = 90;
+    const beatsPerLoop = 16;
+    const secondsPerBeat = 60 / bpm;
+    const loopSeconds = beatsPerLoop * secondsPerBeat;
 
     const audioButton = document.getElementById("audioButton");
+    const addNoteButton = document.getElementById("addNoteButton");
     const slider = document.getElementById("ratioSlider");
     const rootSlider = document.getElementById("rootSlider");
     const rootValue = document.getElementById("rootValue");
     const ticks = document.getElementById("ticks");
+    const scaleChips = document.getElementById("scaleChips");
+    const keyboardRow = document.getElementById("keyboardRow");
+    const scaleCount = document.getElementById("scaleCount");
+    const loopGrid = document.getElementById("loopGrid");
+    const statusText = document.getElementById("statusText");
+    const ratioReadout = document.getElementById("ratioReadout");
     const lissajousCanvas = document.getElementById("lissajousCanvas");
     const ratioText = document.getElementById("ratioText");
-    const nameText = document.getElementById("nameText");
     const centsText = document.getElementById("centsText");
     const lissajousCtx = lissajousCanvas.getContext("2d");
 
-    let audioContext;
-    let droneOsc;
-    let movingOsc;
-    let droneGain;
-    let movingGain;
-    let playing = false;
+    let playingDrone = false;
     let renderedRatio = 2 ** (Number(slider.value) / 1200);
     let lissajousPhase = Math.PI / 2;
+    let activeLoop = null;
+    let loopTimer = null;
+    let nextEventIndex = 0;
+    let scheduledLoopStart = 0;
+
+    const scaleNotes = [
+      makeScaleNote(intervals[0]),
+      makeScaleNote(intervals[intervals.length - 1])
+    ];
+
+    const cells = Array.from({ length: 8 }, (_, index) => ({
+      id: index,
+      type: null,
+      events: []
+    }));
 
     function baseFrequency() {
       return Number(rootSlider.value);
     }
 
-    intervals.forEach(interval => {
-      const tick = document.createElement("button");
-      tick.type = "button";
-      tick.className = "tick";
-      tick.dataset.position = String(interval.cents / 1200);
-      tick.textContent = interval.ratio;
-      tick.title = interval.name;
-      tick.setAttribute("aria-label", `Play ${interval.name}, ${interval.ratio}`);
-      tick.addEventListener("click", () => setCents(interval.cents, true));
-      ticks.appendChild(tick);
-    });
-
-    function layoutIntervalTicks() {
-      const width = ticks.clientWidth;
-      const thumbInset = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.55;
-      const travelWidth = Math.max(1, width - (thumbInset * 2));
-
-      ticks.querySelectorAll(".tick").forEach(tick => {
-        const position = Number(tick.dataset.position);
-        tick.style.left = `${thumbInset + (position * travelWidth)}px`;
-      });
+    function centsToRatio(cents) {
+      return 2 ** (cents / 1200);
     }
 
-    function ensureAudio() {
-      if (audioContext) return;
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) return;
-      audioContext = new AudioContextClass();
-
-      droneGain = audioContext.createGain();
-      movingGain = audioContext.createGain();
-      droneGain.gain.value = 0;
-      movingGain.gain.value = 0;
-      droneGain.connect(audioContext.destination);
-      movingGain.connect(audioContext.destination);
-
-      droneOsc = audioContext.createOscillator();
-      movingOsc = audioContext.createOscillator();
-      droneOsc.type = "sine";
-      movingOsc.type = "sine";
-      droneOsc.frequency.value = baseFrequency();
-      movingOsc.frequency.value = currentFrequency();
-      droneOsc.connect(droneGain);
-      movingOsc.connect(movingGain);
-      droneOsc.start();
-      movingOsc.start();
-    }
-
-    function currentCents() {
-      return Number(slider.value);
-    }
-
-    function currentRatio() {
-      return 2 ** (currentCents() / 1200);
-    }
-
-    function currentFrequency() {
-      return baseFrequency() * currentRatio();
+    function exactInterval(cents) {
+      return intervals.find(item => Math.abs(item.cents - cents) < 0.75);
     }
 
     function nearestInterval(cents) {
@@ -359,79 +524,338 @@
       }, intervals[0]);
     }
 
-    function exactInterval(cents) {
-      return intervals.find(item => Math.abs(item.cents - cents) < 0.75);
+    function currentCents() {
+      return Number(slider.value);
+    }
+
+    function currentRatio() {
+      const exact = exactInterval(currentCents());
+      return exact ? exact.value : centsToRatio(currentCents());
+    }
+
+    function currentNote() {
+      const cents = currentCents();
+      const exact = exactInterval(cents);
+      if (exact) return makeScaleNote(exact);
+      const ratioValue = centsToRatio(cents);
+      return {
+        ratioLabel: `${Math.round(cents)}c`,
+        ratioValue,
+        cents,
+        name: `Approx ${ratioValue.toFixed(4)}:1`,
+        exact: false
+      };
+    }
+
+    function makeScaleNote(interval) {
+      return {
+        ratioLabel: interval.ratio,
+        ratioValue: interval.value,
+        cents: interval.cents,
+        name: interval.name,
+        exact: Boolean(interval.exact),
+        pinned: interval.ratio === "1/1"
+      };
+    }
+
+    async function resumeAudio() {
+      if (!window.XenAudio || !XenAudio.isAvailable()) {
+        statusText.textContent = "Audio is unavailable in this browser.";
+        return false;
+      }
+      return XenAudio.resume();
+    }
+
+    async function startDrone() {
+      if (!(await resumeAudio())) return;
+      await XenAudio.startDrone({
+        id: "ji-root",
+        frequency: baseFrequency(),
+        gain: 0.12,
+        voice: "drone"
+      });
+      playingDrone = true;
+      audioButton.textContent = "Stop drone";
+      audioButton.classList.add("playing");
+    }
+
+    function stopDrone() {
+      if (window.XenAudio) XenAudio.stopDrone("ji-root", 0.08);
+      playingDrone = false;
+      audioButton.textContent = "Start drone";
+      audioButton.classList.remove("playing");
+    }
+
+    function updateDroneFrequency() {
+      if (!playingDrone || !window.XenAudio) return;
+      XenAudio.updateDrone({
+        id: "ji-root",
+        frequency: baseFrequency(),
+        gain: 0.12,
+        rampTime: 0.015
+      });
+    }
+
+    async function triggerNote(note, duration = 0.72, gainValue = 0.17) {
+      if (!(await resumeAudio())) return;
+      XenAudio.playRatio({
+        rootFrequency: baseFrequency(),
+        ratio: note.ratioValue,
+        duration,
+        gain: gainValue,
+        voice: "default"
+      });
+    }
+
+    function addCurrentNote() {
+      const note = currentNote();
+      const duplicate = scaleNotes.some(existing => Math.abs(existing.cents - note.cents) < 1);
+      if (duplicate) {
+        statusText.textContent = `${note.ratioLabel} is already in the scale.`;
+        return;
+      }
+      scaleNotes.push(note);
+      sortScale();
+      renderScale();
+      statusText.textContent = `Added ${note.ratioLabel} to the scale.`;
+      triggerNote(note);
+    }
+
+    function sortScale() {
+      scaleNotes.sort((a, b) => a.cents - b.cents);
+    }
+
+    function removeScaleNote(cents) {
+      const index = scaleNotes.findIndex(note => Math.abs(note.cents - cents) < 0.5);
+      if (index < 0 || scaleNotes[index].pinned) return;
+      const label = scaleNotes[index].ratioLabel;
+      scaleNotes.splice(index, 1);
+      renderScale();
+      statusText.textContent = `Removed ${label} from the scale.`;
+    }
+
+    function renderScale() {
+      scaleChips.replaceChildren();
+      keyboardRow.replaceChildren();
+      scaleCount.textContent = `${scaleNotes.length} note${scaleNotes.length === 1 ? "" : "s"}`;
+
+      scaleNotes.forEach(note => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = `scaleChip${note.pinned ? " root" : ""}`;
+        chip.title = note.name;
+        chip.innerHTML = `<strong>${note.ratioLabel}</strong>`;
+        chip.addEventListener("click", event => {
+          if (event.target.closest(".removeNote")) return;
+          triggerNote(note);
+        });
+
+        if (!note.pinned) {
+          const remove = document.createElement("span");
+          remove.className = "removeNote";
+          remove.textContent = "x";
+          remove.setAttribute("aria-hidden", "true");
+          chip.appendChild(remove);
+          chip.addEventListener("dblclick", () => removeScaleNote(note.cents));
+          remove.addEventListener("click", event => {
+            event.stopPropagation();
+            removeScaleNote(note.cents);
+          });
+        }
+
+        scaleChips.appendChild(chip);
+      });
+
+      keyboardKeys.forEach((key, index) => {
+        const note = scaleNotes[index];
+        const keyCap = document.createElement("span");
+        keyCap.className = "keyCap";
+        keyCap.innerHTML = `<strong>${key.toUpperCase()}</strong><span>${note ? note.ratioLabel : "-"}</span>`;
+        keyboardRow.appendChild(keyCap);
+      });
+
+      renderCells();
+    }
+
+    function scaleIndexCandidates(excludeOctave = false) {
+      const indices = scaleNotes.map((note, index) => index);
+      if (excludeOctave && indices.length > 2) return indices.slice(0, -1);
+      return indices;
+    }
+
+    function randomScaleIndex(excludeOctave = false) {
+      const candidates = scaleIndexCandidates(excludeOctave);
+      return candidates[Math.floor(Math.random() * candidates.length)] || 0;
+    }
+
+    function generateChordCell(cell) {
+      const candidates = scaleIndexCandidates(true);
+      const count = Math.min(candidates.length, 2 + Math.floor(Math.random() * 3));
+      const selected = new Set([0]);
+      while (selected.size < count) {
+        selected.add(candidates[Math.floor(Math.random() * candidates.length)] || 0);
+      }
+      const chord = Array.from(selected).sort((a, b) => a - b);
+      cell.type = "chord";
+      cell.events = [];
+      [0, 4, 8, 12].forEach(startBeat => {
+        chord.forEach(scaleIndex => {
+          cell.events.push({ startBeat, durationBeats: 3.55, scaleIndex, gain: 0.085, voice: "default" });
+        });
+      });
+      statusText.textContent = `Generated chord loop in cell ${cell.id + 1}.`;
+      renderCells();
+    }
+
+    function generateMelodyCell(cell) {
+      cell.type = "melody";
+      cell.events = [];
+      for (let beat = 0; beat < beatsPerLoop; beat += 1) {
+        const rootMoment = beat % 8 === 0;
+        cell.events.push({
+          startBeat: beat,
+          durationBeats: 0.82,
+          scaleIndex: rootMoment ? 0 : randomScaleIndex(false),
+          gain: 0.13,
+          voice: "default"
+        });
+      }
+      statusText.textContent = `Generated melody loop in cell ${cell.id + 1}.`;
+      renderCells();
+    }
+
+    function eventDescription(cell) {
+      if (!cell.type) return "Empty cell. Generate a chord or melody.";
+      const unique = Array.from(new Set(cell.events.map(event => scaleNotes[event.scaleIndex]?.ratioLabel).filter(Boolean)));
+      return `${cell.type === "chord" ? "Chord" : "Melody"} using ${unique.slice(0, 5).join(", ")}${unique.length > 5 ? "..." : ""}`;
+    }
+
+    function renderCells() {
+      loopGrid.replaceChildren();
+      cells.forEach(cell => {
+        const node = document.createElement("article");
+        node.className = `loopCell${activeLoop === cell ? " playing" : ""}`;
+        node.innerHTML = `
+          <div class="cellTop">
+            <span>Cell ${cell.id + 1}</span>
+            <span class="cellType">${cell.type || "empty"}</span>
+          </div>
+          <div class="cellSummary">${eventDescription(cell)}</div>
+          <div class="cellActions">
+            <button type="button" class="genChord">Chord</button>
+            <button type="button" class="genMelody">Melody</button>
+            <button type="button" class="playCell" ${cell.events.length ? "" : "disabled"}>${activeLoop === cell ? "Stop" : "Play"}</button>
+            <button type="button" class="exportCell" ${cell.events.length ? "" : "disabled"}>WAV</button>
+          </div>
+        `;
+        node.querySelector(".genChord").addEventListener("click", () => generateChordCell(cell));
+        node.querySelector(".genMelody").addEventListener("click", () => generateMelodyCell(cell));
+        node.querySelector(".playCell").addEventListener("click", () => toggleCell(cell));
+        node.querySelector(".exportCell").addEventListener("click", () => exportCell(cell));
+        loopGrid.appendChild(node);
+      });
+    }
+
+    function toggleCell(cell) {
+      if (activeLoop === cell) {
+        stopLoop();
+        return;
+      }
+      playCell(cell);
+    }
+
+    async function playCell(cell) {
+      if (!cell.events.length || !(await resumeAudio())) return;
+      stopLoop(false);
+      activeLoop = cell;
+      scheduledLoopStart = XenAudio.currentTime() + 0.04;
+      nextEventIndex = 0;
+      scheduleLoopEvents();
+      loopTimer = window.setInterval(scheduleLoopEvents, 90);
+      statusText.textContent = `Playing cell ${cell.id + 1}.`;
+      renderCells();
+    }
+
+    function stopLoop(render = true) {
+      if (loopTimer) window.clearInterval(loopTimer);
+      loopTimer = null;
+      activeLoop = null;
+      if (render) {
+        statusText.textContent = "Loop stopped.";
+        renderCells();
+      }
+    }
+
+    function scheduleLoopEvents() {
+      if (!activeLoop || !window.XenAudio) return;
+      const lookAhead = 0.28;
+      const now = XenAudio.currentTime();
+      while (scheduledLoopStart < now + lookAhead) {
+        const ordered = activeLoop.events.slice().sort((a, b) => a.startBeat - b.startBeat);
+        for (let i = nextEventIndex; i < ordered.length; i += 1) {
+          const event = ordered[i];
+          const when = scheduledLoopStart + event.startBeat * secondsPerBeat;
+          if (when > now + lookAhead) {
+            nextEventIndex = i;
+            return;
+          }
+          XenAudio.scheduleEvents({
+            events: [toAudioEvent(event)],
+            rootFrequency: baseFrequency(),
+            startTime: scheduledLoopStart,
+            bpm
+          });
+        }
+        scheduledLoopStart += loopSeconds;
+        nextEventIndex = 0;
+      }
+    }
+
+    function toAudioEvent(event) {
+      const note = scaleNotes[event.scaleIndex] || scaleNotes[0];
+      return {
+        startBeat: event.startBeat,
+        durationBeats: event.durationBeats,
+        ratio: note.ratioValue,
+        gain: event.gain,
+        voice: event.voice || "default"
+      };
+    }
+
+    async function exportCell(cell) {
+      if (!cell.events.length) return;
+      if (!window.XenAudio) {
+        statusText.textContent = "WAV export is unavailable in this browser.";
+        return;
+      }
+      statusText.textContent = `Rendering cell ${cell.id + 1}...`;
+      const rendered = await XenAudio.renderWav({
+        events: cell.events.map(toAudioEvent),
+        rootFrequency: baseFrequency(),
+        durationSeconds: loopSeconds,
+        bpm,
+        filename: `ji-loop-cell-${cell.id + 1}.wav`,
+        voice: "default"
+      });
+      statusText.textContent = rendered ? `Exported cell ${cell.id + 1}.` : "WAV export is unavailable in this browser.";
+    }
+
+    function layoutIntervalTicks() {
+      const width = ticks.clientWidth;
+      const thumbInset = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.55;
+      const travelWidth = Math.max(1, width - thumbInset * 2);
+      ticks.querySelectorAll(".tick").forEach(tick => {
+        const position = Number(tick.dataset.position);
+        tick.style.left = `${thumbInset + position * travelWidth}px`;
+      });
     }
 
     function lissajousFrequenciesFor(interval) {
       if (!interval) {
-        return {
-          xFrequency: renderedRatio,
-          yFrequency: 1,
-          turnCount: 12
-        };
+        return { xFrequency: renderedRatio, yFrequency: 1, turnCount: 12 };
       }
-
       const [numerator, denominator] = interval.ratio.split("/").map(Number);
-      return {
-        xFrequency: numerator || 1,
-        yFrequency: denominator || 1,
-        turnCount: 1
-      };
-    }
-
-    function setCents(cents, playExact) {
-      slider.value = String(Math.round(cents));
-      update();
-      if (playExact && !playing) {
-        startAudio().catch(() => {
-          playing = false;
-          audioButton.textContent = "Start audio";
-          audioButton.classList.remove("playing");
-        });
-      }
-    }
-
-    async function startAudio() {
-      ensureAudio();
-      if (!audioContext) {
-        audioButton.textContent = "Audio unavailable";
-        return;
-      }
-
-      await audioContext.resume();
-      const now = audioContext.currentTime;
-      updateAudioFrequency();
-      droneGain.gain.cancelScheduledValues(now);
-      movingGain.gain.cancelScheduledValues(now);
-      droneGain.gain.setValueAtTime(droneGain.gain.value, now);
-      movingGain.gain.setValueAtTime(movingGain.gain.value, now);
-      droneGain.gain.linearRampToValueAtTime(0.13, now + 0.08);
-      movingGain.gain.linearRampToValueAtTime(0.11, now + 0.08);
-      playing = true;
-      audioButton.textContent = "Stop audio";
-      audioButton.classList.add("playing");
-    }
-
-    function stopAudio() {
-      if (!audioContext) return;
-      const now = audioContext.currentTime;
-      droneGain.gain.cancelScheduledValues(now);
-      movingGain.gain.cancelScheduledValues(now);
-      droneGain.gain.setValueAtTime(droneGain.gain.value, now);
-      movingGain.gain.setValueAtTime(movingGain.gain.value, now);
-      droneGain.gain.linearRampToValueAtTime(0, now + 0.08);
-      movingGain.gain.linearRampToValueAtTime(0, now + 0.08);
-      playing = false;
-      audioButton.textContent = "Start audio";
-      audioButton.classList.remove("playing");
-    }
-
-    function updateAudioFrequency() {
-      if (!audioContext || !movingOsc || !droneOsc) return;
-      const now = audioContext.currentTime;
-      droneOsc.frequency.setTargetAtTime(baseFrequency(), now, 0.015);
-      movingOsc.frequency.setTargetAtTime(currentFrequency(), now, 0.015);
+      return { xFrequency: numerator || 1, yFrequency: denominator || 1, turnCount: 1 };
     }
 
     function resizeLissajousCanvas() {
@@ -439,12 +863,10 @@
       const dpr = window.devicePixelRatio || 1;
       const width = Math.max(1, Math.round(rect.width * dpr));
       const height = Math.max(1, Math.round(rect.height * dpr));
-
       if (lissajousCanvas.width !== width || lissajousCanvas.height !== height) {
         lissajousCanvas.width = width;
         lissajousCanvas.height = height;
       }
-
       lissajousCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       return { width: rect.width, height: rect.height };
     }
@@ -452,13 +874,12 @@
     function drawLissajousFrame() {
       const { width, height } = resizeLissajousCanvas();
       const exact = exactInterval(currentCents());
-      const targetRatio = exact ? exact.value : currentRatio();
-      renderedRatio = targetRatio;
+      renderedRatio = exact ? exact.value : currentRatio();
       const lineColor = exact ? "rgba(255,188,102,0.94)" : "rgba(143,211,255,0.88)";
       const glowColor = exact ? "rgba(255,188,102,0.18)" : "rgba(143,211,255,0.16)";
       const centerX = width / 2;
       const centerY = height / 2;
-      const radius = Math.max(12, Math.min(width, height) * 0.36);
+      const radius = Math.max(12, Math.min(width, height) * 0.38);
       const { xFrequency, yFrequency, turnCount } = lissajousFrequenciesFor(exact);
       const fullTurn = Math.PI * 2 * turnCount;
       const pointCount = Math.max(1400, Math.ceil(Math.max(xFrequency, yFrequency) * turnCount * 700));
@@ -467,31 +888,26 @@
       lissajousCtx.clearRect(0, 0, width, height);
       lissajousCtx.fillStyle = "rgba(5, 3, 10, 0.34)";
       lissajousCtx.fillRect(0, 0, width, height);
-
       lissajousCtx.save();
       lissajousCtx.translate(centerX, centerY);
-
       lissajousCtx.beginPath();
       lissajousCtx.lineCap = "round";
       lissajousCtx.lineJoin = "round";
-
       for (let i = 0; i <= pointCount; i += 1) {
         const progress = i / pointCount;
         const t = progress * fullTurn;
         const x = Math.sin(t * xFrequency) * radius;
-        const y = Math.sin((t * yFrequency) + phase) * radius;
+        const y = Math.sin(t * yFrequency + phase) * radius;
         if (i === 0) lissajousCtx.moveTo(x, y);
         else lissajousCtx.lineTo(x, y);
       }
-
       lissajousCtx.shadowColor = glowColor;
       lissajousCtx.shadowBlur = 16;
       lissajousCtx.strokeStyle = lineColor;
       lissajousCtx.lineWidth = 1.85;
       lissajousCtx.stroke();
       lissajousCtx.restore();
-
-      lissajousPhase = (lissajousPhase + (playing ? 0.0007 : 0.00025)) % (Math.PI * 2);
+      lissajousPhase = (lissajousPhase + (playingDrone ? 0.0007 : 0.00025)) % (Math.PI * 2);
       window.requestAnimationFrame(drawLissajousFrame);
     }
 
@@ -501,37 +917,65 @@
       const nearest = nearestInterval(cents);
       const ratio = currentRatio();
       const root = baseFrequency();
+      const label = exact ? exact.ratio : `${ratio.toFixed(4)}:1`;
 
-      ratioText.textContent = exact ? exact.ratio : `${ratio.toFixed(4)}:1`;
-      nameText.textContent = exact ? exact.name : `Near ${nearest.name}`;
+      ratioText.textContent = label;
       centsText.textContent = `${Math.round(cents)}c`;
+      ratioReadout.textContent = exact ? `${exact.ratio} - ${Math.round(cents)}c` : `${Math.round(cents)}c - near ${nearest.ratio}`;
       rootValue.textContent = `${root.toFixed(0)} Hz`;
 
       ticks.querySelectorAll(".tick").forEach((tick, index) => {
         tick.classList.toggle("active", intervals[index] === exact);
       });
 
-      updateAudioFrequency();
+      updateDroneFrequency();
     }
 
+    intervals.forEach(interval => {
+      const tick = document.createElement("button");
+      tick.type = "button";
+      tick.className = "tick";
+      tick.dataset.position = String(interval.cents / 1200);
+      tick.textContent = interval.ratio;
+      tick.title = interval.name;
+      tick.setAttribute("aria-label", `Choose ${interval.name}, ${interval.ratio}`);
+      tick.addEventListener("click", () => {
+        slider.value = String(Math.round(interval.cents));
+        update();
+      });
+      ticks.appendChild(tick);
+    });
+
     audioButton.addEventListener("click", async () => {
-      if (playing) {
-        stopAudio();
+      if (playingDrone) {
+        stopDrone();
         return;
       }
-
       try {
-        await startAudio();
+        await startDrone();
       } catch (error) {
-        playing = false;
-        audioButton.textContent = "Start audio";
-        audioButton.classList.remove("playing");
+        stopDrone();
       }
     });
 
+    addNoteButton.addEventListener("click", addCurrentNote);
     slider.addEventListener("input", update);
     rootSlider.addEventListener("input", update);
     window.addEventListener("resize", layoutIntervalTicks);
+
+    window.addEventListener("keydown", event => {
+      if (event.repeat) return;
+      const key = event.key.toLowerCase();
+      const index = keyboardKeys.indexOf(key);
+      if (index < 0) return;
+      const note = scaleNotes[index];
+      if (!note) return;
+      event.preventDefault();
+      triggerNote(note);
+    });
+
+    renderScale();
+    renderCells();
     layoutIntervalTicks();
     update();
     window.requestAnimationFrame(drawLissajousFrame);
