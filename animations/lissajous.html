@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lissajous Refinement</title>
+  <style>
+    :root {
+      --bg: #080912;
+      --panel: rgba(255,255,255,0.075);
+      --panel-strong: rgba(0,0,0,0.28);
+      --line: rgba(255,255,255,0.14);
+      --text: #f7f8ff;
+      --muted: #b9bfd1;
+      --blue: #8fd3ff;
+      --gold: #ffd166;
+      --green: #b9fbc0;
+      --pink: #ff8fab;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    .page {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(143,211,255,0.16), transparent 25rem),
+        radial-gradient(circle at 92% 18%, rgba(255,209,102,0.12), transparent 24rem),
+        radial-gradient(circle at 48% 100%, rgba(185,251,192,0.075), transparent 28rem),
+        var(--bg);
+    }
+
+    .stage {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      touch-action: none;
+    }
+
+    .readout {
+      position: absolute;
+      left: clamp(0.85rem, 3vw, 1.3rem);
+      right: clamp(0.85rem, 3vw, 1.3rem);
+      bottom: clamp(0.85rem, 3vw, 1.3rem);
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      pointer-events: none;
+      text-shadow: 0 2px 18px rgba(0,0,0,0.62);
+    }
+
+    .ratioText {
+      margin: 0;
+      color: var(--gold);
+      font-size: clamp(2.2rem, 12vw, 7rem);
+      line-height: 0.82;
+      font-weight: 950;
+    }
+
+    .metaText {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(0.82rem, 2.5vw, 1rem);
+      font-weight: 850;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .controls {
+      display: grid;
+      gap: 0.7rem;
+      padding: 0.8rem;
+      border-top: 1px solid var(--line);
+      background: rgba(0,0,0,0.42);
+      backdrop-filter: blur(14px);
+    }
+
+    .controlRow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+    }
+
+    button,
+    select,
+    input {
+      min-height: 2.45rem;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      font: inherit;
+      font-weight: 760;
+    }
+
+    button {
+      padding: 0.48rem 0.78rem;
+      cursor: pointer;
+    }
+
+    button.active,
+    button.primary {
+      border-color: rgba(255,209,102,0.7);
+      background: rgba(255,209,102,0.22);
+      color: var(--gold);
+    }
+
+    select {
+      width: min(14rem, 76vw);
+      padding: 0.46rem 0.55rem;
+    }
+
+    option {
+      background: #10121d;
+      color: var(--text);
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.42rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 820;
+      white-space: nowrap;
+    }
+
+    input[type="number"] {
+      width: 4.4rem;
+      padding: 0.34rem 0.46rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: min(12rem, 44vw);
+      accent-color: var(--gold);
+    }
+
+    .value {
+      min-width: 3.4rem;
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .embed .page {
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .embed .controls {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        overflow: auto;
+      }
+
+      .page {
+        min-height: 100vh;
+        height: auto;
+        grid-template-rows: minmax(58vh, 1fr) auto;
+      }
+
+      .controlRow {
+        justify-content: stretch;
+      }
+
+      button,
+      select {
+        flex: 1 1 auto;
+      }
+
+      label {
+        flex: 1 1 10rem;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" aria-label="Lissajous figure refinement">
+    <section class="stage" id="stage">
+      <canvas id="lissajousCanvas"></canvas>
+      <div class="readout" aria-live="polite">
+        <p class="ratioText" id="ratioText">3/2</p>
+        <p class="metaText" id="metaText">702c<br />phase 90</p>
+      </div>
+    </section>
+
+    <form class="controls" id="controls">
+      <div class="controlRow">
+        <button class="primary active" id="playButton" type="button">Pause</button>
+        <button id="resetButton" type="button">Reset</button>
+        <select id="presetSelect" aria-label="Ratio preset">
+          <option value="3/2">3/2 Perfect fifth</option>
+          <option value="5/4">5/4 Major third</option>
+          <option value="7/4">7/4 Harmonic seventh</option>
+          <option value="9/8">9/8 Major tone</option>
+          <option value="11/8">11/8 Undecimal fourth</option>
+          <option value="16/15">16/15 Minor second</option>
+          <option value="custom">Custom</option>
+        </select>
+        <label>
+          X
+          <input id="numeratorInput" type="number" min="1" max="32" step="1" value="3" />
+        </label>
+        <label>
+          Y
+          <input id="denominatorInput" type="number" min="1" max="32" step="1" value="2" />
+        </label>
+      </div>
+
+      <div class="controlRow">
+        <label>
+          Phase
+          <input id="phaseSlider" type="range" min="0" max="360" step="1" value="90" />
+          <span class="value" id="phaseValue">90</span>
+        </label>
+        <label>
+          Detune
+          <input id="detuneSlider" type="range" min="-50" max="50" step="1" value="0" />
+          <span class="value" id="detuneValue">0c</span>
+        </label>
+        <label>
+          Speed
+          <input id="speedSlider" type="range" min="0" max="160" step="1" value="42" />
+          <span class="value" id="speedValue">42</span>
+        </label>
+        <label>
+          Trail
+          <input id="trailSlider" type="range" min="0" max="96" step="1" value="48" />
+          <span class="value" id="trailValue">48</span>
+        </label>
+        <label>
+          Glow
+          <input id="glowSlider" type="range" min="0" max="72" step="1" value="38" />
+          <span class="value" id="glowValue">38</span>
+        </label>
+        <select id="colorSelect" aria-label="Color mode">
+          <option value="ratio">Ratio color</option>
+          <option value="gold">Gold</option>
+          <option value="blue">Blue</option>
+          <option value="green" selected>Green</option>
+          <option value="rose">Rose</option>
+        </select>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    (() => {
+      const TAU = Math.PI * 2;
+      const PRESETS = new Set(["3/2", "5/4", "7/4", "9/8", "11/8", "16/15"]);
+      const COLORS = {
+        gold: { line: "rgba(255,219,128,0.98)", core: "rgba(255,249,210,0.98)", glow: "rgba(255,209,102,0.34)", wash: "rgba(255,209,102,0.045)" },
+        blue: { line: "rgba(143,226,255,0.98)", core: "rgba(226,250,255,0.98)", glow: "rgba(143,211,255,0.32)", wash: "rgba(143,211,255,0.05)" },
+        green: { line: "rgba(142,255,192,0.98)", core: "rgba(231,255,238,0.98)", glow: "rgba(91,255,169,0.34)", wash: "rgba(114,255,186,0.05)" },
+        rose: { line: "rgba(255,143,171,0.98)", core: "rgba(255,234,240,0.98)", glow: "rgba(255,143,171,0.32)", wash: "rgba(255,143,171,0.045)" }
+      };
+
+      const canvas = document.getElementById("lissajousCanvas");
+      const ctx = canvas.getContext("2d");
+      const stage = document.getElementById("stage");
+      const controls = document.getElementById("controls");
+      const playButton = document.getElementById("playButton");
+      const resetButton = document.getElementById("resetButton");
+      const presetSelect = document.getElementById("presetSelect");
+      const numeratorInput = document.getElementById("numeratorInput");
+      const denominatorInput = document.getElementById("denominatorInput");
+      const phaseSlider = document.getElementById("phaseSlider");
+      const detuneSlider = document.getElementById("detuneSlider");
+      const speedSlider = document.getElementById("speedSlider");
+      const trailSlider = document.getElementById("trailSlider");
+      const glowSlider = document.getElementById("glowSlider");
+      const colorSelect = document.getElementById("colorSelect");
+      const phaseValue = document.getElementById("phaseValue");
+      const detuneValue = document.getElementById("detuneValue");
+      const speedValue = document.getElementById("speedValue");
+      const trailValue = document.getElementById("trailValue");
+      const glowValue = document.getElementById("glowValue");
+      const ratioText = document.getElementById("ratioText");
+      const metaText = document.getElementById("metaText");
+      const isEmbedded = window.self !== window.top;
+
+      const state = {
+        width: 1,
+        height: 1,
+        dpr: 1,
+        numerator: 3,
+        denominator: 2,
+        phase: Math.PI / 2,
+        detuneCents: 0,
+        beatPhase: 0,
+        scanPhase: 0,
+        speed: 0.42,
+        trail: 0.48,
+        glow: 38,
+        colorMode: "green",
+        playing: !isEmbedded,
+        muted: false,
+        lastTime: performance.now()
+      };
+
+      if (isEmbedded) {
+        document.documentElement.classList.add("embed");
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, Number(value) || 0));
+      }
+
+      function gcd(a, b) {
+        let x = Math.abs(Math.round(a));
+        let y = Math.abs(Math.round(b));
+        while (y) {
+          const t = y;
+          y = x % y;
+          x = t;
+        }
+        return x || 1;
+      }
+
+      function parseRatio(value) {
+        const parts = String(value).split("/").map(part => Number(part.trim()));
+        const numerator = clamp(parts[0], 1, 32);
+        const denominator = clamp(parts[1] || 1, 1, 32);
+        const divisor = gcd(numerator, denominator);
+        return {
+          numerator: Math.round(numerator / divisor),
+          denominator: Math.round(denominator / divisor)
+        };
+      }
+
+      function ratioString() {
+        return `${state.numerator}/${state.denominator}`;
+      }
+
+      function centsForRatio() {
+        return 1200 * Math.log2(state.numerator / state.denominator);
+      }
+
+      function effectiveCents() {
+        return centsForRatio() + state.detuneCents;
+      }
+
+      function detuneLabel() {
+        if (state.detuneCents === 0) return "0c";
+        return `${state.detuneCents > 0 ? "+" : ""}${state.detuneCents}c`;
+      }
+
+      function interferenceAmount() {
+        const distance = Math.abs(state.detuneCents);
+        const offCenter = Math.min(1, distance / 18);
+        const stillNearJi = Math.max(0, 1 - distance / 58);
+        return offCenter * stillNearJi;
+      }
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const nextDpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.4 : 2);
+        const nextWidth = Math.max(1, Math.round(rect.width * nextDpr));
+        const nextHeight = Math.max(1, Math.round(rect.height * nextDpr));
+
+        state.width = Math.max(1, rect.width);
+        state.height = Math.max(1, rect.height);
+        state.dpr = nextDpr;
+
+        if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+          canvas.width = nextWidth;
+          canvas.height = nextHeight;
+        }
+
+        ctx.setTransform(nextDpr, 0, 0, nextDpr, 0, 0);
+      }
+
+      function turnCountForRatio() {
+        return 1;
+      }
+
+      function pointCountForRatio() {
+        const complexity = Math.max(state.numerator, state.denominator) * turnCountForRatio();
+        return Math.min(9000, Math.max(1400, Math.ceil(complexity * 520)));
+      }
+
+      function colorForCurrentRatio() {
+        if (state.colorMode !== "ratio") return COLORS[state.colorMode] || COLORS.gold;
+        if (state.numerator === 1 && state.denominator === 1) return COLORS.green;
+        if (state.numerator % 2 === 0 || state.denominator % 2 === 0) return COLORS.gold;
+        return COLORS.blue;
+      }
+
+      function drawBackground(style) {
+        const fade = 0.055 + (1 - state.trail) * 0.22;
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = `rgba(2,4,8,${fade.toFixed(3)})`;
+        ctx.fillRect(0, 0, state.width, state.height);
+
+        const gradient = ctx.createRadialGradient(
+          state.width * 0.5,
+          state.height * 0.48,
+          0,
+          state.width * 0.5,
+          state.height * 0.48,
+          Math.max(state.width, state.height) * 0.72
+        );
+        gradient.addColorStop(0, style.wash);
+        gradient.addColorStop(0.62, "rgba(8,9,18,0)");
+        gradient.addColorStop(1, "rgba(8,9,18,0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, state.width, state.height);
+      }
+
+      function drawScopeGlass(style) {
+        const majorStep = Math.max(44, Math.min(state.width, state.height) / 5);
+        const minorStep = majorStep / 4;
+
+        ctx.save();
+        ctx.globalCompositeOperation = "source-over";
+        ctx.lineWidth = 1;
+
+        for (let x = state.width / 2 % minorStep; x < state.width; x += minorStep) {
+          const major = Math.abs((x - state.width / 2) % majorStep) < 0.5;
+          ctx.globalAlpha = major ? 0.085 : 0.035;
+          ctx.strokeStyle = style.line;
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, state.height);
+          ctx.stroke();
+        }
+
+        for (let y = state.height / 2 % minorStep; y < state.height; y += minorStep) {
+          const major = Math.abs((y - state.height / 2) % majorStep) < 0.5;
+          ctx.globalAlpha = major ? 0.085 : 0.035;
+          ctx.strokeStyle = style.line;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(state.width, y);
+          ctx.stroke();
+        }
+
+        ctx.globalAlpha = 0.13;
+        ctx.strokeStyle = style.line;
+        ctx.beginPath();
+        ctx.moveTo(0, state.height / 2);
+        ctx.lineTo(state.width, state.height / 2);
+        ctx.moveTo(state.width / 2, 0);
+        ctx.lineTo(state.width / 2, state.height);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function generateCurve() {
+        const pointCount = pointCountForRatio();
+        const turnCount = turnCountForRatio();
+        const fullTurn = TAU * turnCount;
+        const radius = Math.max(16, Math.min(state.width, state.height) * 0.38);
+        const wobble = interferenceAmount();
+        const detuneDirection = Math.sign(state.detuneCents);
+        const ratioGap = Math.max(1, Math.abs(state.numerator - state.denominator));
+        const points = [];
+
+        for (let i = 0; i <= pointCount; i += 1) {
+          const progress = i / pointCount;
+          const t = progress * fullTurn;
+          const baseX = Math.sin(t * state.numerator);
+          const baseY = Math.sin(t * state.denominator + state.phase);
+          const crossX = Math.sin(t * state.denominator + state.phase + state.beatPhase * detuneDirection);
+          const crossY = Math.sin(t * state.numerator + state.beatPhase * detuneDirection);
+          const beat = Math.sin(t * ratioGap + state.beatPhase);
+          const shimmer = Math.sin(t * 0.5 + state.beatPhase * 0.7);
+          const localRadius = radius * (1 + wobble * 0.045 * beat);
+          const interferenceX = (crossX - baseX) * wobble * 0.18 + shimmer * wobble * 0.025;
+          const interferenceY = (crossY - baseY) * wobble * 0.18 - shimmer * wobble * 0.025;
+
+          points.push({
+            x: (baseX + interferenceX) * localRadius,
+            y: (baseY + interferenceY) * localRadius
+          });
+        }
+
+        return points;
+      }
+
+      function strokeCurve(points, style) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.translate(state.width / 2, state.height / 2);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+
+        points.forEach((point, index) => {
+          if (index === 0) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+        });
+
+        ctx.globalAlpha = 0.2;
+        ctx.shadowColor = style.glow;
+        ctx.shadowBlur = state.glow * 1.35;
+        ctx.strokeStyle = style.line;
+        ctx.lineWidth = Math.max(1.2, Math.min(state.width, state.height) * 0.006);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function strokeSegment(points, start, length, style, alpha, width, glow) {
+        const count = points.length - 1;
+        const begin = Math.floor(start * count);
+        const segmentLength = Math.max(6, Math.floor(length * count));
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.translate(state.width / 2, state.height / 2);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = style.glow;
+        ctx.shadowBlur = glow;
+        ctx.strokeStyle = style.line;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+
+        let previousIndex = -1;
+        for (let i = 0; i <= segmentLength; i += 1) {
+          const index = (begin + i) % count;
+          const point = points[index];
+          if (i === 0 || index < previousIndex) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+          previousIndex = index;
+        }
+
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawBeam(points, style) {
+        const head = state.scanPhase % 1;
+        const baseWidth = Math.max(1.4, Math.min(state.width, state.height) * 0.004);
+
+        strokeCurve(points, style);
+        strokeSegment(points, (head + 0.74) % 1, 0.24, style, 0.2, baseWidth * 2.9, state.glow * 1.7);
+        strokeSegment(points, (head + 0.88) % 1, 0.12, style, 0.34, baseWidth * 2.2, state.glow * 2.0);
+        strokeSegment(points, (head + 0.965) % 1, 0.035, style, 0.86, baseWidth * 1.35, state.glow * 2.4);
+
+        const headPoint = points[Math.floor(head * (points.length - 1))];
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.translate(state.width / 2, state.height / 2);
+        ctx.shadowColor = style.glow;
+        ctx.shadowBlur = state.glow * 2.6;
+        ctx.fillStyle = style.core;
+        ctx.globalAlpha = 0.92;
+        ctx.beginPath();
+        ctx.arc(headPoint.x, headPoint.y, Math.max(2.2, baseWidth * 1.5), 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawGuide(style) {
+        const radius = Math.max(16, Math.min(state.width, state.height) * 0.38);
+        ctx.save();
+        ctx.translate(state.width / 2, state.height / 2);
+        ctx.globalAlpha = 0.16;
+        ctx.strokeStyle = style.line;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawFrame() {
+        resizeCanvas();
+        const style = colorForCurrentRatio();
+        drawBackground(style);
+        drawScopeGlass(style);
+        drawGuide(style);
+        drawBeam(generateCurve(), style);
+        updateReadout();
+      }
+
+      function setRatio(numerator, denominator) {
+        const divisor = gcd(numerator, denominator);
+        state.numerator = clamp(Math.round(numerator / divisor), 1, 32);
+        state.denominator = clamp(Math.round(denominator / divisor), 1, 32);
+        numeratorInput.value = String(state.numerator);
+        denominatorInput.value = String(state.denominator);
+
+        const ratio = ratioString();
+        presetSelect.value = PRESETS.has(ratio) ? ratio : "custom";
+      }
+
+      function setPhaseDegrees(degrees) {
+        const safeDegrees = clamp(degrees, 0, 360);
+        state.phase = safeDegrees / 360 * TAU;
+        phaseSlider.value = String(Math.round(safeDegrees));
+        phaseValue.textContent = String(Math.round(safeDegrees));
+      }
+
+      function updateReadout() {
+        const degrees = Math.round((state.phase / TAU) * 360) % 360;
+        ratioText.textContent = state.detuneCents === 0 ? ratioString() : `${ratioString()} ${detuneLabel()}`;
+        metaText.innerHTML = `${Math.round(effectiveCents())}c<br />phase ${degrees}`;
+      }
+
+      function syncControls() {
+        detuneValue.textContent = detuneLabel();
+        speedValue.textContent = String(Math.round(state.speed * 100));
+        trailValue.textContent = String(Math.round(state.trail * 100));
+        glowValue.textContent = String(Math.round(state.glow));
+        playButton.textContent = state.playing ? "Pause" : "Play";
+        playButton.classList.toggle("active", state.playing);
+      }
+
+      function resetFigure() {
+        setPhaseDegrees(90);
+        state.detuneCents = 0;
+        state.beatPhase = 0;
+        state.scanPhase = 0;
+        detuneSlider.value = "0";
+        ctx.globalCompositeOperation = "source-over";
+        ctx.clearRect(0, 0, state.width, state.height);
+        drawFrame();
+      }
+
+      function animationFrame(now) {
+        const dt = Math.min(64, now - state.lastTime);
+        state.lastTime = now;
+
+        if (state.playing) {
+          state.phase = (state.phase + dt * 0.00035 * state.speed) % TAU;
+          state.beatPhase = (state.beatPhase + dt * (0.0016 + Math.abs(state.detuneCents) * 0.00012) * Math.max(0.15, state.speed)) % TAU;
+          state.scanPhase = (state.scanPhase + dt * 0.00032 * Math.max(0.22, state.speed)) % 1;
+          phaseSlider.value = String(Math.round((state.phase / TAU) * 360));
+          phaseValue.textContent = phaseSlider.value;
+        }
+
+        drawFrame();
+        window.requestAnimationFrame(animationFrame);
+      }
+
+      function handleLessonMessage(message) {
+        if (message.type === "lesson-animation-progress") {
+          const progress = clamp(message.progress, 0, 1);
+          state.phase = (Math.PI / 2 + progress * TAU) % TAU;
+          state.beatPhase = progress * TAU * Math.max(1, Math.abs(state.detuneCents) / 8);
+          state.scanPhase = (progress * 4) % 1;
+          phaseSlider.value = String(Math.round((state.phase / TAU) * 360));
+          phaseValue.textContent = phaseSlider.value;
+          drawFrame();
+        }
+
+        if (message.type === "lesson-animation-play") {
+          state.playing = true;
+          syncControls();
+          if (Number.isFinite(Number(message.progress))) handleLessonMessage({ type: "lesson-animation-progress", progress: message.progress });
+        }
+
+        if (message.type === "lesson-animation-pause") {
+          state.playing = false;
+          syncControls();
+        }
+
+        if (message.type === "lesson-animation-reset") {
+          state.playing = false;
+          resetFigure();
+          syncControls();
+        }
+
+        if (message.type === "lesson-animation-finish") {
+          state.playing = false;
+          state.phase = Math.PI / 2;
+          syncControls();
+          drawFrame();
+        }
+
+        if (message.type === "lesson-animation-mute") {
+          state.muted = Boolean(message.muted);
+        }
+      }
+
+      controls.addEventListener("submit", event => event.preventDefault());
+
+      playButton.addEventListener("click", () => {
+        state.playing = !state.playing;
+        syncControls();
+      });
+
+      resetButton.addEventListener("click", () => {
+        resetFigure();
+        syncControls();
+      });
+
+      presetSelect.addEventListener("input", () => {
+        if (presetSelect.value === "custom") return;
+        const ratio = parseRatio(presetSelect.value);
+        setRatio(ratio.numerator, ratio.denominator);
+        drawFrame();
+      });
+
+      numeratorInput.addEventListener("input", () => {
+        setRatio(Number(numeratorInput.value), state.denominator);
+        drawFrame();
+      });
+
+      denominatorInput.addEventListener("input", () => {
+        setRatio(state.numerator, Number(denominatorInput.value));
+        drawFrame();
+      });
+
+      phaseSlider.addEventListener("input", () => {
+        setPhaseDegrees(Number(phaseSlider.value));
+        drawFrame();
+      });
+
+      detuneSlider.addEventListener("input", () => {
+        state.detuneCents = Math.round(Number(detuneSlider.value));
+        syncControls();
+        drawFrame();
+      });
+
+      speedSlider.addEventListener("input", () => {
+        state.speed = Number(speedSlider.value) / 100;
+        syncControls();
+      });
+
+      trailSlider.addEventListener("input", () => {
+        state.trail = Number(trailSlider.value) / 100;
+        syncControls();
+      });
+
+      glowSlider.addEventListener("input", () => {
+        state.glow = Number(glowSlider.value);
+        syncControls();
+      });
+
+      colorSelect.addEventListener("input", () => {
+        state.colorMode = colorSelect.value;
+        drawFrame();
+      });
+
+      window.addEventListener("message", event => {
+        if (event.origin !== window.location.origin) return;
+        handleLessonMessage(event.data || {});
+      });
+
+      let resizeTimer = null;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(drawFrame, 90);
+      });
+
+      setRatio(3, 2);
+      setPhaseDegrees(90);
+      colorSelect.value = state.colorMode;
+      syncControls();
+      resizeCanvas();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "#080912";
+      ctx.fillRect(0, 0, state.width, state.height);
+      drawFrame();
+      window.requestAnimationFrame(animationFrame);
+    })();
+  </script>
+</body>
+</html>
