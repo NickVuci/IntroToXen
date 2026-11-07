@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lissajous Refinement</title>
   <style>
+    html { color-scheme: dark !important; }
+
     :root {
       --bg: #080912;
       --panel: rgba(255,255,255,0.075);
@@ -771,7 +773,7 @@
       });
 
       window.addEventListener("message", event => {
-        if (event.origin !== window.location.origin) return;
+        if (event.source !== window.parent) return;
         handleLessonMessage(event.data || {});
       });
 

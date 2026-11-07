@@ -1138,20 +1138,21 @@ p {
 }
 
 .sectionLayer[data-section-type="lab"] {
-  padding: max(0.7rem, env(safe-area-inset-top)) clamp(0.85rem, 2.4vw, 2rem) calc(var(--nav-clearance) + env(safe-area-inset-bottom));
+  /* same top padding as the other sections, so the LAB heading sits where ANIMATION does */
+  padding: max(2.4rem, env(safe-area-inset-top)) clamp(0.85rem, 2.4vw, 2rem) calc(var(--nav-clearance) + env(safe-area-inset-bottom));
 }
 
 .sectionLayer[data-section-type="lab"] .sectionInner {
   width: min(1760px, 100%);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .sectionLayer[data-section-type="lab"] .sectionHeader {
-  display: none;
+  display: flex;
 }
 
 .sectionLayer[data-section-type="lab"] .placeholderBox {
-  grid-row: 1;
+  grid-row: 2;
   place-items: stretch;
   padding: 0;
 }
@@ -1239,6 +1240,10 @@ p {
   }
 
   .sectionLayer {
+    padding: max(3.2rem, env(safe-area-inset-top)) 0.65rem calc(var(--nav-clearance) + env(safe-area-inset-bottom));
+  }
+
+  .sectionLayer[data-section-type="lab"] {
     padding: max(3.2rem, env(safe-area-inset-top)) 0.65rem calc(var(--nav-clearance) + env(safe-area-inset-bottom));
   }
 
@@ -1770,3 +1775,9 @@ p {
   }
 }
 
+
+/* The lesson page is dark (Nocturne). Pin the colour scheme on the page and on every
+   embedded lab/animation frame: when the page's scheme and a frame's scheme differ, browsers
+   paint an opaque white backdrop behind the frame. */
+html { color-scheme: dark !important; }
+.embedFrame { color-scheme: dark !important; background: transparent; }

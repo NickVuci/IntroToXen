@@ -4,15 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Just Intonation Animation</title>
+  <script>
+    // Theme before first paint. Embedded in a lesson, follow the host: the lesson page is
+    // Nocturne until it sends {type: "lesson-theme"}. Standalone: stored choice, else the device.
+    if (window.parent !== window) { document.documentElement.dataset.theme = "dark"; document.documentElement.style.setProperty("color-scheme", "dark", "important"); }
+    else try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
   <style>
     :root {
-      --bg: #080912;
-      --text: #f7f8ff;
-      --muted: #b9bfd1;
-      --blue: #8fd3ff;
-      --gold: #ffd166;
-      --line: rgba(255,255,255,0.14);
+      --ground-start: #f7f4ec;
+      --ground-end: #f7f4ec;
     }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --ground-start: #1e1f26; --ground-end: #283c63; }
+    }
+    :root[data-theme="dark"] { --ground-start: #1e1f26; --ground-end: #283c63; }
 
     * { box-sizing: border-box; }
 
@@ -22,296 +31,662 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      color: var(--text);
-      background: transparent;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, var(--ground-start), var(--ground-end));
     }
 
-    .scene {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      background:
-        radial-gradient(circle at 8% 0%, rgba(143,211,255,0.16), transparent 24rem),
-        radial-gradient(circle at 95% 22%, rgba(255,209,102,0.12), transparent 22rem),
-        var(--bg);
-    }
+    .scene { width: 100%; height: 100%; position: relative; }
 
     canvas {
       display: block;
       width: 100%;
       height: 100%;
-      background: #080912;
       touch-action: manipulation;
     }
   </style>
 </head>
 <body>
-  <main class="scene" id="ratio-animation" aria-label="Ratio animation">
+  <main class="scene" id="ratio-animation" aria-label="Just intonation: an upper note slides down from the octave and locks at 3/2, 4/3 and 5/4, then the chords 4:5:6:7 and 4:5:6:7:9:11, then the harmonic segment 8::16 builds note by note from the bottom">
     <canvas id="ratioCanvas"></canvas>
   </main>
 
-  <script src="../audio/synth.js"></script>
+  <script src="../audio/synth.js?v=20261107-pluck"></script>
   <script>
+    /*
+      Just intonation demo (extends the Manim port JIIntro).
+
+      Panels, top to bottom: upper wave · ratio (or a middle wave in the chord) · root wave · caption.
+      The lesson drives `progress` (0..1) over DURATION seconds. Wave travel runs on the real clock,
+      so the waves keep moving while paused; everything else is a pure function of progress.
+
+      Script (seconds):
+        0–15   Intro (unchanged): root wave and caption 1; the octave and caption 2;
+               2/1 appears with the boxes and caption 3; the upper wave turns gold.
+        15–42  The journey: the upper note slides down from 2/1 and locks at 3/2, then slides on to
+               4/3 and 5/4. Each glide eases into a long slow approach, so the beating slows and stops;
+               at each lock the boxes line up, the wave turns gold foil (one sheen), then the ratio appears.
+        42–68  Chord: the waves move into four lanes; 5/4 stays in tune while 6 and 7 enter out of
+               tune and glide into 4:5:6:7; tall boxes line up and the ratios appear above the
+               closing caption. Then the waves make room for six: 9 and 11 enter out of tune above
+               and glide into 4:5:6:7:9:11; the full ratios appear; the hexad plays as a plucked
+               arpeggio, then strummed over a warm pad (like 8::16); everything fades.
+        then   8::16: the notes of the harmonic series from 8 to 16 play as a quick plucked arpeggio,
+               bottom to top, then strummed all together over a warm held pad; then fade to black.
+
+      The upper wave is drawn at its true pitch, so as it approaches a ratio its crests close in on the
+      box edges (where every wave crests together) and settle exactly on them at the lock.
+    */
+
     const canvas = document.getElementById("ratioCanvas");
     const ctx = canvas.getContext("2d");
     const section = document.getElementById("ratio-animation");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    let w = 1;
-    let h = 1;
-    let t = 0;
+    // ----- constants -----
+    const BASE_CYCLES = 6;          // root-wave cycles across the full width
+    const ROOT_HZ = 110;
+    const VERTICAL_MARGIN = 0.2;
+    const MANIM_FRAME_WIDTH = 14.222;
+    const FADE_OUT = 0.7;
+    const SHEEN = 1.2; // seconds for the shine to cross the screen, once a lock has turned gold
+
+    // ----- intro timings (the Manim scene's, unchanged) -----
+    const PRE_ROLL = 1.0, FADE_DUR = 1.5, HOLD_DUR = 2.5, CAPTION_OUT = 0.9, FINAL_HOLD_DUR = 2.5;
+    const T1 = PRE_ROLL;
+    const T1_OUT = T1 + FADE_DUR + HOLD_DUR;
+    const T2 = T1_OUT + CAPTION_OUT;
+    const T2_OUT = T2 + FADE_DUR + HOLD_DUR;
+    const T3 = T2_OUT + CAPTION_OUT;
+    const INTRO_END = T3 + FADE_DUR + FINAL_HOLD_DUR;
+
+    const CAPTIONS = [
+      "If the pitch or frequency of a musical note is the number of times per second it causes the air to vibrate,",
+      "and an interval is when two notes play at the same time,",
+      "then Just Intonation (or JI) is where the frequencies of the notes form whole-number ratios with each other.",
+      "As we move through the frequency spectrum, we can hear points where frequencies lock together.",
+      "These points tend to be where the frequencies are related by small whole numbers…",
+      "They can guide us in our quest to explore new sounds…",
+      "…and discover new harmonies."
+    ];
+
+    // ----- easing -----
+    function clamp(v, min = 0, max = 1) { return Math.max(min, Math.min(max, v)); }
+    function ramp(t, a, b) { return clamp((t - a) / (b - a)); }
+    function smooth(t, a, b) { const x = ramp(t, a, b); return x * x * (3 - 2 * x); }
+    function cents(n, d) { return 1200 * Math.log2(n / d); }
+
+    // Glide between two pitches: starts gently, then a long slow approach so the beating
+    // audibly slows before it stops at the lock.
+    function glideCents(u, from, to, length) {
+      const s = smooth(u, 0, length);
+      return from + (to - from) * (1 - (1 - s) * (1 - s));
+    }
+
+    // ----- the journey: the upper note slides down from the octave and locks at each ratio -----
+    const S_UNLOCK = 0.7;   // fraction and boxes fade, gold returns to blue
+    const S_FRAC_DELAY = 0.8, S_FRAC_FADE = 0.8, S_HOLD = 2.2;
+    const STAGES = [
+      { from: [2, 1], to: [3, 2], glide: 5.0, caption: 3, cyclesPerBox: 2 },
+      { from: [3, 2], to: [4, 3], glide: 4.0, caption: 4, cyclesPerBox: 3 },
+      { from: [4, 3], to: [5, 4], glide: 3.5, caption: 5, cyclesPerBox: 4 }
+    ];
+    let cursor = INTRO_END;
+    STAGES.forEach(stage => {
+      stage.start = cursor;
+      stage.lock = S_UNLOCK + stage.glide;
+      stage.length = stage.lock + S_FRAC_DELAY + S_FRAC_FADE + S_HOLD;
+      cursor += stage.length;
+    });
+
+    // ----- the chord, in two steps. 4:5:6:7: the waves make room for four; 5/4 stays in tune
+    //       while 6 and 7 enter out of tune and slide in. 4:5:6:7:9:11: room for six; 9 and 11
+    //       enter out of tune above and slide in. -----
+    const CHORD = [ // harmonic over the root's 4; lanes from the top in the 4- and 6-lane layouts
+      { n: 11, lane4: null, lane6: 0, D: -35, step: 2 },
+      { n: 9, lane4: null, lane6: 1, D: 25, step: 2 },
+      { n: 7, lane4: 0, lane6: 2, D: -30, step: 1 },
+      { n: 6, lane4: 1, lane6: 3, D: 35, step: 1 },
+      { n: 5, lane4: 2, lane6: 4, D: 0, step: 0 } // the 5/4 already sounding, kept in tune
+    ];
+    const K_MOVE_END = S_UNLOCK + 1.5;      // waves move into four lanes
+    const K_IN_START = 1.6, K_IN_END = 2.8; // 6 and 7 fade in, out of tune
+    const K_GLIDE_START = 3.0, K_GLIDE = 5.0;
+    const K_LOCK = K_GLIDE_START + K_GLIDE;
+    const K_LABEL = K_LOCK + 0.8;
+    const K2_START = K_LABEL + 0.8 + 1.8;   // then room for six
+    const K2_MOVE_END = K2_START + 1.5;
+    const K2_IN_START = K2_START + 0.9, K2_IN_END = K2_START + 2.1;
+    const K2_GLIDE_START = K2_START + 2.3, K2_GLIDE = 4.5;
+    const K2_LOCK = K2_GLIDE_START + K2_GLIDE;
+    const K2_LABEL = K2_LOCK + 0.8;
+    // Once the hexad has locked it is played like 8::16: a quick plucked arpeggio bottom to top,
+    // then strummed together over a warm pad (the buzzy tuning drones fade out as it starts).
+    const HEXAD = [4, 5, 6, 7, 9, 11];
+    const ARP_STEP = 0.16, ARP_IN = 0.08;
+    const X_START = K2_LABEL + 0.8;
+    const X_FULL = X_START + HEXAD.length * ARP_STEP + 0.3;
+    const K_OUTRO = X_FULL + 2.5;
+    // ----- 8::16: harmonics 8 to 16 (over the root's 4) enter one at a time, bottom to top -----
+    const SEGMENT = [8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const H_START = K_OUTRO + 2.5 + 0.6;          // after the hexad has faded away
+    const H_STEP = ARP_STEP, H_IN = ARP_IN;       // a quick plucked arpeggio, bottom to top
+    const H_FULL = H_START + SEGMENT.length * H_STEP + 0.3; // then all together
+    const H_BLACK = H_FULL + 4.0;                 // hold, then fade to black
+    const H_BLACK_LEN = 2.5;
+    const K_LEN = H_BLACK + H_BLACK_LEN + 0.5;
+    const CHORD_START = cursor;
+    const DURATION = CHORD_START + K_LEN;
+
+    // ----- state at a moment: what is visible, how loud, at what pitch -----
+    function emptyState() {
+      return {
+        lower: 0,
+        rootGold: 0,   // the bass wave turns gold whenever the waves are locked
+        soften: 0,     // 0..1: progress into the final chord (no longer changes the sound)
+        layout: 0,     // 0: two waves around the ratio; 1: four lanes for 4:5:6:7
+        layout2: 0,    // 0: four lanes; 1: six lanes for 4:5:6:7:9:11
+        top: null,     // { cents, alpha, gold }
+        extra: null,   // chord voices: [{ n, lane4, lane6, cents, alpha, gold }]
+        frac: null,    // { text: [num, den], alpha }
+        boxes: null,   // { cyclesPerBox, alpha, gold, panels }
+        caption: null, // { index, alpha }
+        label: null,   // { text, alpha }
+        drones: 1,     // 0..1: level of the tuning drones (they fade out for the plucked hexad)
+        pads: null,    // the warm held chord: [{ n, gain 0..1 }]
+        segment: null, // 8::16: [{ n, alpha, sound }], bottom (8) to top (16)
+        black: 0,      // 0..1: the closing fade to black
+        sheen: -1
+      };
+    }
+
+    // A plucked arpeggio starting at `start`: each note flashes as it is plucked, then dims;
+    // `together` rises when the whole chord is strummed at `full`.
+    function arpeggio(u, notes, start, full) {
+      const together = smooth(u, full, full + 0.3);
+      return notes.map((n, i) => {
+        const at = start + i * ARP_STEP;
+        const flash = smooth(u, at, at + 0.04) * (1 - smooth(u, at + 0.05, at + 0.6));
+        return { n, at, sound: together, shown: smooth(u, at, at + ARP_IN), bright: 0.35 + 0.65 * Math.max(flash, together) };
+      });
+    }
+
+    function stateAt(time) {
+      const s = emptyState();
+      const outro = 1 - smooth(time, CHORD_START + K_OUTRO, CHORD_START + K_OUTRO + 2.5);
+      s.lower = smooth(time, T1, T1 + FADE_DUR) * outro;
+
+      if (time < INTRO_END) {
+        const goldIn = smooth(time, T3, T3 + FADE_DUR);
+        s.top = { cents: 1200, alpha: smooth(time, T2, T2 + FADE_DUR), gold: goldIn };
+        s.rootGold = goldIn; // the root locks with the octave
+        s.frac = { text: ["2", "1"], alpha: goldIn };
+        s.boxes = { cyclesPerBox: 1, alpha: goldIn, gold: goldIn, panels: [0, 2] };
+        const caps = [
+          smooth(time, T1, T1 + FADE_DUR) * (1 - smooth(time, T1_OUT, T1_OUT + CAPTION_OUT)),
+          smooth(time, T2, T2 + FADE_DUR) * (1 - smooth(time, T2_OUT, T2_OUT + CAPTION_OUT)),
+          goldIn
+        ];
+        const index = caps.findIndex(a => a > 0.001);
+        if (index >= 0) s.caption = { index, alpha: caps[index] };
+        if (time >= T3 + FADE_DUR && time < T3 + FADE_DUR + SHEEN) s.sheen = (time - T3 - FADE_DUR) / SHEEN;
+        return s;
+      }
+
+      for (let i = 0; i < STAGES.length; i += 1) {
+        const stage = STAGES[i];
+        if (time >= stage.start + stage.length) continue;
+        const u = time - stage.start;
+        const prevBoxes = i === 0 ? 1 : STAGES[i - 1].cyclesPerBox;
+        const leaving = 1 - smooth(u, 0, S_UNLOCK);
+        const locked = smooth(u, stage.lock, stage.lock + 0.4);
+        const c = glideCents(u - S_UNLOCK, cents(...stage.from), cents(...stage.to), stage.glide);
+        s.top = { cents: c, alpha: 1, gold: Math.max(1 - smooth(u, 0, 0.4), locked) };
+        s.rootGold = s.top.gold; // the root unlocks and locks with the upper note
+
+        // Old boxes and ratio fade as the note leaves; the new boxes gather near the lock.
+        const arriving = smooth(u, S_UNLOCK + stage.glide * 0.6, stage.lock);
+        s.boxes = leaving > arriving
+          ? { cyclesPerBox: prevBoxes, alpha: leaving, gold: leaving, panels: [0, 2] }
+          : { cyclesPerBox: stage.cyclesPerBox, alpha: arriving, gold: locked, panels: [0, 2] };
+        const prev = i === 0 ? ["2", "1"] : STAGES[i - 1].to.map(String);
+        const fracIn = smooth(u, stage.lock + S_FRAC_DELAY, stage.lock + S_FRAC_DELAY + S_FRAC_FADE);
+        s.frac = leaving > 0.001 ? { text: prev, alpha: leaving } : { text: stage.to.map(String), alpha: fracIn };
+
+        const prevCaption = i === 0 ? 2 : STAGES[i - 1].caption;
+        s.caption = leaving > 0.001
+          ? { index: prevCaption, alpha: leaving }
+          : { index: stage.caption, alpha: smooth(u, S_UNLOCK, S_UNLOCK + 1.0) };
+        if (u >= stage.lock + 0.4 && u < stage.lock + 0.4 + SHEEN) s.sheen = (u - stage.lock - 0.4) / SHEEN;
+        return s;
+      }
+
+      const u = time - CHORD_START;
+      const leaving = 1 - smooth(u, 0, S_UNLOCK);
+      const locked1 = smooth(u, K_LOCK, K_LOCK + 0.4);
+      const locked2 = smooth(u, K2_LOCK, K2_LOCK + 0.4);
+      s.layout = smooth(u, S_UNLOCK, K_MOVE_END);
+      s.layout2 = smooth(u, K2_START, K2_MOVE_END);
+      s.rootGold = 1; // 5/4 stays locked to the root through the chord
+      s.soften = smooth(u, K2_START, K2_LOCK);
+      s.extra = CHORD.map(voice => {
+        const target = cents(voice.n, 4);
+        const from = target + voice.D;
+        const glideStart = voice.step === 2 ? K2_GLIDE_START : K_GLIDE_START;
+        const glideLen = voice.step === 2 ? K2_GLIDE : K_GLIDE;
+        const fade = voice.step === 0 ? 1
+          : voice.step === 1 ? smooth(u, K_IN_START, K_IN_END)
+          : smooth(u, K2_IN_START, K2_IN_END);
+        return {
+          n: voice.n,
+          lane4: voice.lane4,
+          lane6: voice.lane6,
+          cents: voice.step === 0 ? target : (u < glideStart ? from : glideCents(u - glideStart, from, target, glideLen)),
+          alpha: fade * outro,
+          gold: voice.step === 0 ? 1 : voice.step === 1 ? locked1 : locked2
+        };
+      });
+      // Tall boxes gather at the first lock, go quiet while 9 and 11 are out of tune, and
+      // turn gold again when all six lock.
+      const arriving = smooth(u, K_GLIDE_START + K_GLIDE * 0.6, K_LOCK);
+      const boxGold = Math.min(locked1, 1 - smooth(u, K2_IN_START, K2_IN_END) + locked2);
+      s.boxes = leaving > 0.001
+        ? { cyclesPerBox: 4, alpha: leaving, gold: leaving, panels: [0, 2] }
+        : { cyclesPerBox: 4, alpha: arriving * outro, gold: clamp(boxGold), tall: true };
+      if (leaving > 0.001) s.frac = { text: ["5", "4"], alpha: leaving };
+      s.caption = leaving > 0.001
+        ? { index: 5, alpha: leaving }
+        : { index: 6, alpha: smooth(u, K_MOVE_END - 0.5, K_MOVE_END + 0.5) * outro, low: true };
+      const label1 = smooth(u, K_LABEL, K_LABEL + 0.8) * (1 - smooth(u, K2_START, K2_START + 0.6));
+      s.label = label1 > 0.001
+        ? { text: "4:5:6:7", alpha: label1 }
+        : { text: "4:5:6:7:9:11", alpha: smooth(u, K2_LABEL, K2_LABEL + 0.8) * outro };
+      if (u >= K_LOCK + 0.4 && u < K_LOCK + 0.4 + SHEEN) s.sheen = (u - K_LOCK - 0.4) / SHEEN;
+      if (u >= K2_LOCK + 0.4 && u < K2_LOCK + 0.4 + SHEEN) s.sheen = (u - K2_LOCK - 0.4) / SHEEN;
+
+      // The locked hexad as an arpeggio, then strummed, like 8::16.
+      const dim = smooth(u, X_START - 0.4, X_START); // waves dim and the tuning drones fade out
+      s.drones = 1 - dim;
+      if (dim > 0.001 && u < H_START) {
+        const arp = arpeggio(u, HEXAD, X_START, X_FULL);
+        const factor = n => {
+          const v = arp.find(a => a.n === n);
+          return 1 - dim * (1 - (u >= v.at ? v.bright : 0.35));
+        };
+        s.lower *= factor(4);
+        s.extra.forEach(v => { v.alpha *= factor(v.n); });
+        s.pads = arp.map(v => ({ n: v.n, gain: v.sound * outro }));
+        if (u >= X_FULL + 0.2 && u < X_FULL + 0.2 + SHEEN) s.sheen = (u - X_FULL - 0.2) / SHEEN;
+      }
+
+      // 8::16, then black.
+      if (u >= H_START) {
+        // One by one, bottom to top: each note sounds alone and shines while it plays, then
+        // stays on screen dimmed; then the whole segment sounds together.
+        s.segment = arpeggio(u, SEGMENT, H_START, H_FULL).map(v => ({ n: v.n, at: v.at, sound: v.sound, alpha: v.shown * v.bright }));
+        s.black = smooth(u, H_BLACK, H_BLACK + H_BLACK_LEN);
+        s.pads = s.segment.map(v => ({ n: v.n, gain: v.sound * (1 - s.black) }));
+        const shown = s.segment.filter(v => v.alpha > 0.001).length;
+        s.label = { text: SEGMENT.slice(0, Math.max(1, shown)).join(":"), alpha: smooth(u, H_START, H_START + H_IN) };
+        if (u >= H_FULL + 0.2 && u < H_FULL + 0.2 + SHEEN) s.sheen = (u - H_FULL - 0.2) / SHEEN;
+      }
+      return s;
+    }
+
+    // ----- theme -----
+    const THEMES = {
+      dark: {
+        ground: ["#1e1f26", "#283c63"], ink: "#f0f0f0", inkMuted: "#a8dadc", hairline: "rgba(233,197,106,0.36)",
+        root: "#f4a261", sounding: "#a8dadc", gold: "#e9c46a", goldLo: "#b8892b", goldHi: "#fff1c4", goldInk: "#e9c46a"
+      },
+      light: {
+        ground: ["#f7f4ec", "#f7f4ec"], ink: "#121933", inkMuted: "#565c70", hairline: "#dcd5c6",
+        root: "#6b1d34", sounding: "#1640c8", gold: "#b8892b", goldLo: "#7a5a1c", goldHi: "#e9cf8a", goldInk: "#7a5a1c"
+      }
+    };
+    function themeName() {
+      const set = document.documentElement.dataset.theme;
+      if (set === "light" || set === "dark") return set;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    let colors = THEMES[themeName()];
+    function applyTheme() { colors = THEMES[themeName()]; draw(); }
+
+    // ----- canvas -----
+    let w = 1, h = 1;
+    let clock = 0;
     let last = performance.now();
     let progress = 0;
     let playing = false;
     let muted = false;
-
     let audioStarted = false;
+    let captionLayout = { size: 16, lines: [] };
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.35 : 1.9);
+      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.5 : 2);
       w = Math.max(1, rect.width);
       h = Math.max(1, rect.height);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      layoutCaptions();
     }
 
-    function clamp(v, min = 0, max = 1) {
-      return Math.max(min, Math.min(max, v));
+    function captionFont(size) {
+      return `400 ${size}px Montserrat, "Helvetica Neue", Arial, system-ui, sans-serif`;
+    }
+    function wrap(text, maxWidth) {
+      const words = text.split(/\s+/);
+      const lines = [];
+      let current = "";
+      for (const word of words) {
+        const trial = current ? current + " " + word : word;
+        if (ctx.measureText(trial).width <= maxWidth || !current) current = trial;
+        else { lines.push(current); current = word; }
+      }
+      if (current) lines.push(current);
+      return lines;
+    }
+    // One size for every caption; step down only if the longest would overflow its panel.
+    function layoutCaptions() {
+      const panelH = h / 4;
+      const maxWidth = Math.max(40, Math.min(680, w - 32));
+      for (let size = Math.max(13, Math.min(22, h * 0.036)); size >= 10; size -= 1) {
+        ctx.font = captionFont(size);
+        const lines = CAPTIONS.map(text => wrap(text, maxWidth));
+        const tallest = Math.max(...lines.map(l => l.length)) * size * 1.5;
+        if (tallest <= panelH * 0.9 || size <= 10) { captionLayout = { size, lines }; return; }
+      }
     }
 
-    function smoothstep(edge0, edge1, x) {
-      x = clamp((x - edge0) / (edge1 - edge0));
-      return x * x * (3 - 2 * x);
+    function speedPx() { return w / MANIM_FRAME_WIDTH; }
+
+    // One gold foil shared by every gold element, laid across the full width so waves, boxes,
+    // the bass and the ratio all match. At a lock a bright band sweeps across all of it at once.
+    const FOIL = [[0, "goldLo"], [0.35, "gold"], [0.5, "goldHi"], [0.65, "gold"], [1, "goldLo"]];
+    function foilAt(x) {
+      for (let i = 1; i < FOIL.length; i += 1) {
+        if (x <= FOIL[i][0]) {
+          const [x0, c0] = FOIL[i - 1], [x1, c1] = FOIL[i];
+          return mix(colors[c0], colors[c1], (x - x0) / (x1 - x0));
+        }
+      }
+      return colors.goldLo;
+    }
+    function goldFoil(sheen) {
+      const g = ctx.createLinearGradient(0, 0, w, 0);
+      let stops = FOIL.map(([x, c]) => [x, colors[c]]);
+      if (sheen >= 0 && !reducedMotion.matches) {
+        const band = 0.12;
+        const p = -band + sheen * (1 + 2 * band); // enters at the left edge, leaves at the right
+        // the foil's own stops inside the band give way to the highlight
+        stops = stops.filter(([x]) => x === 0 || x === 1 || Math.abs(x - p) >= band);
+        for (const [x, color] of [[p - band, null], [p - band / 3, colors.goldHi], [p, "#ffffff"], [p + band / 3, colors.goldHi], [p + band, null]]) {
+          if (x > 0 && x < 1) stops.push([x, color || foilAt(x)]);
+        }
+      }
+      stops.sort((m, n) => m[0] - n[0]).forEach(([x, color]) => g.addColorStop(x, color));
+      return g;
     }
 
-    function fadeInOut(x, inStart, inEnd, outStart, outEnd) {
-      return smoothstep(inStart, inEnd, x) * (1 - smoothstep(outStart, outEnd, x));
+    function mix(a, b, t) {
+      const pa = a.match(/\w\w/g).map(x => parseInt(x, 16));
+      const pb = b.match(/\w\w/g).map(x => parseInt(x, 16));
+      return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
     }
 
-    function isVisible() {
-      const rect = section.getBoundingClientRect();
-      return rect.bottom > 0 && rect.top < window.innerHeight;
-    }
-
-    function drawText(text, x, y, size, color, alpha = 1) {
+    // A wave with `cycles` across the width, travelling right, cresting at the box edges.
+    function drawWave(cycles, yCenter, stroke, alpha, amp) {
       if (alpha <= 0.001) return;
+      const k = (2 * Math.PI * cycles) / w;
+      const shift = speedPx() * clock;
       ctx.save();
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = color;
-      ctx.font = `900 ${size}px system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, x, y);
-      ctx.restore();
-    }
-
-    function roundRect(x, y, width, height, radius) {
-      const r = Math.min(radius, width / 2, height / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + width - r, y);
-      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
-      ctx.lineTo(x + width, y + height - r);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-      ctx.lineTo(x + r, y + height);
-      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-    }
-
-    function drawWave(y, period, color, alpha) {
-      if (alpha <= 0.001) return;
-
-      const amp = Math.min(52, h * 0.08);
-      const left = w * 0.08;
-      const right = w * 0.92;
-      const phase = t * 0.018;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = Math.max(2, Math.min(3.5, h * 0.005));
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.beginPath();
-
-      for (let x = left; x <= right; x += 2) {
-        const wave = Math.sin(((x + phase) / period) * Math.PI * 2);
-        const yy = y + wave * amp;
-        if (x === left) ctx.moveTo(x, yy);
-        else ctx.lineTo(x, yy);
+      for (let x = 0; x <= w + 2; x += 2) {
+        const y = yCenter - amp * Math.sin(k * (x - shift) + Math.PI / 2);
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
-
       ctx.stroke();
       ctx.restore();
     }
 
-    function drawPeriodBox(x, y, width, height, color, alpha) {
-      if (alpha <= 0.001) return;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color === "#ffd166" ? "rgba(255,209,102,0.075)" : "rgba(143,211,255,0.075)";
-      ctx.lineWidth = 3;
-      roundRect(x, y, width, height, 12);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.setLineDash([6, 7]);
-      ctx.globalAlpha = alpha * 0.8;
-      ctx.beginPath();
-      ctx.moveTo(x, y + height / 2);
-      ctx.lineTo(x + width, y + height / 2);
-      ctx.stroke();
-
-      ctx.restore();
+    function waveStroke(voice, sheen) {
+      if (voice.gold >= 0.999) return goldFoil(sheen);
+      if (voice.gold <= 0.001) return colors.sounding;
+      return mix(colors.sounding, colors.gold, voice.gold);
     }
 
-    function drawPeriodBoxes(lowerY, upperY, spanWidth, stage, alpha) {
-      if (alpha <= 0.001) return;
-
-      const amp = Math.min(52, h * 0.08);
-      const startX = (w - spanWidth) / 2;
-      const boxH = amp * 2.45;
-      const lowerPeriod = spanWidth / stage.denominator;
-      const upperPeriod = spanWidth / stage.numerator;
-
-      for (let i = 0; i < stage.denominator; i++) {
-        drawPeriodBox(startX + lowerPeriod * i, lowerY - boxH / 2, lowerPeriod, boxH, "#8fd3ff", alpha);
-      }
-
-      for (let i = 0; i < stage.numerator; i++) {
-        drawPeriodBox(startX + upperPeriod * i, upperY - boxH / 2, upperPeriod, boxH, "#ffd166", alpha);
-      }
-
+    // Boxes one common period wide (cyclesPerBox root cycles), sliding with the waves.
+    function drawBoxes(boxes, sheen) {
+      if (!boxes || boxes.alpha <= 0.001) return;
+      const panelH = h / 4;
+      const boxW = (w / BASE_CYCLES) * boxes.cyclesPerBox;
+      const offset = (speedPx() * clock) % boxW;
       ctx.save();
-      ctx.globalAlpha = alpha * 0.7;
-      ctx.strokeStyle = "rgba(255,255,255,0.28)";
       ctx.lineWidth = 1.5;
-      ctx.setLineDash([5, 7]);
+      const rows = boxes.tall ? [[4, 3 * panelH - 8]] : boxes.panels.map(panel => [panel * panelH + 4, panelH - 8]);
+      for (const [top, height] of rows) {
+        for (let x = offset - boxW; x <= w + boxW; x += boxW) {
+          // the box edge sits where every wave crests together
+          ctx.globalAlpha = boxes.alpha * (0.45 + 0.55 * boxes.gold);
+          ctx.strokeStyle = boxes.gold >= 0.999 ? goldFoil(sheen) : mix(colors.inkMuted, colors.gold, boxes.gold);
+          ctx.strokeRect(x, top, boxW, height);
+        }
+      }
+      ctx.restore();
+    }
 
-      const y1 = upperY + boxH / 2 + 12;
-      const y2 = lowerY - boxH / 2 - 12;
-
-      for (let i = 0; i <= stage.numerator; i++) {
-        const x = startX + upperPeriod * i;
+    function drawFraction(frac, cy, sheen) {
+      if (!frac || frac.alpha <= 0.001) return;
+      const panelH = h / 4;
+      ctx.save();
+      ctx.globalAlpha = frac.alpha;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      {
+        const size = panelH * 0.3;
+        const gap = panelH * 0.03;
+        const fill = goldFoil(sheen);
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = fill;
+        ctx.font = `500 ${size}px "IBM Plex Mono", ui-monospace, monospace`;
+        ctx.fillText(frac.text[0], w / 2, cy - size / 2 - gap);
+        ctx.fillText(frac.text[1], w / 2, cy + size / 2 + gap);
+        ctx.lineWidth = Math.max(2, size * 0.07);
+        ctx.lineCap = "butt";
         ctx.beginPath();
-        ctx.moveTo(x, y1);
-        ctx.lineTo(x, y2);
+        ctx.moveTo(w / 2 - size * 0.45, cy);
+        ctx.lineTo(w / 2 + size * 0.45, cy);
         ctx.stroke();
       }
-
       ctx.restore();
     }
 
-    function getStage(x) {
-      const stages = [
-        { numerator: 2, denominator: 1, upperAlpha: fadeInOut(x, 0.06, 0.12, 0.22, 0.27), boxAlpha: fadeInOut(x, 0.12, 0.18, 0.22, 0.27), ratioAlpha: fadeInOut(x, 0.17, 0.23, 0.24, 0.29), freq: 220, ratio: "2/1" },
-        { numerator: 3, denominator: 2, upperAlpha: fadeInOut(x, 0.25, 0.31, 0.41, 0.46), boxAlpha: fadeInOut(x, 0.31, 0.37, 0.41, 0.46), ratioAlpha: fadeInOut(x, 0.36, 0.42, 0.43, 0.48), freq: 165, ratio: "3/2" },
-        { numerator: 4, denominator: 3, upperAlpha: fadeInOut(x, 0.44, 0.50, 0.60, 0.65), boxAlpha: fadeInOut(x, 0.50, 0.56, 0.60, 0.65), ratioAlpha: fadeInOut(x, 0.55, 0.61, 0.62, 0.67), freq: 147, ratio: "4/3" },
-        { numerator: 5, denominator: 4, upperAlpha: fadeInOut(x, 0.63, 0.69, 0.79, 0.84), boxAlpha: fadeInOut(x, 0.69, 0.75, 0.79, 0.84), ratioAlpha: fadeInOut(x, 0.74, 0.80, 0.81, 0.86), freq: 138, ratio: "5/4" },
-        { numerator: 3, denominator: 1, upperAlpha: fadeInOut(x, 0.82, 0.88, 0.96, 1.00), boxAlpha: fadeInOut(x, 0.88, 0.93, 0.96, 1.00), ratioAlpha: fadeInOut(x, 0.92, 0.97, 0.98, 1.00), freq: 330, ratio: "3/1" }
-      ];
-
-      let active = stages[0];
-
-      for (const stage of stages) {
-        const total = stage.upperAlpha + stage.boxAlpha + stage.ratioAlpha;
-        if (total > 0.001) active = stage;
-      }
-
-      return active;
+    function drawCaption(caption, cy) {
+      if (!caption || caption.alpha <= 0.001) return;
+      const lines = caption.text ? [caption.text] : captionLayout.lines[caption.index];
+      if (!lines) return;
+      const lineH = captionLayout.size * 1.5;
+      const startY = cy - ((lines.length - 1) * lineH) / 2;
+      ctx.save();
+      ctx.globalAlpha = caption.alpha;
+      ctx.fillStyle = colors.ink;
+      ctx.font = captionFont(captionLayout.size);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      lines.forEach((line, i) => ctx.fillText(line, w / 2, startY + i * lineH));
+      ctx.restore();
     }
 
-    function getSceneFade(x) {
-      return 1 - smoothstep(0.94, 1.00, x);
+    function drawLabel(label, cy, sheen) {
+      if (!label || label.alpha <= 0.001) return;
+      let size = Math.min(h / 4 * 0.24, w * 0.075);
+      ctx.save();
+      ctx.globalAlpha = label.alpha;
+      ctx.font = `500 ${size}px "IBM Plex Mono", ui-monospace, monospace`;
+      const fit = (w - 32) / Math.max(1, ctx.measureText(label.text).width);
+      if (fit < 1) { size *= fit; ctx.font = `500 ${size}px "IBM Plex Mono", ui-monospace, monospace`; }
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const half = ctx.measureText(label.text).width / 2;
+      ctx.fillStyle = goldFoil(sheen);
+      ctx.fillText(label.text, w / 2, cy);
+      ctx.restore();
     }
 
-    function updateAudio(lowerAlpha, upperAlpha, upperFreq) {
-      if (!isVisible() || !playing || muted) {
-        silenceAudio(0.02);
-        return;
+    let current = emptyState();
+
+    function draw() {
+      const time = progress * DURATION;
+      const s = stateAt(time);
+      current = s;
+      const panelH = h / 4;
+      const y = [0, 1, 2, 3].map(i => panelH / 2 + i * panelH);
+
+      ctx.clearRect(0, 0, w, h);
+      const ground = ctx.createLinearGradient(0, 0, w, h);
+      ground.addColorStop(0, colors.ground[0]);
+      ground.addColorStop(1, colors.ground[1]);
+      ctx.fillStyle = ground;
+      ctx.fillRect(0, 0, w, h);
+
+      // Two-wave layout (upper wave, ratio, root) blends into four lanes, then six, for the chord.
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const laneY = (count, lane) => (3 * panelH / count) * (lane + 0.5);
+      const laneAmp = count => (3 * panelH / count / 2) * (1 - VERTICAL_MARGIN);
+      const wideAmp = (panelH / 2) * (1 - VERTICAL_MARGIN);
+      // Where a voice sits: its two-wave place, then its 4-lane place, then its 6-lane place.
+      const place = (twoY, lane4, lane6) => {
+        const y4 = lane4 === null ? laneY(6, lane6) : laneY(4, lane4);
+        const a4 = lane4 === null ? laneAmp(6) : laneAmp(4);
+        const y1 = twoY === null ? y4 : lerp(twoY, y4, s.layout);
+        const a1 = twoY === null ? a4 : lerp(wideAmp, a4, s.layout);
+        return { y: lerp(y1, laneY(6, lane6), s.layout2), amp: lerp(a1, laneAmp(6), s.layout2) };
+      };
+
+      drawBoxes(s.boxes, s.sheen);
+      const root = place(y[2], 3, 5);
+      const rootStroke = s.rootGold >= 0.999 ? goldFoil(s.sheen) : (s.rootGold > 0.001 ? mix(colors.root, colors.gold, s.rootGold) : colors.root);
+      drawWave(BASE_CYCLES, root.y, rootStroke, s.lower, root.amp);
+      if (s.top) drawWave(BASE_CYCLES * 2 ** (s.top.cents / 1200), y[0], waveStroke(s.top, s.sheen), s.top.alpha, wideAmp);
+      if (s.extra) {
+        for (const voice of s.extra) {
+          const at = place(voice.n === 5 ? y[0] : null, voice.lane4, voice.lane6);
+          drawWave(BASE_CYCLES * 2 ** (voice.cents / 1200), at.y, waveStroke(voice, s.sheen), voice.alpha, at.amp);
+        }
+      }
+      drawFraction(s.frac, y[1], s.sheen);
+      // In the chord the caption sits low, leaving room for the chord's ratios above it.
+      drawCaption(s.caption, s.caption && s.caption.low ? 3 * panelH + panelH * 0.68 : y[3]);
+      if (s.segment) {
+        // nine lanes across the upper three panels: 8 at the bottom, 16 at the top
+        const count = s.segment.length;
+        s.segment.forEach((voice, i) => {
+          drawWave(BASE_CYCLES * voice.n / 4, laneY(count, count - 1 - i), goldFoil(s.sheen), voice.alpha, laneAmp(count));
+        });
+      }
+      drawLabel(s.label, 3 * panelH + panelH * 0.26, s.sheen);
+
+      if (s.black > 0.001) {
+        ctx.save();
+        ctx.globalAlpha = s.black;
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
       }
 
+      updateAudio(s);
+    }
+
+    // ----- audio: each voice at its current pitch over a 110 Hz root -----
+    const VOICES = ["ji-animation-root", "ji-animation-upper", "ji-animation-6", "ji-animation-7", "ji-animation-9", "ji-animation-11",
+      "ji-animation-s7", "ji-animation-s8", "ji-animation-s9"]; // the last three join for 8::16
+    // 8::16 sound: plucked notes (one-shots) for the arpeggio and the strum, a warm pad under the chord.
+    const PADS = SEGMENT.map((n, i) => `ji-animation-pad-${i}`); // nine pad slots, shared by the hexad and 8::16
+    const PAD_GAIN = 0.032, PAD_FILTER_HZ = 2000;
+    const PLUCK_GAIN = 0.16, STRUM_GAIN = 0.09, STRUM_GAP = 0.018;
+    let lastAudioTime = null;
+    // Pitch and loudness for each voice id at this moment.
+    // The final 4:5:6:7:9:11 chord keeps the full level and the open filter, so it
+    // stays as loud and bright as the rest of the animation (no fade-down).
+    const FILTER_HZ = 1500;
+    function voiceMix(s) {
+      const level = s.drones;
+      const filter = FILTER_HZ;
+      if (s.segment) {
+        return VOICES.map(() => ({ hz: ROOT_HZ * 2, gain: 0, filter })); // the drones rest; plucks and pads play
+      }
+      const out = [{ hz: ROOT_HZ, gain: s.lower * 0.055 * level, filter }];
+      if (s.extra) {
+        const byN = n => s.extra.find(v => v.n === n);
+        for (const n of [5, 6, 7, 9, 11]) {
+          const v = byN(n);
+          out.push({ hz: hz(v), gain: v.alpha * 0.034 * level, filter });
+        }
+      } else {
+        out.push({ hz: s.top ? hz(s.top) : ROOT_HZ * 2, gain: s.top ? s.top.alpha * 0.045 * level : 0, filter });
+        for (const n of [6, 7, 9, 11]) out.push({ hz: ROOT_HZ * n / 4, gain: 0, filter });
+      }
+      while (out.length < VOICES.length) out.push({ hz: ROOT_HZ * 2, gain: 0, filter });
+      return out;
+    }
+    function hz(voice) { return ROOT_HZ * 2 ** (voice.cents / 1200); }
+
+    function padMix(s) {
+      return PADS.map((id, i) => {
+        const v = s.pads && s.pads[i];
+        return v ? { hz: ROOT_HZ * v.n / 4, gain: v.gain * PAD_GAIN } : { hz: ROOT_HZ * 2, gain: 0 };
+      });
+    }
+
+    // Plucks fire when playback crosses a note's start (not when seeking past it).
+    function triggerPlucks(time) {
+      const prev = lastAudioTime;
+      lastAudioTime = time;
+      if (prev === null || time <= prev || time - prev > 0.25) return;
+      const u0 = prev - CHORD_START, u1 = time - CHORD_START;
+      const crossed = at => at > u0 && at <= u1;
+      for (const [notes, start, full] of [[HEXAD, X_START, X_FULL], [SEGMENT, H_START, H_FULL]]) {
+        notes.forEach((n, i) => {
+          if (crossed(start + i * ARP_STEP)) XenAudio.playTone({ frequency: ROOT_HZ * n / 4, duration: 0.9, gain: PLUCK_GAIN, voice: "pluck" });
+        });
+        if (crossed(full)) {
+          const now = XenAudio.currentTime();
+          notes.forEach((n, i) => XenAudio.playTone({ frequency: ROOT_HZ * n / 4, duration: 1.6, gain: STRUM_GAIN, voice: "pluck", when: now + i * STRUM_GAP }));
+        }
+      }
+    }
+
+    function updateAudio(s) {
+      if (!isVisible() || !playing || muted) { silenceAudio(0.02); return; }
       if (!audioStarted || !window.XenAudio) return;
-      XenAudio.updateDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: lowerAlpha * 0.15,
-        rampTime: 0.035
-      });
-      XenAudio.updateDrone({
-        id: "ji-animation-upper",
-        frequency: upperFreq,
-        gain: upperAlpha * 0.12,
-        rampTime: 0.035
-      });
+      voiceMix(s).forEach((v, i) => XenAudio.updateDrone({ id: VOICES[i], frequency: v.hz, gain: v.gain, filterFrequency: v.filter, rampTime: 0.03 }));
+      padMix(s).forEach((v, i) => XenAudio.updateDrone({ id: PADS[i], frequency: v.hz, gain: v.gain, filterFrequency: PAD_FILTER_HZ, rampTime: 0.12 }));
+      triggerPlucks(progress * DURATION);
     }
 
     function silenceAudio(timeConstant = 0.025) {
+      lastAudioTime = null;
       if (!audioStarted || !window.XenAudio) return;
-      XenAudio.updateDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: 0,
-        rampTime: timeConstant
-      });
-      XenAudio.updateDrone({
-        id: "ji-animation-upper",
-        frequency: getStage(progress).freq,
-        gain: 0,
-        rampTime: timeConstant
-      });
-    }
-
-    function draw() {
-      const sceneFade = getSceneFade(progress);
-      const lowerAlpha = smoothstep(0.04, 0.14, progress) * sceneFade;
-      const lowerY = h * 0.68;
-      const upperY = h * 0.28;
-      const stage = getStage(progress);
-      const upperAlpha = stage.upperAlpha * sceneFade;
-      const boxAlpha = stage.boxAlpha * sceneFade;
-      const ratioAlpha = stage.ratioAlpha * sceneFade;
-      const spanWidth = Math.min(420, w * 0.56);
-      const lowerPeriod = spanWidth / stage.denominator;
-      const upperPeriod = spanWidth / stage.numerator;
-
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#080912";
-      ctx.fillRect(0, 0, w, h);
-
-      drawWave(lowerY, lowerPeriod, "#8fd3ff", lowerAlpha);
-      drawWave(upperY, upperPeriod, "#ffd166", upperAlpha);
-
-      drawText("110 Hz", w / 2, lowerY + Math.min(95, h * 0.15), 34, "#8fd3ff", lowerAlpha);
-      drawText(String(stage.freq) + " Hz", w / 2, upperY - Math.min(95, h * 0.15), 34, "#ffd166", upperAlpha);
-
-      drawPeriodBoxes(lowerY, upperY, spanWidth, stage, boxAlpha);
-      drawText(stage.ratio, w / 2, h / 2, Math.min(120, w * 0.2), "#ffd166", ratioAlpha);
-
-      updateAudio(lowerAlpha, upperAlpha, stage.freq);
+      voiceMix(current).forEach((v, i) => XenAudio.updateDrone({ id: VOICES[i], frequency: v.hz, gain: 0, rampTime: timeConstant }));
+      padMix(current).forEach((v, i) => XenAudio.updateDrone({ id: PADS[i], frequency: v.hz, gain: 0, rampTime: timeConstant }));
     }
 
     async function startAudio() {
       if (!window.XenAudio || !XenAudio.isAvailable()) return;
       await XenAudio.resume();
-      await XenAudio.startDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: 0,
-        voice: "soft"
-      });
-      await XenAudio.startDrone({
-        id: "ji-animation-upper",
-        frequency: getStage(progress).freq,
-        gain: 0,
-        voice: "soft"
-      });
+      for (const id of VOICES) await XenAudio.startDrone({ id, frequency: ROOT_HZ, gain: 0.000001, voice: "bright" });
+      for (const id of PADS) await XenAudio.startDrone({ id, frequency: ROOT_HZ * 2, gain: 0.000001, voice: "pad" });
       audioStarted = true;
+    }
+
+    function isVisible() {
+      const rect = section.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < window.innerHeight;
     }
 
     function setProgress(value) {
@@ -320,54 +695,58 @@
     }
 
     function frame(now) {
-      const dt = Math.min(48, now - last);
+      const dt = Math.min(48, now - last) / 1000;
       last = now;
-      t += dt;
+      clock += dt;
       draw();
       requestAnimationFrame(frame);
     }
 
     window.addEventListener("message", event => {
-      if (event.origin !== window.location.origin) return;
+      if (event.source !== window.parent) return;
       const message = event.data || {};
 
       if (message.type === "lesson-animation-progress") setProgress(message.progress);
       if (message.type === "lesson-animation-play") {
         playing = true;
-        startAudio().catch(() => {
-          playing = false;
-          silenceAudio(0.015);
-        });
+        if (!(Number(message.progress) > 0)) clock = 0; // crests start at the left edge
+        startAudio().catch(() => { playing = false; silenceAudio(0.015); });
         setProgress(message.progress);
       }
-      if (message.type === "lesson-animation-pause") {
-        playing = false;
-        silenceAudio(0.015);
+      if (message.type === "lesson-animation-pause") { playing = false; silenceAudio(0.015); }
+      if (message.type === "lesson-animation-reset") { playing = false; clock = 0; setProgress(0); silenceAudio(0.015); }
+      if (message.type === "lesson-animation-finish") { playing = false; setProgress(1); silenceAudio(0.035); }
+      if (message.type === "lesson-animation-mute") { muted = Boolean(message.muted); if (muted) silenceAudio(0.015); }
+      if (message.type === "lesson-theme" && (message.theme === "light" || message.theme === "dark")) {
+        document.documentElement.dataset.theme = message.theme;
+        applyTheme();
       }
-      if (message.type === "lesson-animation-reset") {
-        playing = false;
-        setProgress(0);
-        silenceAudio(0.015);
-      }
-      if (message.type === "lesson-animation-finish") {
-        playing = false;
-        setProgress(1);
-        silenceAudio(0.035);
-      }
-      if (message.type === "lesson-animation-mute") {
-        muted = Boolean(message.muted);
-        if (muted) silenceAudio(0.015);
-      }
+    });
+
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+    window.addEventListener("storage", event => {
+      if (event.key !== "theme") return;
+      if (event.newValue === "light" || event.newValue === "dark") document.documentElement.dataset.theme = event.newValue;
+      else delete document.documentElement.dataset.theme;
+      applyTheme();
     });
 
     let resizeTimer = null;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        resize();
-        draw();
-      }, 120);
+      resizeTimer = setTimeout(() => { resize(); draw(); }, 120);
     });
+
+    // Re-measure captions once the brand faces have loaded.
+    if (document.fonts && document.fonts.load) {
+      Promise.all([
+        document.fonts.load(`400 16px Montserrat`),
+        document.fonts.load(`500 16px "IBM Plex Mono"`)
+      ]).then(() => { layoutCaptions(); draw(); }).catch(() => {});
+    }
+
+    // Exposed for the lesson's duration check.
+    window.JI_ANIMATION_DURATION = DURATION;
 
     resize();
     draw();

@@ -1,0 +1,513 @@
+/* Intro to Xen · concept map, in the Nick Vuci design system.
+   Tokens from the design system's tokens.json: Ivory (light) and Nocturne (the original
+   nickvuci.com palette). Every theme rule is written for both routes: the device setting
+   and data-theme on <html>. */
+
+:root {
+  --ground-start: #f7f4ec;
+  --ground-end: #f7f4ec;
+  --surface: #f7f4ec;
+  --surface-raised: #fffdf8;
+  --surface-sunk: #ece7db;
+  --ink: #121933;
+  --ink-muted: #565c70;
+  --hairline: #dcd5c6;
+  --brand-blue: #1640c8;
+  --blue: #1640c8;
+  --on-blue: #fffdf8;
+  --blue-soft: #dde4f7;
+  --gold: #b8892b;
+  --gold-ink: #7a5a1c;
+  --gold-soft: #efe4cb;
+  --on-gold: #121933;
+  --alert: #b42a12;
+  --burgundy: #6b1d34;
+  --burgundy-ink: #6b1d34;
+  --burgundy-mid: #7a2c40;
+  --burgundy-soft: #f3e4e8;
+  --burgundy-wash: #faf2f3;
+  --gold-lo: #7a5a1c;
+  --gold-hi: #e9cf8a;
+
+  --font-display: "Cormorant Garamond", "EB Garamond", Garamond, "Times New Roman", serif;
+  --font-sans: "Montserrat", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+  --space-6: 64px;
+  --radius-sm: 2px;
+  --foil: linear-gradient(115deg, var(--gold-lo) 0%, var(--gold) 22%, var(--gold-hi) 40%, var(--gold) 56%, var(--gold-lo) 78%, var(--gold) 100%);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground-start: #1e1f26;
+    --ground-end: #283c63;
+    --surface: #232d44;
+    --surface-raised: #1e1f26;
+    --surface-sunk: #181920;
+    --ink: #f0f0f0;
+    --ink-muted: #a8dadc;
+    --hairline: #e9c56a5b;
+    --brand-blue: #86a3ff;
+    --blue: #a8dadc;
+    --on-blue: #1e1f26;
+    --blue-soft: #a8dadc26;
+    --gold: #e9c46a;
+    --gold-ink: #e9c46a;
+    --gold-soft: #e9c46a33;
+    --on-gold: #1e1f26;
+    --alert: #ff8a6a;
+    --burgundy: #f4a261;
+    --burgundy-ink: #e9c46a;
+    --burgundy-mid: #f4a261;
+    --burgundy-soft: #e9c56a5b;
+    --burgundy-wash: #ffffff0a;
+    --gold-lo: #b8892b;
+    --gold-hi: #fff1c4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground-start: #1e1f26;
+  --ground-end: #283c63;
+  --surface: #232d44;
+  --surface-raised: #1e1f26;
+  --surface-sunk: #181920;
+  --ink: #f0f0f0;
+  --ink-muted: #a8dadc;
+  --hairline: #e9c56a5b;
+  --brand-blue: #86a3ff;
+  --blue: #a8dadc;
+  --on-blue: #1e1f26;
+  --blue-soft: #a8dadc26;
+  --gold: #e9c46a;
+  --gold-ink: #e9c46a;
+  --gold-soft: #e9c46a33;
+  --on-gold: #1e1f26;
+  --alert: #ff8a6a;
+  --burgundy: #f4a261;
+  --burgundy-ink: #e9c46a;
+  --burgundy-mid: #f4a261;
+  --burgundy-soft: #e9c56a5b;
+  --burgundy-wash: #ffffff0a;
+  --gold-lo: #b8892b;
+  --gold-hi: #fff1c4;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html { min-height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font: 400 15px/26px var(--font-sans);
+  background: var(--surface);
+  background-image: linear-gradient(135deg, var(--ground-start), var(--ground-end));
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+a { color: var(--blue); }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* ----- app bar ----- */
+.appBar {
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--burgundy-soft);
+  padding-top: env(safe-area-inset-top);
+}
+.appBarTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px max(var(--space-3), env(safe-area-inset-right)) 10px max(var(--space-3), env(safe-area-inset-left));
+  border-bottom: 1px solid var(--burgundy-soft);
+}
+.home {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  color: inherit;
+  text-decoration: none;
+}
+.home svg { display: block; flex: none; }
+.wordmark {
+  font: 400 16px/1 var(--font-sans);
+  letter-spacing: 0.18em;
+  white-space: nowrap;
+}
+.wordmark .n { color: var(--brand-blue); }
+.wordmark .v { color: var(--gold); }
+.appName {
+  min-width: 0;
+  padding-left: 14px;
+  border-left: 1px solid var(--burgundy-soft);
+  font: 400 16px/1 var(--font-sans);
+  letter-spacing: 0.18em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* the theme toggle, as on nickvuci.com */
+.themeToggle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin-left: auto;
+  cursor: pointer;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid var(--burgundy-soft);
+  border-radius: var(--radius-sm);
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.themeToggle:hover { color: var(--gold); border-color: var(--gold); }
+.themeToggle .ti {
+  grid-area: 1 / 1;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.themeToggle .ti-sun { opacity: 0; transform: rotate(-45deg) scale(0.8); }
+.themeToggle.isDark .ti-moon { opacity: 0; transform: rotate(45deg) scale(0.8); }
+.themeToggle.isDark .ti-sun { opacity: 1; transform: none; }
+.themeToggle.isDark { color: var(--gold); background: var(--gold-soft); border-color: var(--gold); }
+.themeToggle.isDark:hover { color: var(--on-gold); background: var(--gold); }
+
+/* row 2: the learner's standing */
+.standing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px max(var(--space-3), env(safe-area-inset-right)) 10px max(var(--space-3), env(safe-area-inset-left));
+}
+.standingText {
+  flex: none;
+  font: 500 13px/18px var(--font-sans);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.standingText b {
+  font: 500 13px/18px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.track {
+  flex: 1;
+  min-width: 48px;
+  height: 2px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+.track i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--foil);
+  transition: width 0.4s ease;
+}
+
+/* ----- buttons ----- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: 600 13.5px/1.2 var(--font-sans);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  cursor: pointer;
+  background: transparent;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+.btn.primary { background: var(--blue); color: var(--on-blue); }
+.btn.second { color: var(--burgundy-ink); border-color: var(--burgundy-mid); }
+.btn.ghost { color: var(--ink); border-color: var(--ink-muted); font-weight: 500; }
+.btn.danger { color: var(--alert); border-color: var(--alert); font-weight: 500; }
+.btn.small { min-height: 32px; padding: 5px 10px; font-size: 12px; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .btn.second,
+  :root:not([data-theme="light"]) .btn.ghost { background: var(--gold-soft); color: var(--gold); border-color: var(--gold); }
+  :root:not([data-theme="light"]) .btn.second:hover,
+  :root:not([data-theme="light"]) .btn.ghost:hover { background: var(--gold); color: var(--on-gold); }
+}
+:root[data-theme="dark"] .btn.second,
+:root[data-theme="dark"] .btn.ghost { background: var(--gold-soft); color: var(--gold); border-color: var(--gold); }
+:root[data-theme="dark"] .btn.second:hover,
+:root[data-theme="dark"] .btn.ghost:hover { background: var(--gold); color: var(--on-gold); }
+
+/* ----- page ----- */
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-5) max(var(--space-3), env(safe-area-inset-right)) var(--space-5) max(var(--space-3), env(safe-area-inset-left));
+}
+
+.titleBlock { max-width: 680px; margin-bottom: var(--space-5); }
+.eyebrow {
+  margin: 0;
+  font: 600 12px/16px var(--font-sans);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.titleBlock h1 {
+  margin: var(--space-1) 0 0;
+  font: 500 56px/60px var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--burgundy-ink);
+}
+.goldRule { width: 56px; height: 2px; margin: var(--space-3) 0; background: var(--foil); }
+.titleBlock p { margin: 0; max-width: 60ch; }
+
+.mapLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-areas: "map panel";
+  gap: var(--space-4);
+  align-items: start;
+}
+.mapColumn { grid-area: map; min-width: 0; }
+.mapLayout > .mapInspector { grid-area: panel; }
+
+/* the map: a well on the ground */
+.conceptMap {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  min-height: 420px;
+  background: var(--surface-sunk);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.mapLines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.mapLink {
+  stroke: var(--burgundy-mid);
+  stroke-opacity: 0.55;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 0.2s, stroke-opacity 0.2s;
+}
+.mapLink.relatedLink { stroke-dasharray: 5 6; stroke-opacity: 0.4; }
+.mapLink.active { stroke: var(--blue); stroke-opacity: 1; stroke-width: 2; }
+
+.conceptNodes { position: absolute; inset: 0; }
+
+/* each concept: a circle with its name inside */
+.conceptNode {
+  --size: 104px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--size);
+  height: var(--size);
+  will-change: transform; /* placed every frame by the map's physics */
+  padding: 1.5px; /* the ring shows through as the edge */
+  border: 0;
+  border-radius: 50%;
+  background: var(--burgundy-mid);
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.conceptNode:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.circle {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.nodeName {
+  font: 600 12px/1.25 var(--font-sans);
+  font-size: var(--name-size, 12px);
+  letter-spacing: 0.01em;
+  text-align: center;
+  color: var(--ink);
+  text-wrap: balance;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+@media (hover: hover) {
+  .conceptNode:hover { background: var(--gold); }
+}
+.conceptNode.complete { background: var(--foil); }
+.conceptNode.complete .circle {
+  /* the gold wash over a solid ground, so the foil edge never shows through */
+  background: linear-gradient(var(--gold-soft), var(--gold-soft)), var(--surface-raised);
+}
+.conceptNode.complete .nodeName { color: var(--gold-ink); }
+/* highlight by colour and a ring only: sizes never change, so names stay put */
+.conceptNode.selected { background: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+.conceptNode.selected .circle { background: var(--blue); }
+.conceptNode.selected .nodeName { color: var(--on-blue); }
+.conceptNode.dragging { cursor: grabbing; z-index: 2; box-shadow: 0 0 0 4px var(--gold-soft); }
+.conceptNode.selected.dragging { box-shadow: 0 0 0 4px var(--blue-soft); }
+
+.mapFoot { margin-top: var(--space-2); }
+.mapLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font: 500 12px/18px var(--font-sans);
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+.mapLegend span { display: inline-flex; align-items: center; gap: 8px; }
+.legendLine { width: 22px; height: 0; border-top: 1.5px solid var(--burgundy-mid); opacity: 0.7; }
+.legendLine.related { border-top-style: dashed; opacity: 0.55; }
+
+.mapHint {
+  margin: var(--space-1) 0 0;
+  font: 500 13px/18px var(--font-sans);
+  color: var(--ink-muted);
+}
+
+/* the selected concept */
+.mapInspector {
+  background: var(--surface-raised);
+  border: 1px solid var(--burgundy-soft);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  min-height: 300px;
+}
+.mapInspector h2 {
+  margin: var(--space-1) 0 0;
+  font: 600 24px/30px var(--font-display);
+  color: var(--burgundy-ink);
+}
+.inspectorRule { height: 1px; background: var(--burgundy-soft); margin: var(--space-3) 0; }
+.verdict {
+  margin: 0;
+  min-height: 26px; /* reserved so the panel does not shift when it appears */
+  font: italic 500 20px/26px var(--font-display);
+}
+.verdict.done {
+  background: var(--foil);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ideasLabel {
+  margin: 0 0 var(--space-1);
+  font: 600 12px/16px var(--font-sans);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.ideas { margin: 0; padding: 0; list-style: none; }
+.ideas li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--hairline);
+  font: 400 14px/20px var(--font-sans);
+}
+.ideas li:last-child { border-bottom: 0; }
+.inspectorActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.inspectorActions .primary { flex: 1 1 100%; }
+.inspectorTop { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.closeButton {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -6px -6px -6px 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.closeButton svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.closeButton:hover { color: var(--gold); border-color: var(--gold); }
+.emptyInspector {
+  margin: 0;
+  color: var(--ink-muted);
+}
+.emptyInspector .eyebrow { margin-bottom: var(--space-2); }
+
+.lessonList { margin: var(--space-3) 0 0; padding-left: 1.2em; }
+
+/* ----- phones ----- */
+@media (max-width: 860px) {
+  /* the concept panel leads, above the map, at a fixed height so the map never moves */
+  .mapLayout { grid-template-columns: 1fr; grid-template-areas: "panel" "map"; gap: var(--space-3); }
+  .mapInspector { min-height: 0; height: 240px; padding: var(--space-3); overflow: hidden; }
+  .mapInspector h2 { font-size: 22px; line-height: 26px; }
+  .inspectorHead { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+  .verdict { min-height: 0; font-size: 18px; flex: none; }
+  .inspectorRule { margin: 10px 0; }
+  /* key ideas flow as a compact list */
+  .ideas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ideas li {
+    padding: 2px 8px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    line-height: 20px;
+  }
+  .ideas li:last-child { border-bottom: 1px solid var(--hairline); }
+  .inspectorActions { margin-top: var(--space-3); flex-wrap: nowrap; }
+  .inspectorActions .btn { flex: 1 1 0; white-space: nowrap; }
+  .inspectorActions .btn { padding-left: 12px; padding-right: 12px; }
+}
+@media (max-width: 560px) {
+  .page { padding-top: var(--space-3); }
+  .titleBlock { margin-bottom: var(--space-4); }
+  .titleBlock h1 { font-size: 40px; line-height: 44px; }
+  .appName { font-size: 15px; letter-spacing: 0.1em; padding-left: 10px; }
+  .appBarTop { gap: 10px; }
+  .wordmark { font-size: 14px; letter-spacing: 0.14em; }
+  .themeToggle { width: 32px; height: 32px; }
+  .conceptMap { aspect-ratio: auto; height: 600px; min-height: 0; }
+  .conceptNode { --size: 90px; }
+  .circle { padding: 0 6px; }
+  .nodeName { font-size: var(--name-size, 11px); letter-spacing: 0; }
+}
+@media (max-width: 380px) {
+  .mapInspector { height: 272px; } /* room for one more row of key ideas */
+  .wordmark { display: none; } /* the monogram alone carries the link on the narrowest phones */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}

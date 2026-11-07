@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Example Animation</title>
   <style>
+    html { color-scheme: dark !important; }
+
     :root {
       --bg: #080912;
       --text: #f7f8ff;
@@ -93,7 +95,7 @@
     }
 
     window.addEventListener("message", event => {
-      if (event.origin !== window.location.origin) return;
+      if (event.source !== window.parent) return;
       const message = event.data || {};
 
       if (message.type === "lesson-animation-progress") {

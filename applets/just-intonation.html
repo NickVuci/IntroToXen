@@ -3,410 +3,368 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Just Intonation Applet</title>
+  <title>Just Intonation Lab · Nick Vuci</title>
+  <script>
+    // Inside a lesson, follow the host (the lesson page is Nocturne until it sends a theme).
+    // Standalone: the stored choice, else the device setting.
+    (() => {
+      const root = document.documentElement;
+      if (window.parent !== window) { root.dataset.theme = "dark"; root.style.setProperty("color-scheme", "dark", "important"); return; }
+      root.classList.add("standalone");
+      try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") root.dataset.theme = t; } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
   <style>
+    /* Nick Vuci design system tokens: Ivory (light) and Nocturne (the original
+       nickvuci.com palette), written for both routes: device setting and data-theme. */
     :root {
-      --bg: #100c17;
-      --bg-2: #1d152b;
-      --ink: #fff9f2;
-      --soft: rgba(255, 249, 242, 0.72);
-      --muted: rgba(255, 249, 242, 0.48);
-      --line: rgba(255, 255, 255, 0.14);
-      --accent: #ffbc66;
-      --accent-2: #8fd3ff;
-      --green: #98f5b4;
-      --panel: rgba(255, 255, 255, 0.045);
+      --ground-start: #f7f4ec; --ground-end: #f7f4ec; --surface: #f7f4ec;
+      --surface-raised: #fffdf8; --surface-sunk: #ece7db;
+      --ink: #121933; --ink-muted: #565c70; --hairline: #dcd5c6;
+      --brand-blue: #1640c8; --blue: #1640c8; --on-blue: #fffdf8; --blue-soft: #dde4f7;
+      --gold: #b8892b; --gold-ink: #7a5a1c; --gold-soft: #efe4cb; --on-gold: #121933;
+      --gold-lo: #7a5a1c; --gold-hi: #e9cf8a;
+      --alert: #b42a12;
+      --burgundy: #6b1d34; --burgundy-ink: #6b1d34; --burgundy-mid: #7a2c40;
+      --burgundy-soft: #f3e4e8; --burgundy-wash: #faf2f3;
+      --font-display: "Cormorant Garamond", "EB Garamond", Garamond, "Times New Roman", serif;
+      --font-sans: "Montserrat", "Helvetica Neue", Arial, system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      --radius-sm: 2px;
+      --foil: linear-gradient(115deg, var(--gold-lo) 0%, var(--gold) 22%, var(--gold-hi) 40%, var(--gold) 56%, var(--gold-lo) 78%, var(--gold) 100%);
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --ground-start: #1e1f26; --ground-end: #283c63; --surface: #232d44;
+        --surface-raised: #1e1f26; --surface-sunk: #181920;
+        --ink: #f0f0f0; --ink-muted: #a8dadc; --hairline: #e9c56a5b;
+        --brand-blue: #86a3ff; --blue: #a8dadc; --on-blue: #1e1f26; --blue-soft: #a8dadc26;
+        --gold: #e9c46a; --gold-ink: #e9c46a; --gold-soft: #e9c46a33; --on-gold: #1e1f26;
+        --gold-lo: #b8892b; --gold-hi: #fff1c4;
+        --alert: #ff8a6a;
+        --burgundy: #f4a261; --burgundy-ink: #e9c46a; --burgundy-mid: #f4a261;
+        --burgundy-soft: #e9c56a5b; --burgundy-wash: #ffffff0a;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --ground-start: #1e1f26; --ground-end: #283c63; --surface: #232d44;
+      --surface-raised: #1e1f26; --surface-sunk: #181920;
+      --ink: #f0f0f0; --ink-muted: #a8dadc; --hairline: #e9c56a5b;
+      --brand-blue: #86a3ff; --blue: #a8dadc; --on-blue: #1e1f26; --blue-soft: #a8dadc26;
+      --gold: #e9c46a; --gold-ink: #e9c46a; --gold-soft: #e9c46a33; --on-gold: #1e1f26;
+      --gold-lo: #b8892b; --gold-hi: #fff1c4;
+      --alert: #ff8a6a;
+      --burgundy: #f4a261; --burgundy-ink: #e9c46a; --burgundy-mid: #f4a261;
+      --burgundy-soft: #e9c56a5b; --burgundy-wash: #ffffff0a;
+      color-scheme: dark;
     }
 
     * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       width: 100%;
-      height: 100%;
+      min-height: 100%;
       margin: 0;
-      overflow: hidden;
       color: var(--ink);
-      font-family: "Segoe UI", system-ui, sans-serif;
-      background:
-        radial-gradient(circle at top right, rgba(143, 211, 255, 0.14), transparent 32%),
-        radial-gradient(circle at bottom left, rgba(255, 188, 102, 0.15), transparent 38%),
-        linear-gradient(165deg, var(--bg), var(--bg-2));
+      font: 400 15px/1.5 var(--font-sans);
+      -webkit-font-smoothing: antialiased;
     }
-
-    body { padding: 0.55rem; }
-
-    button,
-    input {
-      font: inherit;
+    body {
+      background: var(--surface);
+      background-image: linear-gradient(135deg, var(--ground-start), var(--ground-end));
+      background-attachment: fixed;
+      overflow-x: hidden;
     }
+    :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    /* inside a lesson the lab sits directly on the lesson page */
+    html:not(.standalone), html:not(.standalone)[data-theme] { color-scheme: dark !important; }
+    html:not(.standalone) body { background: transparent; }
+    html:not(.standalone) .panel { min-height: 100vh; padding-top: 0; }
 
+    /* ----- app bar (standalone only; inside a lesson the lesson page carries the brand) ----- */
+    .appBar { display: none; background: var(--surface-raised); border-bottom: 1px solid var(--burgundy-soft); }
+    html.standalone .appBar { display: block; }
+    .appBarTop { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
+    .home { display: flex; align-items: center; gap: 10px; flex: none; color: inherit; text-decoration: none; }
+    .home svg { display: block; }
+    .wordmark { font: 400 15px/1 var(--font-sans); letter-spacing: 0.18em; white-space: nowrap; }
+    .wordmark .n { color: var(--brand-blue); }
+    .wordmark .v { color: var(--gold); }
+    .appName {
+      min-width: 0; padding-left: 12px; border-left: 1px solid var(--burgundy-soft);
+      font: 400 15px/1 var(--font-sans); letter-spacing: 0.18em; color: var(--ink);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .themeToggle {
+      flex: none; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; margin-left: auto;
+      cursor: pointer; color: var(--ink-muted); background: transparent;
+      border: 1px solid var(--burgundy-soft); border-radius: var(--radius-sm);
+      transition: color .2s ease, border-color .2s ease, background-color .2s ease;
+    }
+    .themeToggle:hover { color: var(--gold); border-color: var(--gold); }
+    .themeToggle .ti { grid-area: 1 / 1; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: opacity .3s ease, transform .3s ease; }
+    .themeToggle .ti-sun { opacity: 0; transform: rotate(-45deg) scale(.8); }
+    .themeToggle.isDark .ti-moon { opacity: 0; transform: rotate(45deg) scale(.8); }
+    .themeToggle.isDark .ti-sun { opacity: 1; transform: none; }
+    .themeToggle.isDark { color: var(--gold); background: var(--gold-soft); border-color: var(--gold); }
+    .themeToggle.isDark:hover { color: var(--on-gold); background: var(--gold); }
+    @media (max-width: 420px) { .wordmark { display: none; } .appName { font-size: 14px; letter-spacing: .1em; } }
+
+    /* ----- buttons ----- */
     button {
-      min-height: 2.15rem;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 999px;
-      padding: 0.42rem 0.68rem;
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--ink);
-      cursor: pointer;
-      transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
-    }
-
-    button:hover,
-    button:focus-visible {
-      border-color: rgba(255, 188, 102, 0.7);
-      color: var(--accent);
-      outline: none;
-    }
-
-    button:active {
-      transform: translateY(1px);
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-    }
-
-    .panel {
-      width: 100%;
-      height: 100%;
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
-      gap: 0.55rem;
-      padding: 0.65rem;
-      border-radius: 1.15rem;
-      border: 1px solid var(--line);
-      background: rgba(9, 4, 15, 0.55);
-    }
-
-    .top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.8rem;
-    }
-
-    .status {
-      color: var(--soft);
-      font-size: 0.82rem;
-    }
-
-    .audioButton,
-    .primaryButton {
-      border-color: rgba(255, 188, 102, 0.62);
-      background: rgba(255, 188, 102, 0.16);
-      color: var(--accent);
-      font-weight: 850;
-    }
-
-    .audioButton.playing,
-    .loopCell.playing .playCell {
-      background: linear-gradient(135deg, var(--accent), #ffd79d);
-      color: #201204;
-    }
-
-    .body {
-      min-height: 0;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(15rem, 24rem);
-      gap: 0.65rem;
-    }
-
-    .workspace {
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
-      gap: 0.55rem;
-    }
-
-    .card,
-    .visualizer {
-      border: 1px solid var(--line);
-      border-radius: 1rem;
-      background: var(--panel);
-      padding: 0.68rem;
-      min-width: 0;
-    }
-
-    .cardHeader {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.7rem;
-      margin-bottom: 0.45rem;
-      color: var(--soft);
-      font-size: 0.86rem;
-      font-weight: 800;
-    }
-
-    .intervalGrid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 0.6rem;
-      align-items: center;
-    }
-
-    .sliderStack,
-    .rootControl {
-      min-width: 0;
-      display: grid;
-      gap: 0.42rem;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    .ticks {
-      position: relative;
-      height: 1.55rem;
-      color: rgba(255, 255, 255, 0.52);
-      font-size: 0.65rem;
-    }
-
-    .tick {
-      position: absolute;
-      left: 0;
-      top: 0;
-      min-width: 2.65rem;
-      text-align: center;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      border: 0;
-      padding: 0.12rem 0;
+      font: 600 13px/1.2 var(--font-sans);
+      letter-spacing: 0.04em;
+      min-height: 36px;
+      padding: 8px 14px;
+      border: 1px solid var(--ink-muted);
+      border-radius: var(--radius-sm);
       background: transparent;
-      color: inherit;
-      font-size: inherit;
-      min-height: 1.4rem;
-    }
-
-    .tick:hover,
-    .tick:focus-visible,
-    .tick.active {
-      color: var(--accent);
-      outline: none;
-    }
-
-    .tick:active {
-      transform: translateX(-50%);
-    }
-
-    .rootHeader,
-    .scaleMeta {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.8rem;
-      color: var(--soft);
-      font-size: 0.82rem;
-    }
-
-    .rootValue,
-    .ratioValue {
-      color: var(--accent-2);
-      font-weight: 850;
-    }
-
-    .scaleChips,
-    .keyboardRow {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.34rem;
-      align-items: center;
-    }
-
-    .scaleChip {
-      display: inline-flex;
-      gap: 0.38rem;
-      align-items: center;
-      min-height: 1.82rem;
-      border-color: rgba(143, 211, 255, 0.28);
-      background: rgba(143, 211, 255, 0.08);
       color: var(--ink);
+      cursor: pointer;
+      transition: background-color .25s, color .25s, border-color .25s;
     }
-
-    .scaleChip.root {
-      border-color: rgba(255, 188, 102, 0.56);
-      background: rgba(255, 188, 102, 0.13);
+    button:disabled { opacity: .4; cursor: default; }
+    @media (hover: hover) {
+      button:hover:not(:disabled) { border-color: var(--gold); color: var(--gold-ink); }
     }
-
-    .removeNote {
-      display: inline-grid;
-      place-items: center;
-      width: 1rem;
-      height: 1rem;
-      border-radius: 999px;
-      color: var(--muted);
-      font-weight: 900;
+    /* the one main action */
+    .audioButton { background: var(--blue); color: var(--on-blue); border-color: var(--blue); min-width: 9.5rem; }
+    @media (hover: hover) { .audioButton:hover:not(:disabled) { color: var(--on-blue); border-color: var(--blue); } }
+    .audioButton.playing { background: transparent; color: var(--blue); }
+    /* secondary actions */
+    .primaryButton { color: var(--burgundy-ink); border-color: var(--burgundy-mid); }
+    /* Nocturne: the original site's button, gold edge and label on a gold tint */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) button:not(.audioButton):not(.tick):not(.removeNote):not(.themeToggle) { background: var(--gold-soft); color: var(--gold); border-color: var(--gold); }
+      :root:not([data-theme="light"]) button:not(.audioButton):not(.tick):not(.removeNote):not(.themeToggle):hover:not(:disabled) { background: var(--gold); color: var(--on-gold); }
     }
+    :root[data-theme="dark"] button:not(.audioButton):not(.tick):not(.removeNote):not(.themeToggle) { background: var(--gold-soft); color: var(--gold); border-color: var(--gold); }
+    :root[data-theme="dark"] button:not(.audioButton):not(.tick):not(.removeNote):not(.themeToggle):hover:not(:disabled) { background: var(--gold); color: var(--on-gold); }
 
-    .keyCap {
-      display: inline-grid;
-      grid-template-columns: auto minmax(2rem, auto);
-      gap: 0.32rem;
-      align-items: center;
-      padding: 0.28rem 0.46rem;
-      border: 1px solid rgba(255, 255, 255, 0.13);
-      border-radius: 0.55rem;
-      background: rgba(255, 255, 255, 0.055);
-      color: var(--soft);
-      font-size: 0.72rem;
-    }
-
-    .keyCap strong {
-      color: var(--accent);
-      font-size: 0.78rem;
-    }
-
-    .loopGrid {
-      min-height: 0;
+    /* ----- layout ----- */
+    .panel {
+      min-height: 100vh;
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.45rem;
-      overflow: auto;
-      padding-right: 0.15rem;
+      grid-template-rows: auto minmax(220px, 1fr) auto auto;
+      gap: 12px;
+      padding: 12px;
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    html.standalone .panel { min-height: calc(100vh - 56px); }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .intro { margin: 0; flex: 1; min-width: 0; font: 400 14px/22px var(--font-sans); color: var(--ink); max-width: 60ch; }
+    input[type="range"]:focus { outline: none; }
+    input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--blue-soft); }
+    .status {
+      min-height: 36px; /* two lines reserved so nothing below moves */
+      font: 500 13px/18px var(--font-sans);
+      color: var(--ink-muted);
     }
 
-    .loopCell {
-      min-height: 6.2rem;
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
-      gap: 0.28rem;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 0.85rem;
-      background: rgba(0, 0, 0, 0.16);
-      padding: 0.48rem;
-    }
-
-    .loopCell.playing {
-      border-color: rgba(255, 188, 102, 0.72);
-      box-shadow: 0 0 26px rgba(255, 188, 102, 0.12);
-    }
-
-    .cellTop,
-    .cellActions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .cellTop {
-      color: var(--soft);
-      font-size: 0.78rem;
-      font-weight: 850;
-    }
-
-    .cellType {
-      color: var(--accent-2);
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .cellSummary {
-      color: var(--muted);
-      font-size: 0.7rem;
-      line-height: 1.2;
-      overflow: hidden;
-    }
-
-    .cellActions {
-      flex-wrap: wrap;
-    }
-
-    .cellActions button {
-      min-height: 1.55rem;
-      padding: 0.2rem 0.38rem;
-      font-size: 0.66rem;
-    }
-
+    /* the figure: a well on the ground */
     .visualizer {
       position: relative;
-      min-height: 0;
+      min-height: 220px;
       overflow: hidden;
-      display: grid;
-      padding: 0.52rem;
+      background: var(--surface-sunk);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
     }
-
-    .lissajousCanvas {
-      width: 100%;
-      height: 100%;
-      min-height: 260px;
-      display: block;
-    }
-
+    .lissajousCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
     .visualizerOverlay {
       position: absolute;
-      left: 1rem;
-      right: 1rem;
-      bottom: 1rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 0.75rem;
-      align-items: end;
-      color: var(--soft);
-      font-size: 0.86rem;
+      left: 14px; right: 14px; bottom: 10px;
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
       pointer-events: none;
     }
-
     .visualizerOverlay strong {
+      font: 500 20px/1 var(--font-mono);
       color: var(--ink);
-      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .visualizer.locked .visualizerOverlay strong {
+      background: var(--foil);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .centsText { font: 500 14px/1 var(--font-mono); color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+
+    /* ----- cards ----- */
+    .card {
+      min-width: 0;
+      background: var(--surface-raised);
+      border: 1px solid var(--burgundy-soft);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+    .cardHeader {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+      margin-bottom: 8px;
+      font: 600 12px/16px var(--font-sans); letter-spacing: .18em; text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+    .ratioValue {
+      font: 500 14px/16px var(--font-mono); letter-spacing: 0; text-transform: none;
+      color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
     }
 
-    .centsText {
-      color: var(--accent-2);
-      font-weight: 800;
-      font-size: 0.82rem;
+    /* the slider */
+    .sliderStack, .rootControl { display: grid; gap: 6px; min-width: 0; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer;
     }
+    input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: var(--hairline); }
+    input[type="range"]::-moz-range-track { height: 2px; background: var(--hairline); }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 18px; height: 18px; margin-top: -8px; border-radius: 50%;
+      background: var(--blue); border: 2px solid var(--surface-raised);
+    }
+    input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--blue); border: 2px solid var(--surface-raised); }
+    .ticks { position: relative; height: 22px; }
+    .tick {
+      position: absolute; top: 0; left: 0;
+      transform: translateX(-50%);
+      min-height: 22px; min-width: 0; padding: 2px 2px;
+      border: 0; background: transparent;
+      font: 500 10.5px/1 var(--font-mono); letter-spacing: 0;
+      color: var(--ink-muted); white-space: nowrap;
+    }
+    .tick.hidden { visibility: hidden; }
+    .tick.active { color: var(--gold-ink); }
+    @media (hover: hover) { .tick:hover:not(:disabled) { color: var(--gold-ink); } }
 
-    @media (max-width: 1020px) {
-      body { overflow: auto; }
-      .panel { height: auto; min-height: 100%; }
-      .body { grid-template-columns: 1fr; }
-      .workspace { grid-template-rows: auto auto auto; }
-      .loopGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
-      .visualizer { min-height: 320px; }
+    /* ----- the scale and loops, collapsed ----- */
+    .more { background: var(--surface-raised); border: 1px solid var(--burgundy-soft); border-radius: var(--radius-sm); }
+    .more > summary {
+      list-style: none; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px;
+      font: 600 12px/16px var(--font-sans); letter-spacing: .18em; text-transform: uppercase; color: var(--ink-muted);
     }
+    .more > summary::-webkit-details-marker { display: none; }
+    .more > summary::after { content: "+"; font: 500 18px/1 var(--font-mono); color: var(--gold-ink); }
+    .more[open] > summary::after { content: "\2212"; }
+    .more > summary:hover { color: var(--gold-ink); }
+    .moreBody { display: grid; gap: 12px; padding: 0 12px 12px; }
+    .moreBody .card { background: transparent; border-color: var(--hairline); }
+    .moreBody .primaryButton { width: 100%; margin-bottom: 10px; }
+    .rootHeader, .scaleMeta {
+      display: flex; justify-content: space-between; gap: 12px;
+      font: 500 13px/18px var(--font-sans); color: var(--ink-muted);
+    }
+    .rootValue, .scaleMeta { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+    .scaleChips, .keyboardRow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .keyboardRow { margin-top: 10px; }
+    .scaleChip {
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 30px; padding: 4px 8px;
+      font: 500 13px/1 var(--font-mono);
+      background: var(--surface-sunk); color: var(--ink); border: 1px solid var(--hairline);
+    }
+    .scaleChip.root { background: var(--gold-soft); border-color: var(--gold); color: var(--gold-ink); }
+    .removeNote {
+      display: inline-grid; place-items: center;
+      width: 18px; height: 18px; min-height: 0; padding: 0;
+      border: 0; background: transparent; color: var(--ink-muted);
+      font: 500 13px/1 var(--font-sans);
+    }
+    .keyCap {
+      display: inline-flex; align-items: baseline; gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+      background: var(--surface-sunk);
+      font: 500 12px/1.2 var(--font-mono); color: var(--ink-muted);
+    }
+    .keyCap strong { color: var(--gold-ink); font-weight: 500; }
+    .loopGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .loopCell {
+      display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 6px;
+      min-height: 7rem; padding: 10px;
+      background: var(--surface-sunk); border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+    }
+    .loopCell.playing { border-color: var(--gold); }
+    .cellTop { display: flex; justify-content: space-between; align-items: center; gap: 6px; font: 600 12px/16px var(--font-sans); color: var(--ink); }
+    .cellType { font: 600 10.5px/16px var(--font-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-muted); }
+    .cellSummary { font: 400 12px/16px var(--font-sans); color: var(--ink-muted); overflow: hidden; }
+    .cellActions { display: flex; flex-wrap: wrap; gap: 4px; }
+    .cellActions button { min-height: 28px; padding: 4px 8px; font-size: 11.5px; }
+    .loopCell.playing .playCell { background: var(--blue); color: var(--on-blue); border-color: var(--blue); }
 
-    @media (max-width: 640px) {
-      body { padding: 0.55rem; }
-      .panel { padding: 0.65rem; }
-      .top,
-      .intervalGrid,
-      .rootHeader,
-      .scaleMeta { display: grid; }
-      .audioButton,
-      .primaryButton { width: 100%; }
-      .loopGrid { grid-template-columns: 1fr; }
+    @media (max-width: 760px) { .loopGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) {
+      .panel { padding: 10px; gap: 10px; }
+      /* phones: the introduction above, the drone button full width beneath it */
+      .top { flex-direction: column; align-items: stretch; gap: 10px; }
+      .intro { font-size: 13.5px; line-height: 20px; }
     }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
   </style>
 </head>
 <body>
+  <header class="appBar">
+    <div class="appBarTop">
+      <a class="home" href="https://nickvuci.com" target="_blank" rel="noopener" aria-label="Nick Vuci — nickvuci.com">
+        <svg width="36" height="14" aria-hidden="true" viewBox="-9.89 0 209.79 80" shape-rendering="geometricPrecision">
+          <defs>
+            <clipPath id="nvClip"><rect x="-29.89" y="0" width="249.79" height="80" /></clipPath>
+            <linearGradient id="nvBlend" gradientUnits="userSpaceOnUse" x1="110" y1="0" x2="118" y2="0">
+              <stop offset="0" style="stop-color: var(--brand-blue)" /><stop offset="1" style="stop-color: var(--gold)" />
+            </linearGradient>
+          </defs>
+          <polyline clip-path="url(#nvClip)" points="-17.74,102.14 0,72.14 38,7.86 76,72.14 114,7.86 152,72.14 190,7.86 207.74,-22.14" fill="none" stroke="url(#nvBlend)" stroke-width="16" stroke-linejoin="miter" stroke-miterlimit="10" />
+        </svg>
+        <span class="wordmark"><span class="n">Nick</span> <span class="v">Vuci</span></span>
+      </a>
+      <span class="appName">Just Intonation Lab</span>
+      <button type="button" class="themeToggle" aria-pressed="false" aria-label="Switch to dark theme" title="Switch to dark theme">
+        <svg class="ti ti-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M19.5 14.2A7.5 7.5 0 0 1 9.8 4.5a7.5 7.5 0 1 0 9.7 9.7Z" /></svg>
+        <svg class="ti ti-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="3.6" /><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" /></svg>
+      </button>
+    </div>
+  </header>
   <main class="panel">
     <section class="top">
-      <div class="status" id="statusText">Build a scale, play A-K, then generate loop cells.</div>
-      <button class="audioButton" id="audioButton" type="button">Start drone</button>
+      <p class="intro">Below is a Lissajous figure, which helps us visualize the interference patterns made by intervals. Play the drone and slide the slider to see where it locks. For fine tuning, click the slider dot and use the arrow keys: 0.1¢ per press, or 1¢ with Shift.</p>
+      <button class="audioButton" id="audioButton" type="button">Play drone</button>
     </section>
 
-    <section class="body">
-      <div class="workspace">
+    <aside class="visualizer" aria-label="Lissajous figure for the current interval">
+      <canvas class="lissajousCanvas" id="lissajousCanvas"></canvas>
+      <div class="visualizerOverlay" aria-live="polite">
+        <strong id="ratioText">3/2</strong>
+        <span class="centsText" id="centsText">702c</span>
+      </div>
+    </aside>
+
+    <section class="card" aria-label="Upper note">
+      <div class="cardHeader">
+        <span>Upper note</span>
+        <span class="ratioValue" id="ratioReadout">3/2 - 702c</span>
+      </div>
+      <label class="sliderStack" for="ratioSlider">
+        <input id="ratioSlider" type="range" min="0" max="1200" step="0.1" value="702" aria-describedby="fineTuneHint" />
+        <span class="srOnly" id="fineTuneHint">Arrow keys fine-tune by 0.1 cents; hold Shift for 1 cent; Page Up and Page Down move 10 cents.</span>
+        <span class="ticks" id="ticks"></span>
+      </label>
+    </section>
+
+    <details class="more">
+      <summary>Build a scale and make loops</summary>
+      <div class="moreBody">
+        <div class="status" id="statusText" aria-live="polite">Add intervals to build a scale, play it with the keys A to K, then make loops from it.</div>
         <section class="card" aria-label="Interval picker">
           <div class="cardHeader">
             <span>Interval picker</span>
-            <span class="ratioValue" id="ratioReadout">3/2 - 702c</span>
           </div>
-          <div class="intervalGrid">
-            <label class="sliderStack" for="ratioSlider">
-              <input id="ratioSlider" type="range" min="0" max="1200" step="1" value="702" />
-              <span class="ticks" id="ticks"></span>
-            </label>
-            <button class="primaryButton" id="addNoteButton" type="button">Add note</button>
-          </div>
+          <button class="primaryButton" id="addNoteButton" type="button">Add the current interval to the scale</button>
           <label class="rootControl" for="rootSlider">
             <span class="rootHeader">
               <span>Root frequency</span>
@@ -428,20 +386,12 @@
         <section class="card" aria-label="Loop cells">
           <div class="cardHeader">
             <span>Loop cells</span>
-            <span>4 bars - 90 BPM</span>
+            <span>4 bars · 90 BPM</span>
           </div>
           <div class="loopGrid" id="loopGrid"></div>
         </section>
       </div>
-
-      <aside class="visualizer" aria-label="Lissajous figure for the current interval">
-        <canvas class="lissajousCanvas" id="lissajousCanvas"></canvas>
-        <div class="visualizerOverlay" aria-live="polite">
-          <strong id="ratioText">3/2</strong>
-          <span class="centsText" id="centsText">702c</span>
-        </div>
-      </aside>
-    </section>
+    </details>
   </main>
 
   <script src="../audio/synth.js"></script>
@@ -463,6 +413,31 @@
       { ratio: "15/8", name: "Major seventh", value: 15 / 8 },
       { ratio: "2/1", name: "Octave", value: 2 }
     ].map(item => ({ ...item, cents: 1200 * Math.log2(item.value), exact: true }));
+
+    // Every 15-odd-limit ratio from 1/1 to 2/1, built exactly from odd numbers up to 15.
+    const ODD_LIMIT = 15;
+    const LOCK_CENTS = 0.05; // locked only when the slider sits on the ratio (to the nearest 0.1 cent)
+    const SNAP_CENTS = 5;    // dragging with the mouse or finger snaps onto a ratio this close
+    const FINE_STEP = 0.1, COARSE_STEP = 1, PAGE_STEP = 10;
+    let lastFrameTime = performance.now();
+    function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+    const lockTargets = (() => {
+      const seen = new Map();
+      for (let a = 1; a <= ODD_LIMIT; a += 2) {
+        for (let b = 1; b <= ODD_LIMIT; b += 2) {
+          let n = a, d = b;
+          while (n < d) n *= 2;
+          while (n >= 2 * d) d *= 2;
+          const g = gcd(n, d); n /= g; d /= g;
+          seen.set(`${n}/${d}`, { n, d });
+        }
+      }
+      seen.set("2/1", { n: 2, d: 1 });
+      return [...seen.entries()].map(([ratio, { n, d }]) => {
+        const named = intervals.find(item => item.ratio === ratio);
+        return { ratio, n, d, value: n / d, cents: 1200 * Math.log2(n / d), name: named ? named.name : ratio, exact: true };
+      }).sort((x, y) => x.cents - y.cents);
+    })();
 
     const keyboardKeys = ["a", "s", "d", "f", "g", "h", "j", "k"];
     const bpm = 90;
@@ -514,14 +489,16 @@
       return 2 ** (cents / 1200);
     }
 
-    function exactInterval(cents) {
-      return intervals.find(item => Math.abs(item.cents - cents) < 0.75);
+    function nearestInterval(cents) {
+      return lockTargets.reduce((best, item) => {
+        return Math.abs(item.cents - cents) < Math.abs(best.cents - cents) ? item : best;
+      }, lockTargets[0]);
     }
 
-    function nearestInterval(cents) {
-      return intervals.reduce((best, item) => {
-        return Math.abs(item.cents - cents) < Math.abs(best.cents - cents) ? item : best;
-      }, intervals[0]);
+    // The 15-odd-limit ratio the slider is locked to, or undefined.
+    function exactInterval(cents) {
+      const nearest = nearestInterval(cents);
+      return Math.abs(nearest.cents - cents) <= LOCK_CENTS ? nearest : undefined;
     }
 
     function currentCents() {
@@ -539,7 +516,7 @@
       if (exact) return makeScaleNote(exact);
       const ratioValue = centsToRatio(cents);
       return {
-        ratioLabel: `${Math.round(cents)}c`,
+        ratioLabel: `${cents.toFixed(1)}c`,
         ratioValue,
         cents,
         name: `Approx ${ratioValue.toFixed(4)}:1`,
@@ -574,15 +551,24 @@
         gain: 0.12,
         voice: "drone"
       });
+      await XenAudio.startDrone({
+        id: "ji-upper",
+        frequency: baseFrequency() * currentRatio(),
+        gain: 0.1,
+        voice: "drone"
+      });
       playingDrone = true;
       audioButton.textContent = "Stop drone";
       audioButton.classList.add("playing");
     }
 
     function stopDrone() {
-      if (window.XenAudio) XenAudio.stopDrone("ji-root", 0.08);
+      if (window.XenAudio) {
+        XenAudio.stopDrone("ji-root", 0.08);
+        XenAudio.stopDrone("ji-upper", 0.08);
+      }
       playingDrone = false;
-      audioButton.textContent = "Start drone";
+      audioButton.textContent = "Play drone";
       audioButton.classList.remove("playing");
     }
 
@@ -592,6 +578,12 @@
         id: "ji-root",
         frequency: baseFrequency(),
         gain: 0.12,
+        rampTime: 0.015
+      });
+      XenAudio.updateDrone({
+        id: "ji-upper",
+        frequency: baseFrequency() * currentRatio(),
+        gain: 0.1,
         rampTime: 0.015
       });
     }
@@ -653,7 +645,7 @@
         if (!note.pinned) {
           const remove = document.createElement("span");
           remove.className = "removeNote";
-          remove.textContent = "x";
+          remove.textContent = "×";
           remove.setAttribute("aria-hidden", "true");
           chip.appendChild(remove);
           chip.addEventListener("dblclick", () => removeScaleNote(note.cents));
@@ -844,18 +836,25 @@
       const width = ticks.clientWidth;
       const thumbInset = parseFloat(getComputedStyle(document.documentElement).fontSize) * 0.55;
       const travelWidth = Math.max(1, width - thumbInset * 2);
-      ticks.querySelectorAll(".tick").forEach(tick => {
+      const all = [...ticks.querySelectorAll(".tick")];
+      all.forEach(tick => {
         const position = Number(tick.dataset.position);
         tick.style.left = `${thumbInset + position * travelWidth}px`;
+        tick.classList.remove("hidden");
+      });
+      // Where labels would collide, keep the simplest ratios (smallest n·d) and hide the rest.
+      const complexity = tick => tick.textContent.split("/").reduce((a, b) => a * Number(b), 1);
+      const shown = [];
+      [...all].sort((a, b) => complexity(a) - complexity(b)).forEach(tick => {
+        const r = tick.getBoundingClientRect();
+        const clash = shown.some(o => r.left < o.right + 4 && o.left < r.right + 4);
+        if (clash) tick.classList.add("hidden");
+        else shown.push(r);
       });
     }
 
     function lissajousFrequenciesFor(interval) {
-      if (!interval) {
-        return { xFrequency: renderedRatio, yFrequency: 1, turnCount: 12 };
-      }
-      const [numerator, denominator] = interval.ratio.split("/").map(Number);
-      return { xFrequency: numerator || 1, yFrequency: denominator || 1, turnCount: 1 };
+      return { xFrequency: interval.n, yFrequency: interval.d, turnCount: 1 };
     }
 
     function resizeLissajousCanvas() {
@@ -875,19 +874,18 @@
       const { width, height } = resizeLissajousCanvas();
       const exact = exactInterval(currentCents());
       renderedRatio = exact ? exact.value : currentRatio();
-      const lineColor = exact ? "rgba(255,188,102,0.94)" : "rgba(143,211,255,0.88)";
-      const glowColor = exact ? "rgba(255,188,102,0.18)" : "rgba(143,211,255,0.16)";
+      const css = getComputedStyle(document.documentElement);
+      const token = name => css.getPropertyValue(name).trim();
       const centerX = width / 2;
       const centerY = height / 2;
       const radius = Math.max(12, Math.min(width, height) * 0.38);
-      const { xFrequency, yFrequency, turnCount } = lissajousFrequenciesFor(exact);
+      const nearest = nearestInterval(currentCents());
+      const { xFrequency, yFrequency, turnCount } = lissajousFrequenciesFor(nearest);
       const fullTurn = Math.PI * 2 * turnCount;
       const pointCount = Math.max(1400, Math.ceil(Math.max(xFrequency, yFrequency) * turnCount * 700));
       const phase = lissajousPhase;
 
       lissajousCtx.clearRect(0, 0, width, height);
-      lissajousCtx.fillStyle = "rgba(5, 3, 10, 0.34)";
-      lissajousCtx.fillRect(0, 0, width, height);
       lissajousCtx.save();
       lissajousCtx.translate(centerX, centerY);
       lissajousCtx.beginPath();
@@ -901,13 +899,33 @@
         if (i === 0) lissajousCtx.moveTo(x, y);
         else lissajousCtx.lineTo(x, y);
       }
-      lissajousCtx.shadowColor = glowColor;
-      lissajousCtx.shadowBlur = 16;
-      lissajousCtx.strokeStyle = lineColor;
-      lissajousCtx.lineWidth = 1.85;
+      if (exact) {
+        // locked: gold foil across the figure
+        const foil = lissajousCtx.createLinearGradient(-radius, -radius, radius, radius);
+        foil.addColorStop(0, token("--gold-lo"));
+        foil.addColorStop(0.3, token("--gold"));
+        foil.addColorStop(0.5, token("--gold-hi"));
+        foil.addColorStop(0.7, token("--gold"));
+        foil.addColorStop(1, token("--gold-lo"));
+        lissajousCtx.strokeStyle = foil;
+        lissajousCtx.lineWidth = 2.2;
+      } else {
+        lissajousCtx.strokeStyle = token("--blue");
+        lissajousCtx.lineWidth = 1.8;
+      }
       lissajousCtx.stroke();
       lissajousCtx.restore();
-      lissajousPhase = (lissajousPhase + (playingDrone ? 0.0007 : 0.00025)) % (Math.PI * 2);
+      // Off a ratio the figure turns, faster the further off; locked, it holds still.
+      if (!exact) {
+        // Scaled so even 0.1 cent off turns visibly (about one turn in 20 s),
+        // and larger detunings spin clearly faster.
+        const offBy = currentCents() - nearest.cents;
+        const now = performance.now();
+        const dt = Math.min(0.1, (now - lastFrameTime) / 1000);
+        const speed = Math.min(15, 1.2 * Math.abs(offBy) ** 0.6); // radians per second
+        lissajousPhase = (lissajousPhase + Math.sign(offBy) * speed * dt + Math.PI * 2) % (Math.PI * 2);
+      }
+      lastFrameTime = performance.now();
       window.requestAnimationFrame(drawLissajousFrame);
     }
 
@@ -920,12 +938,15 @@
       const label = exact ? exact.ratio : `${ratio.toFixed(4)}:1`;
 
       ratioText.textContent = label;
-      centsText.textContent = `${Math.round(cents)}c`;
-      ratioReadout.textContent = exact ? `${exact.ratio} - ${Math.round(cents)}c` : `${Math.round(cents)}c - near ${nearest.ratio}`;
+      const offBy = cents - nearest.cents;
+      const offText = `${offBy > 0 ? "+" : "−"}${Math.abs(offBy).toFixed(1)}¢`;
+      centsText.textContent = exact ? `${exact.cents.toFixed(2)}¢` : `${cents.toFixed(1)}¢`;
+      ratioReadout.textContent = exact ? `${exact.ratio} · ${exact.cents.toFixed(2)}¢` : `${cents.toFixed(1)}¢ · ${offText} from ${nearest.ratio}`;
+      lissajousCanvas.parentElement.classList.toggle("locked", Boolean(exact));
       rootValue.textContent = `${root.toFixed(0)} Hz`;
 
       ticks.querySelectorAll(".tick").forEach((tick, index) => {
-        tick.classList.toggle("active", intervals[index] === exact);
+        tick.classList.toggle("active", Boolean(exact) && intervals[index].ratio === exact.ratio);
       });
 
       updateDroneFrequency();
@@ -940,7 +961,7 @@
       tick.title = interval.name;
       tick.setAttribute("aria-label", `Choose ${interval.name}, ${interval.ratio}`);
       tick.addEventListener("click", () => {
-        slider.value = String(Math.round(interval.cents));
+        slider.value = interval.cents.toFixed(1);
         update();
       });
       ticks.appendChild(tick);
@@ -959,7 +980,27 @@
     });
 
     addNoteButton.addEventListener("click", addCurrentNote);
-    slider.addEventListener("input", update);
+    // Mouse/finger drags snap onto nearby ratios; the keyboard moves freely in fine steps.
+    let dragging = false;
+    slider.addEventListener("pointerdown", () => { dragging = true; slider.focus(); });
+    window.addEventListener("pointerup", () => { dragging = false; });
+    window.addEventListener("pointercancel", () => { dragging = false; });
+    slider.addEventListener("input", () => {
+      if (dragging) {
+        const nearest = nearestInterval(currentCents());
+        if (Math.abs(nearest.cents - currentCents()) <= SNAP_CENTS) slider.value = nearest.cents.toFixed(1);
+      }
+      update();
+    });
+    slider.addEventListener("keydown", event => {
+      const steps = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: PAGE_STEP, PageDown: -PAGE_STEP };
+      if (!(event.key in steps)) return;
+      event.preventDefault();
+      const size = event.key.startsWith("Page") ? 1 : (event.shiftKey ? COARSE_STEP : FINE_STEP);
+      const next = Math.max(0, Math.min(1200, currentCents() + steps[event.key] * size));
+      slider.value = (Math.round(next * 10) / 10).toFixed(1);
+      update();
+    });
     rootSlider.addEventListener("input", update);
     window.addEventListener("resize", layoutIntervalTicks);
 
@@ -973,6 +1014,41 @@
       event.preventDefault();
       triggerNote(note);
     });
+
+    // Theme toggle (standalone): follows the device until pressed, then keeps the choice.
+    (() => {
+      const button = document.querySelector(".themeToggle");
+      const media = window.matchMedia("(prefers-color-scheme: dark)");
+      const isDark = () => {
+        const set = document.documentElement.dataset.theme;
+        return set ? set === "dark" : media.matches;
+      };
+      const sync = () => {
+        const dark = isDark();
+        const label = dark ? "Switch to light theme" : "Switch to dark theme";
+        button.classList.toggle("isDark", dark);
+        button.setAttribute("aria-pressed", String(dark));
+        button.setAttribute("aria-label", label);
+        button.title = label;
+      };
+      button.addEventListener("click", () => {
+        const next = isDark() ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem("theme", next); } catch (e) {}
+        sync();
+      });
+      media.addEventListener("change", sync);
+      sync();
+    })();
+    // Inside a lesson, the lesson page may set the theme.
+    window.addEventListener("message", event => {
+      if (event.source !== window.parent) return;
+      const message = event.data || {};
+      if (message.type === "lesson-theme" && (message.theme === "light" || message.theme === "dark")) {
+        document.documentElement.dataset.theme = message.theme;
+      }
+    });
+    document.fonts?.ready.then(layoutIntervalTicks);
 
     renderScale();
     renderCells();

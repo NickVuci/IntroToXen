@@ -34,6 +34,43 @@
       filterFrequency: 3600,
       gain: 0.12
     },
+    // Harmonic-rich drone for tuning demos: every harmonic is present, so
+    // mistuned just intervals beat clearly and locked ones go still.
+    bright: {
+      waveform: "sawtooth",
+      colorWaveform: "triangle",
+      colorGain: 0.02,
+      attack: 0.08,
+      decay: 0.2,
+      sustain: 1,
+      release: 0.35,
+      filterFrequency: 1500,
+      gain: 0.07
+    },
+    // Plucked, harp-like note: quick attack, then a natural decay.
+    pluck: {
+      waveform: "triangle",
+      colorWaveform: "sine",
+      colorGain: 0.25,
+      attack: 0.004,
+      decay: 0.5,
+      sustain: 0.12,
+      release: 0.4,
+      filterFrequency: 3200,
+      gain: 0.14
+    },
+    // Warm sustained pad for held chords (use with startDrone).
+    pad: {
+      waveform: "triangle",
+      colorWaveform: "sine",
+      colorGain: 0.3,
+      attack: 0.3,
+      decay: 0.3,
+      sustain: 1,
+      release: 0.8,
+      filterFrequency: 2000,
+      gain: 0.05
+    },
     drone: {
       waveform: "sine",
       colorWaveform: "triangle",
@@ -256,7 +293,8 @@
     drone.main.frequency.setTargetAtTime(frequency, now, rampTime);
     drone.color.frequency.setTargetAtTime(frequency * 2, now, rampTime);
     drone.gain.gain.setTargetAtTime(gainAmount, now, rampTime);
-    drone.filter.frequency.setTargetAtTime(preset.filterFrequency, now, rampTime);
+    const filterFrequency = Number(options.filterFrequency) || preset.filterFrequency;
+    drone.filter.frequency.setTargetAtTime(filterFrequency, now, rampTime);
     return true;
   }
 
