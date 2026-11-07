@@ -31,10 +31,7 @@
       width: 100%;
       height: 100%;
       position: relative;
-      background:
-        radial-gradient(circle at 8% 0%, rgba(143,211,255,0.16), transparent 24rem),
-        radial-gradient(circle at 95% 22%, rgba(255,209,102,0.12), transparent 22rem),
-        var(--bg);
+      background: var(--bg);
     }
 
     canvas {
@@ -47,25 +44,99 @@
   </style>
 </head>
 <body>
-  <main class="scene" id="ratio-animation" aria-label="Ratio animation">
+  <main class="scene" id="ratio-animation" aria-label="Just intonation introduction: two waves in a 2/1 ratio">
     <canvas id="ratioCanvas"></canvas>
   </main>
 
   <script src="../audio/synth.js"></script>
   <script>
+    /*
+      Four-panel JI intro (port of the Manim scene JIIntro).
+
+      Panels, top to bottom:
+        1) upper sine, 2x the cycles of the lower one, always moving
+        2) the fraction 2/1
+        3) lower sine (base cycles), always moving
+        4) one caption at a time, fixed size, word-wrapped
+
+      The lesson drives `progress` (0..1) over DURATION seconds; the waves'
+      travel uses the real clock so they keep moving while paused or finished.
+    */
+
     const canvas = document.getElementById("ratioCanvas");
     const ctx = canvas.getContext("2d");
     const section = document.getElementById("ratio-animation");
 
+    // ----- timings (seconds, same as the Manim scene) -----
+    const PRE_ROLL = 1.0;
+    const FADE_DUR = 1.5;
+    const HOLD_DUR = 2.5;
+    const CAPTION_OUT = 0.9;
+    const FINAL_HOLD_DUR = 2.5;
+    const OUTRO_FADE_DUR = 2.5;
+    const TAIL = 0.2;
+
+    const T1 = PRE_ROLL;                       // lower wave + caption 1 in
+    const T1_OUT = T1 + FADE_DUR + HOLD_DUR;   // caption 1 out
+    const T2 = T1_OUT + CAPTION_OUT;           // upper wave + caption 2 in
+    const T2_OUT = T2 + FADE_DUR + HOLD_DUR;   // caption 2 out
+    const T3 = T2_OUT + CAPTION_OUT;           // fraction + caption 3 + boxes in
+    const T4 = T3 + FADE_DUR + FINAL_HOLD_DUR; // everything out
+    const DURATION = T4 + OUTRO_FADE_DUR + TAIL; // 17.5 s
+
+    // ----- waves -----
+    const BASE_CYCLES = 4;                 // across the full width, lower wave
+    const UPPER_CYCLES = BASE_CYCLES * 2;  // 2/1
+    const VERTICAL_MARGIN = 0.18;
+    const MANIM_FRAME_WIDTH = 14.222;      // to keep Manim's 1 unit/s travel speed
+    const ROOT_HZ = 110;
+    const UPPER_HZ = ROOT_HZ * UPPER_CYCLES / BASE_CYCLES;
+
+    // ----- captions -----
+    const CAPTIONS = [
+      "If the pitch or frequency of a musical note is the number of times per second it causes the air to vibrate,",
+      "and an interval is when two notes play at the same time,",
+      "then Just Intonation (or JI) is where the frequencies of the notes form whole-number ratios with each other."
+    ];
+
     let w = 1;
     let h = 1;
-    let t = 0;
+    let clock = 0;          // seconds of wave travel (real time)
     let last = performance.now();
     let progress = 0;
     let playing = false;
     let muted = false;
-
     let audioStarted = false;
+    let captionLayouts = [];
+
+    function clamp(v, min = 0, max = 1) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    // Linear ramp from 0 to 1 between a and b (Manim used rate_func=linear).
+    function ramp(time, a, b) {
+      return clamp((time - a) / (b - a));
+    }
+
+    function opacities(time) {
+      const outro = 1 - ramp(time, T4, T4 + OUTRO_FADE_DUR);
+      return {
+        lower: ramp(time, T1, T1 + FADE_DUR) * outro,
+        upper: ramp(time, T2, T2 + FADE_DUR) * outro,
+        frac: ramp(time, T3, T3 + FADE_DUR) * outro,
+        boxes: ramp(time, T3, T3 + FADE_DUR) * outro,
+        captions: [
+          ramp(time, T1, T1 + FADE_DUR) * (1 - ramp(time, T1_OUT, T1_OUT + CAPTION_OUT)),
+          ramp(time, T2, T2 + FADE_DUR) * (1 - ramp(time, T2_OUT, T2_OUT + CAPTION_OUT)),
+          ramp(time, T3, T3 + FADE_DUR) * outro
+        ]
+      };
+    }
+
+    function isVisible() {
+      const rect = section.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < window.innerHeight;
+    }
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
@@ -75,242 +146,181 @@
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      layoutCaptions();
     }
 
-    function clamp(v, min = 0, max = 1) {
-      return Math.max(min, Math.min(max, v));
+    // ----- caption wrapping: fixed font size, greedy word wrap -----
+    function captionFont(size) {
+      return `italic 400 ${size}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
     }
 
-    function smoothstep(edge0, edge1, x) {
-      x = clamp((x - edge0) / (edge1 - edge0));
-      return x * x * (3 - 2 * x);
+    function wrap(text, maxWidth) {
+      const words = text.split(/\s+/);
+      const lines = [];
+      let current = "";
+      for (const word of words) {
+        const trial = current ? current + " " + word : word;
+        if (ctx.measureText(trial).width <= maxWidth || !current) {
+          current = trial;
+        } else {
+          lines.push(current);
+          current = word;
+        }
+      }
+      if (current) lines.push(current);
+      return lines;
     }
 
-    function fadeInOut(x, inStart, inEnd, outStart, outEnd) {
-      return smoothstep(inStart, inEnd, x) * (1 - smoothstep(outStart, outEnd, x));
+    // One size for every caption. Start from the Manim proportion and only
+    // step down if the longest caption would overflow its panel (small screens).
+    function layoutCaptions() {
+      const panelH = h / 4;
+      const margin = w * (0.6 / MANIM_FRAME_WIDTH);
+      const maxWidth = Math.max(40, w - 2 * margin);
+      let size = Math.max(12, Math.min(30, h * 0.043));
+
+      for (; size >= 10; size -= 1) {
+        ctx.font = captionFont(size);
+        const layouts = CAPTIONS.map(text => wrap(text, maxWidth));
+        const tallest = Math.max(...layouts.map(lines => lines.length)) * size * 1.25;
+        if (tallest <= panelH * 0.92 || size === 10) {
+          captionLayouts = layouts.map(lines => ({ lines, size }));
+          return;
+        }
+      }
     }
 
-    function isVisible() {
-      const rect = section.getBoundingClientRect();
-      return rect.bottom > 0 && rect.top < window.innerHeight;
+    // ----- drawing -----
+    function speedPx() {
+      return w / MANIM_FRAME_WIDTH; // 1 Manim unit per second
     }
 
-    function drawText(text, x, y, size, color, alpha = 1) {
+    function drawWave(cycles, yCenter, color, alpha) {
       if (alpha <= 0.001) return;
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = color;
-      ctx.font = `900 ${size}px system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, x, y);
-      ctx.restore();
-    }
-
-    function roundRect(x, y, width, height, radius) {
-      const r = Math.min(radius, width / 2, height / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + width - r, y);
-      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
-      ctx.lineTo(x + width, y + height - r);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-      ctx.lineTo(x + r, y + height);
-      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-    }
-
-    function drawWave(y, period, color, alpha) {
-      if (alpha <= 0.001) return;
-
-      const amp = Math.min(52, h * 0.08);
-      const left = w * 0.08;
-      const right = w * 0.92;
-      const phase = t * 0.018;
+      const panelH = h / 4;
+      const amp = (panelH / 2) * (1 - VERTICAL_MARGIN);
+      const k = (2 * Math.PI * cycles) / w;
+      const shift = speedPx() * clock;
 
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
+      ctx.lineWidth = Math.max(2, Math.min(4, h * 0.006));
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.beginPath();
-
-      for (let x = left; x <= right; x += 2) {
-        const wave = Math.sin(((x + phase) / period) * Math.PI * 2);
-        const yy = y + wave * amp;
-        if (x === left) ctx.moveTo(x, yy);
-        else ctx.lineTo(x, yy);
+      const step = 2;
+      for (let x = 0; x <= w + step; x += step) {
+        // crest at the left edge at time 0, travelling right
+        const y = yCenter - amp * Math.sin(k * (x - shift) + Math.PI / 2);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
-
       ctx.stroke();
       ctx.restore();
     }
 
-    function drawPeriodBox(x, y, width, height, color, alpha) {
+    // One box per lower-wave cycle, sliding with the waves, in both wave panels.
+    function drawCycleBoxes(alpha) {
       if (alpha <= 0.001) return;
+      const panelH = h / 4;
+      const cycleW = w / BASE_CYCLES;
+      const offset = (speedPx() * clock) % cycleW;
 
       ctx.save();
       ctx.globalAlpha = alpha;
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color === "#ffd166" ? "rgba(255,209,102,0.075)" : "rgba(143,211,255,0.075)";
-      ctx.lineWidth = 3;
-      roundRect(x, y, width, height, 12);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.setLineDash([6, 7]);
-      ctx.globalAlpha = alpha * 0.8;
-      ctx.beginPath();
-      ctx.moveTo(x, y + height / 2);
-      ctx.lineTo(x + width, y + height / 2);
-      ctx.stroke();
-
+      ctx.strokeStyle = "rgba(225,228,240,0.62)";
+      ctx.lineWidth = 2;
+      for (const top of [0, panelH * 2]) {
+        for (let i = -1; i <= BASE_CYCLES; i++) {
+          const x = offset + i * cycleW;
+          ctx.strokeRect(x, top + 1, cycleW, panelH - 2);
+        }
+      }
       ctx.restore();
     }
 
-    function drawPeriodBoxes(lowerY, upperY, spanWidth, stage, alpha) {
+    function drawFraction(numerator, denominator, cx, cy, panelH, color, alpha) {
       if (alpha <= 0.001) return;
-
-      const amp = Math.min(52, h * 0.08);
-      const startX = (w - spanWidth) / 2;
-      const boxH = amp * 2.45;
-      const lowerPeriod = spanWidth / stage.denominator;
-      const upperPeriod = spanWidth / stage.numerator;
-
-      for (let i = 0; i < stage.denominator; i++) {
-        drawPeriodBox(startX + lowerPeriod * i, lowerY - boxH / 2, lowerPeriod, boxH, "#8fd3ff", alpha);
-      }
-
-      for (let i = 0; i < stage.numerator; i++) {
-        drawPeriodBox(startX + upperPeriod * i, upperY - boxH / 2, upperPeriod, boxH, "#ffd166", alpha);
-      }
+      const total = panelH * 0.7;
+      const size = total * 0.46;
+      const gap = total * 0.04;
 
       ctx.save();
-      ctx.globalAlpha = alpha * 0.7;
-      ctx.strokeStyle = "rgba(255,255,255,0.28)";
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([5, 7]);
-
-      const y1 = upperY + boxH / 2 + 12;
-      const y2 = lowerY - boxH / 2 - 12;
-
-      for (let i = 0; i <= stage.numerator; i++) {
-        const x = startX + upperPeriod * i;
-        ctx.beginPath();
-        ctx.moveTo(x, y1);
-        ctx.lineTo(x, y2);
-        ctx.stroke();
-      }
-
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
+      ctx.font = `600 ${size}px "Times New Roman", Georgia, serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(numerator), cx, cy - size / 2 - gap);
+      ctx.fillText(String(denominator), cx, cy + size / 2 + gap);
+      ctx.lineWidth = Math.max(2, size * 0.07);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(cx - size * 0.42, cy);
+      ctx.lineTo(cx + size * 0.42, cy);
+      ctx.stroke();
       ctx.restore();
     }
 
-    function getStage(x) {
-      const stages = [
-        { numerator: 2, denominator: 1, upperAlpha: fadeInOut(x, 0.06, 0.12, 0.22, 0.27), boxAlpha: fadeInOut(x, 0.12, 0.18, 0.22, 0.27), ratioAlpha: fadeInOut(x, 0.17, 0.23, 0.24, 0.29), freq: 220, ratio: "2/1" },
-        { numerator: 3, denominator: 2, upperAlpha: fadeInOut(x, 0.25, 0.31, 0.41, 0.46), boxAlpha: fadeInOut(x, 0.31, 0.37, 0.41, 0.46), ratioAlpha: fadeInOut(x, 0.36, 0.42, 0.43, 0.48), freq: 165, ratio: "3/2" },
-        { numerator: 4, denominator: 3, upperAlpha: fadeInOut(x, 0.44, 0.50, 0.60, 0.65), boxAlpha: fadeInOut(x, 0.50, 0.56, 0.60, 0.65), ratioAlpha: fadeInOut(x, 0.55, 0.61, 0.62, 0.67), freq: 147, ratio: "4/3" },
-        { numerator: 5, denominator: 4, upperAlpha: fadeInOut(x, 0.63, 0.69, 0.79, 0.84), boxAlpha: fadeInOut(x, 0.69, 0.75, 0.79, 0.84), ratioAlpha: fadeInOut(x, 0.74, 0.80, 0.81, 0.86), freq: 138, ratio: "5/4" },
-        { numerator: 3, denominator: 1, upperAlpha: fadeInOut(x, 0.82, 0.88, 0.96, 1.00), boxAlpha: fadeInOut(x, 0.88, 0.93, 0.96, 1.00), ratioAlpha: fadeInOut(x, 0.92, 0.97, 0.98, 1.00), freq: 330, ratio: "3/1" }
-      ];
+    function drawCaption(index, cy, alpha) {
+      const layout = captionLayouts[index];
+      if (!layout || alpha <= 0.001) return;
+      const lineH = layout.size * 1.25;
+      const startY = cy - ((layout.lines.length - 1) * lineH) / 2;
 
-      let active = stages[0];
-
-      for (const stage of stages) {
-        const total = stage.upperAlpha + stage.boxAlpha + stage.ratioAlpha;
-        if (total > 0.001) active = stage;
-      }
-
-      return active;
-    }
-
-    function getSceneFade(x) {
-      return 1 - smoothstep(0.94, 1.00, x);
-    }
-
-    function updateAudio(lowerAlpha, upperAlpha, upperFreq) {
-      if (!isVisible() || !playing || muted) {
-        silenceAudio(0.02);
-        return;
-      }
-
-      if (!audioStarted || !window.XenAudio) return;
-      XenAudio.updateDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: lowerAlpha * 0.15,
-        rampTime: 0.035
-      });
-      XenAudio.updateDrone({
-        id: "ji-animation-upper",
-        frequency: upperFreq,
-        gain: upperAlpha * 0.12,
-        rampTime: 0.035
-      });
-    }
-
-    function silenceAudio(timeConstant = 0.025) {
-      if (!audioStarted || !window.XenAudio) return;
-      XenAudio.updateDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: 0,
-        rampTime: timeConstant
-      });
-      XenAudio.updateDrone({
-        id: "ji-animation-upper",
-        frequency: getStage(progress).freq,
-        gain: 0,
-        rampTime: timeConstant
-      });
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "#f7f8ff";
+      ctx.font = captionFont(layout.size);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      layout.lines.forEach((line, i) => ctx.fillText(line, w / 2, startY + i * lineH));
+      ctx.restore();
     }
 
     function draw() {
-      const sceneFade = getSceneFade(progress);
-      const lowerAlpha = smoothstep(0.04, 0.14, progress) * sceneFade;
-      const lowerY = h * 0.68;
-      const upperY = h * 0.28;
-      const stage = getStage(progress);
-      const upperAlpha = stage.upperAlpha * sceneFade;
-      const boxAlpha = stage.boxAlpha * sceneFade;
-      const ratioAlpha = stage.ratioAlpha * sceneFade;
-      const spanWidth = Math.min(420, w * 0.56);
-      const lowerPeriod = spanWidth / stage.denominator;
-      const upperPeriod = spanWidth / stage.numerator;
+      const time = progress * DURATION;
+      const op = opacities(time);
+      const panelH = h / 4;
+      const yCenters = [0, 1, 2, 3].map(i => panelH / 2 + i * panelH);
 
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = "#080912";
       ctx.fillRect(0, 0, w, h);
 
-      drawWave(lowerY, lowerPeriod, "#8fd3ff", lowerAlpha);
-      drawWave(upperY, upperPeriod, "#ffd166", upperAlpha);
+      drawWave(BASE_CYCLES, yCenters[2], "#8fd3ff", op.lower);
+      drawWave(UPPER_CYCLES, yCenters[0], "#ffd166", op.upper);
+      drawCycleBoxes(op.boxes);
+      drawFraction(UPPER_CYCLES / BASE_CYCLES, 1, w / 2, yCenters[1], panelH, "#ffd166", op.frac);
+      op.captions.forEach((alpha, i) => drawCaption(i, yCenters[3], alpha));
 
-      drawText("110 Hz", w / 2, lowerY + Math.min(95, h * 0.15), 34, "#8fd3ff", lowerAlpha);
-      drawText(String(stage.freq) + " Hz", w / 2, upperY - Math.min(95, h * 0.15), 34, "#ffd166", upperAlpha);
+      updateAudio(op.lower, op.upper);
+    }
 
-      drawPeriodBoxes(lowerY, upperY, spanWidth, stage, boxAlpha);
-      drawText(stage.ratio, w / 2, h / 2, Math.min(120, w * 0.2), "#ffd166", ratioAlpha);
+    // ----- audio: the two waves sound as 110 Hz and 220 Hz (2/1) -----
+    function updateAudio(lowerAlpha, upperAlpha) {
+      if (!isVisible() || !playing || muted) {
+        silenceAudio(0.02);
+        return;
+      }
+      if (!audioStarted || !window.XenAudio) return;
+      XenAudio.updateDrone({ id: "ji-animation-root", frequency: ROOT_HZ, gain: lowerAlpha * 0.15, rampTime: 0.035 });
+      XenAudio.updateDrone({ id: "ji-animation-upper", frequency: UPPER_HZ, gain: upperAlpha * 0.12, rampTime: 0.035 });
+    }
 
-      updateAudio(lowerAlpha, upperAlpha, stage.freq);
+    function silenceAudio(timeConstant = 0.025) {
+      if (!audioStarted || !window.XenAudio) return;
+      XenAudio.updateDrone({ id: "ji-animation-root", frequency: ROOT_HZ, gain: 0, rampTime: timeConstant });
+      XenAudio.updateDrone({ id: "ji-animation-upper", frequency: UPPER_HZ, gain: 0, rampTime: timeConstant });
     }
 
     async function startAudio() {
       if (!window.XenAudio || !XenAudio.isAvailable()) return;
       await XenAudio.resume();
-      await XenAudio.startDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: 0,
-        voice: "soft"
-      });
-      await XenAudio.startDrone({
-        id: "ji-animation-upper",
-        frequency: getStage(progress).freq,
-        gain: 0,
-        voice: "soft"
-      });
+      await XenAudio.startDrone({ id: "ji-animation-root", frequency: ROOT_HZ, gain: 0, voice: "soft" });
+      await XenAudio.startDrone({ id: "ji-animation-upper", frequency: UPPER_HZ, gain: 0, voice: "soft" });
       audioStarted = true;
     }
 
@@ -320,9 +330,9 @@
     }
 
     function frame(now) {
-      const dt = Math.min(48, now - last);
+      const dt = Math.min(48, now - last) / 1000;
       last = now;
-      t += dt;
+      clock += dt;
       draw();
       requestAnimationFrame(frame);
     }
@@ -334,6 +344,7 @@
       if (message.type === "lesson-animation-progress") setProgress(message.progress);
       if (message.type === "lesson-animation-play") {
         playing = true;
+        if (!(Number(message.progress) > 0)) clock = 0; // crests start at the left edge
         startAudio().catch(() => {
           playing = false;
           silenceAudio(0.015);
@@ -346,6 +357,7 @@
       }
       if (message.type === "lesson-animation-reset") {
         playing = false;
+        clock = 0;
         setProgress(0);
         silenceAudio(0.015);
       }
