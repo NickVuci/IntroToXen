@@ -4,15 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Just Intonation Animation</title>
+  <script>
+    // Theme before first paint. Embedded in a lesson, follow the host: the lesson page is
+    // Nocturne until it sends {type: "lesson-theme"}. Standalone: stored choice, else the device.
+    if (window.parent !== window) document.documentElement.dataset.theme = "dark";
+    else try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
   <style>
     :root {
-      --bg: #080912;
-      --text: #f7f8ff;
-      --muted: #b9bfd1;
-      --blue: #8fd3ff;
-      --gold: #ffd166;
-      --line: rgba(255,255,255,0.14);
+      --ground-start: #f7f4ec;
+      --ground-end: #f7f4ec;
     }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --ground-start: #1e1f26; --ground-end: #283c63; }
+    }
+    :root[data-theme="dark"] { --ground-start: #1e1f26; --ground-end: #283c63; }
 
     * { box-sizing: border-box; }
 
@@ -22,296 +31,452 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      color: var(--text);
-      background: transparent;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, var(--ground-start), var(--ground-end));
     }
 
-    .scene {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      background:
-        radial-gradient(circle at 8% 0%, rgba(143,211,255,0.16), transparent 24rem),
-        radial-gradient(circle at 95% 22%, rgba(255,209,102,0.12), transparent 22rem),
-        var(--bg);
-    }
+    .scene { width: 100%; height: 100%; position: relative; }
 
     canvas {
       display: block;
       width: 100%;
       height: 100%;
-      background: #080912;
       touch-action: manipulation;
     }
   </style>
 </head>
 <body>
-  <main class="scene" id="ratio-animation" aria-label="Ratio animation">
+  <main class="scene" id="ratio-animation" aria-label="Just intonation: an upper note slides down from the octave and locks at 3/2, 4/3 and 5/4, then the just major triad 4:5:6">
     <canvas id="ratioCanvas"></canvas>
   </main>
 
   <script src="../audio/synth.js"></script>
   <script>
+    /*
+      Just intonation demo (extends the Manim port JIIntro).
+
+      Panels, top to bottom: upper wave · ratio (or a middle wave in the chord) · root wave · caption.
+      The lesson drives `progress` (0..1) over DURATION seconds. Wave travel runs on the real clock,
+      so the waves keep moving while paused; everything else is a pure function of progress.
+
+      Script (seconds):
+        0–15   Intro (unchanged): root wave and caption 1; the octave and caption 2;
+               2/1 appears with the boxes and caption 3; the upper wave turns gold.
+        15–42  The journey: the upper note slides down from 2/1 and locks at 3/2, then slides on to
+               4/3 and 5/4. Each glide eases into a long slow approach, so the beating slows and stops;
+               at each lock the boxes line up, the wave turns gold foil (one sheen), then the ratio appears.
+        42–55  Chord: 5/4 stays (now in the middle panel) while the top note slides up to 3/2;
+               three waves share boxes; 4:5:6 appears; everything fades.
+
+      The upper wave is drawn at its true pitch, so as it approaches a ratio its crests close in on the
+      box edges (where every wave crests together) and settle exactly on them at the lock.
+    */
+
     const canvas = document.getElementById("ratioCanvas");
     const ctx = canvas.getContext("2d");
     const section = document.getElementById("ratio-animation");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    let w = 1;
-    let h = 1;
-    let t = 0;
+    // ----- constants -----
+    const BASE_CYCLES = 6;          // root-wave cycles across the full width
+    const ROOT_HZ = 110;
+    const VERTICAL_MARGIN = 0.2;
+    const MANIM_FRAME_WIDTH = 14.222;
+    const FADE_OUT = 0.7;
+
+    // ----- intro timings (the Manim scene's, unchanged) -----
+    const PRE_ROLL = 1.0, FADE_DUR = 1.5, HOLD_DUR = 2.5, CAPTION_OUT = 0.9, FINAL_HOLD_DUR = 2.5;
+    const T1 = PRE_ROLL;
+    const T1_OUT = T1 + FADE_DUR + HOLD_DUR;
+    const T2 = T1_OUT + CAPTION_OUT;
+    const T2_OUT = T2 + FADE_DUR + HOLD_DUR;
+    const T3 = T2_OUT + CAPTION_OUT;
+    const INTRO_END = T3 + FADE_DUR + FINAL_HOLD_DUR;
+
+    const CAPTIONS = [
+      "If the pitch or frequency of a musical note is the number of times per second it causes the air to vibrate,",
+      "and an interval is when two notes play at the same time,",
+      "then Just Intonation (or JI) is where the frequencies of the notes form whole-number ratios with each other.",
+      "As we move through the universe of frequency, we notice points where the two frequencies lock together.",
+      "As the note slides into place, the beating slows and stops, and the waves repeat together.",
+      "Every interval that locks like this is a whole-number ratio.",
+      "Three notes can lock at once. Here they form the just major triad."
+    ];
+
+    // ----- easing -----
+    function clamp(v, min = 0, max = 1) { return Math.max(min, Math.min(max, v)); }
+    function ramp(t, a, b) { return clamp((t - a) / (b - a)); }
+    function smooth(t, a, b) { const x = ramp(t, a, b); return x * x * (3 - 2 * x); }
+    function cents(n, d) { return 1200 * Math.log2(n / d); }
+
+    // Glide between two pitches: starts gently, then a long slow approach so the beating
+    // audibly slows before it stops at the lock.
+    function glideCents(u, from, to, length) {
+      const s = smooth(u, 0, length);
+      return from + (to - from) * (1 - (1 - s) * (1 - s));
+    }
+
+    // ----- the journey: the upper note slides down from the octave and locks at each ratio -----
+    const S_UNLOCK = 0.7;   // fraction and boxes fade, gold returns to blue
+    const S_FRAC_DELAY = 0.8, S_FRAC_FADE = 0.8, S_HOLD = 2.2;
+    const STAGES = [
+      { from: [2, 1], to: [3, 2], glide: 5.0, caption: 3, cyclesPerBox: 2 },
+      { from: [3, 2], to: [4, 3], glide: 4.0, caption: 4, cyclesPerBox: 3 },
+      { from: [4, 3], to: [5, 4], glide: 3.5, caption: 5, cyclesPerBox: 4 }
+    ];
+    let cursor = INTRO_END;
+    STAGES.forEach(stage => {
+      stage.start = cursor;
+      stage.lock = S_UNLOCK + stage.glide;
+      stage.length = stage.lock + S_FRAC_DELAY + S_FRAC_FADE + S_HOLD;
+      cursor += stage.length;
+    });
+
+    // ----- the chord: 5/4 stays, the top note slides up to 3/2 (6/4): 4:5:6 -----
+    const K_MID_IN = 1.0, K_GLIDE = 4.0;
+    const K_GLIDE_START = S_UNLOCK + K_MID_IN;
+    const K_LOCK = K_GLIDE_START + K_GLIDE;
+    const K_LABEL = K_LOCK + 0.8;
+    const K_OUTRO = K_LABEL + 0.8 + 2.7;
+    const K_LEN = K_OUTRO + 2.5 + 0.2;
+    const CHORD_START = cursor;
+    const DURATION = CHORD_START + K_LEN;
+
+    // ----- state at a moment: what is visible, how loud, at what pitch -----
+    function emptyState() {
+      return {
+        lower: 0,
+        top: null,     // { cents, alpha, gold }
+        mid: null,
+        frac: null,    // { text: [num, den], alpha }
+        boxes: null,   // { cyclesPerBox, alpha, gold, panels }
+        caption: null, // { index, alpha }
+        label: null,   // { text, alpha }
+        sheen: -1
+      };
+    }
+
+    function stateAt(time) {
+      const s = emptyState();
+      const outro = 1 - smooth(time, CHORD_START + K_OUTRO, CHORD_START + K_OUTRO + 2.5);
+      s.lower = smooth(time, T1, T1 + FADE_DUR) * outro;
+
+      if (time < INTRO_END) {
+        const goldIn = smooth(time, T3, T3 + FADE_DUR);
+        s.top = { cents: 1200, alpha: smooth(time, T2, T2 + FADE_DUR), gold: goldIn };
+        s.frac = { text: ["2", "1"], alpha: goldIn };
+        s.boxes = { cyclesPerBox: 1, alpha: goldIn, gold: goldIn, panels: [0, 2] };
+        const caps = [
+          smooth(time, T1, T1 + FADE_DUR) * (1 - smooth(time, T1_OUT, T1_OUT + CAPTION_OUT)),
+          smooth(time, T2, T2 + FADE_DUR) * (1 - smooth(time, T2_OUT, T2_OUT + CAPTION_OUT)),
+          goldIn
+        ];
+        const index = caps.findIndex(a => a > 0.001);
+        if (index >= 0) s.caption = { index, alpha: caps[index] };
+        if (time >= T3 && time < T3 + 0.9) s.sheen = (time - T3) / 0.9;
+        return s;
+      }
+
+      for (let i = 0; i < STAGES.length; i += 1) {
+        const stage = STAGES[i];
+        if (time >= stage.start + stage.length) continue;
+        const u = time - stage.start;
+        const prevBoxes = i === 0 ? 1 : STAGES[i - 1].cyclesPerBox;
+        const leaving = 1 - smooth(u, 0, S_UNLOCK);
+        const locked = smooth(u, stage.lock, stage.lock + 0.4);
+        const c = glideCents(u - S_UNLOCK, cents(...stage.from), cents(...stage.to), stage.glide);
+        s.top = { cents: c, alpha: 1, gold: Math.max(1 - smooth(u, 0, 0.4), locked) };
+
+        // Old boxes and ratio fade as the note leaves; the new boxes gather near the lock.
+        const arriving = smooth(u, S_UNLOCK + stage.glide * 0.6, stage.lock);
+        s.boxes = leaving > arriving
+          ? { cyclesPerBox: prevBoxes, alpha: leaving, gold: leaving, panels: [0, 2] }
+          : { cyclesPerBox: stage.cyclesPerBox, alpha: arriving, gold: locked, panels: [0, 2] };
+        const prev = i === 0 ? ["2", "1"] : STAGES[i - 1].to.map(String);
+        const fracIn = smooth(u, stage.lock + S_FRAC_DELAY, stage.lock + S_FRAC_DELAY + S_FRAC_FADE);
+        s.frac = leaving > 0.001 ? { text: prev, alpha: leaving } : { text: stage.to.map(String), alpha: fracIn };
+
+        const prevCaption = i === 0 ? 2 : STAGES[i - 1].caption;
+        s.caption = leaving > 0.001
+          ? { index: prevCaption, alpha: leaving }
+          : { index: stage.caption, alpha: smooth(u, S_UNLOCK, S_UNLOCK + 1.0) };
+        if (u >= stage.lock && u < stage.lock + 0.9) s.sheen = (u - stage.lock) / 0.9;
+        return s;
+      }
+
+      const u = time - CHORD_START;
+      const leaving = 1 - smooth(u, 0, S_UNLOCK);
+      const locked = smooth(u, K_LOCK, K_LOCK + 0.4);
+      const c = glideCents(u - K_GLIDE_START, cents(5, 4), cents(3, 2), K_GLIDE);
+      s.mid = { cents: cents(5, 4), alpha: smooth(u, S_UNLOCK, K_GLIDE_START) * outro, gold: Math.max(1 - smooth(u, 0, 0.4), locked) };
+      s.top = { cents: c, alpha: outro, gold: Math.max(1 - smooth(u, 0, 0.4), locked) };
+      const arriving = smooth(u, K_GLIDE_START + K_GLIDE * 0.6, K_LOCK);
+      s.boxes = leaving > 0.001
+        ? { cyclesPerBox: 4, alpha: leaving, gold: leaving, panels: [0, 2] }
+        : { cyclesPerBox: 4, alpha: arriving * outro, gold: locked, panels: [0, 1, 2] };
+      if (leaving > 0.001) s.frac = { text: ["5", "4"], alpha: leaving };
+      s.caption = leaving > 0.001
+        ? { index: 5, alpha: leaving }
+        : { index: 6, alpha: smooth(u, S_UNLOCK, S_UNLOCK + 1.0) * (1 - smooth(u, K_LABEL - 0.6, K_LABEL)) };
+      s.label = { text: "4:5:6", alpha: smooth(u, K_LABEL, K_LABEL + 0.8) * outro };
+      if (u >= K_LOCK && u < K_LOCK + 0.9) s.sheen = (u - K_LOCK) / 0.9;
+      return s;
+    }
+
+    // ----- theme -----
+    const THEMES = {
+      dark: {
+        ground: ["#1e1f26", "#283c63"], ink: "#f0f0f0", inkMuted: "#a8dadc", hairline: "rgba(233,197,106,0.36)",
+        root: "#f4a261", sounding: "#a8dadc", gold: "#e9c46a", goldLo: "#b8892b", goldHi: "#fff1c4", goldInk: "#e9c46a"
+      },
+      light: {
+        ground: ["#f7f4ec", "#f7f4ec"], ink: "#121933", inkMuted: "#565c70", hairline: "#dcd5c6",
+        root: "#6b1d34", sounding: "#1640c8", gold: "#b8892b", goldLo: "#7a5a1c", goldHi: "#e9cf8a", goldInk: "#7a5a1c"
+      }
+    };
+    function themeName() {
+      const set = document.documentElement.dataset.theme;
+      if (set === "light" || set === "dark") return set;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    let colors = THEMES[themeName()];
+    function applyTheme() { colors = THEMES[themeName()]; draw(); }
+
+    // ----- canvas -----
+    let w = 1, h = 1;
+    let clock = 0;
     let last = performance.now();
     let progress = 0;
     let playing = false;
     let muted = false;
-
     let audioStarted = false;
+    let captionLayout = { size: 16, lines: [] };
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.35 : 1.9);
+      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.5 : 2);
       w = Math.max(1, rect.width);
       h = Math.max(1, rect.height);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      layoutCaptions();
     }
 
-    function clamp(v, min = 0, max = 1) {
-      return Math.max(min, Math.min(max, v));
+    function captionFont(size) {
+      return `400 ${size}px Montserrat, "Helvetica Neue", Arial, system-ui, sans-serif`;
+    }
+    function wrap(text, maxWidth) {
+      const words = text.split(/\s+/);
+      const lines = [];
+      let current = "";
+      for (const word of words) {
+        const trial = current ? current + " " + word : word;
+        if (ctx.measureText(trial).width <= maxWidth || !current) current = trial;
+        else { lines.push(current); current = word; }
+      }
+      if (current) lines.push(current);
+      return lines;
+    }
+    // One size for every caption; step down only if the longest would overflow its panel.
+    function layoutCaptions() {
+      const panelH = h / 4;
+      const maxWidth = Math.max(40, Math.min(680, w - 32));
+      for (let size = Math.max(13, Math.min(22, h * 0.036)); size >= 10; size -= 1) {
+        ctx.font = captionFont(size);
+        const lines = CAPTIONS.map(text => wrap(text, maxWidth));
+        const tallest = Math.max(...lines.map(l => l.length)) * size * 1.5;
+        if (tallest <= panelH * 0.9 || size <= 10) { captionLayout = { size, lines }; return; }
+      }
     }
 
-    function smoothstep(edge0, edge1, x) {
-      x = clamp((x - edge0) / (edge1 - edge0));
-      return x * x * (3 - 2 * x);
+    function speedPx() { return w / MANIM_FRAME_WIDTH; }
+
+    function goldFoil(x0, x1, sheen) {
+      const g = ctx.createLinearGradient(x0, 0, x1, 0);
+      g.addColorStop(0, colors.goldLo);
+      g.addColorStop(0.35, colors.gold);
+      g.addColorStop(0.5, colors.goldHi);
+      g.addColorStop(0.65, colors.gold);
+      g.addColorStop(1, colors.goldLo);
+      if (sheen >= 0 && !reducedMotion.matches) {
+        const p = clamp(sheen * 1.2 - 0.1, 0, 1);
+        const g2 = ctx.createLinearGradient(x0, 0, x1, 0);
+        g2.addColorStop(0, colors.gold);
+        g2.addColorStop(Math.max(0, p - 0.08), colors.gold);
+        g2.addColorStop(p, "#ffffff");
+        g2.addColorStop(Math.min(1, p + 0.08), colors.gold);
+        g2.addColorStop(1, colors.gold);
+        return g2;
+      }
+      return g;
     }
 
-    function fadeInOut(x, inStart, inEnd, outStart, outEnd) {
-      return smoothstep(inStart, inEnd, x) * (1 - smoothstep(outStart, outEnd, x));
+    function mix(a, b, t) {
+      const pa = a.match(/\w\w/g).map(x => parseInt(x, 16));
+      const pb = b.match(/\w\w/g).map(x => parseInt(x, 16));
+      return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
     }
 
-    function isVisible() {
-      const rect = section.getBoundingClientRect();
-      return rect.bottom > 0 && rect.top < window.innerHeight;
-    }
-
-    function drawText(text, x, y, size, color, alpha = 1) {
+    // A wave with `cycles` across the width, travelling right, offset by `offset` cycles.
+    function drawWave(cycles, yCenter, stroke, alpha, offset = 0) {
       if (alpha <= 0.001) return;
+      const amp = (h / 8) * (1 - VERTICAL_MARGIN);
+      const k = (2 * Math.PI * cycles) / w;
+      const shift = speedPx() * clock;
       ctx.save();
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = color;
-      ctx.font = `900 ${size}px system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, x, y);
-      ctx.restore();
-    }
-
-    function roundRect(x, y, width, height, radius) {
-      const r = Math.min(radius, width / 2, height / 2);
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + width - r, y);
-      ctx.quadraticCurveTo(x + width, y, x + width, y + r);
-      ctx.lineTo(x + width, y + height - r);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-      ctx.lineTo(x + r, y + height);
-      ctx.quadraticCurveTo(x, y + height, x, y + height - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-    }
-
-    function drawWave(y, period, color, alpha) {
-      if (alpha <= 0.001) return;
-
-      const amp = Math.min(52, h * 0.08);
-      const left = w * 0.08;
-      const right = w * 0.92;
-      const phase = t * 0.018;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = Math.max(2, Math.min(3.5, h * 0.005));
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.beginPath();
-
-      for (let x = left; x <= right; x += 2) {
-        const wave = Math.sin(((x + phase) / period) * Math.PI * 2);
-        const yy = y + wave * amp;
-        if (x === left) ctx.moveTo(x, yy);
-        else ctx.lineTo(x, yy);
+      for (let x = 0; x <= w + 2; x += 2) {
+        const y = yCenter - amp * Math.sin(k * (x - shift) + Math.PI / 2 + 2 * Math.PI * offset);
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
-
       ctx.stroke();
       ctx.restore();
     }
 
-    function drawPeriodBox(x, y, width, height, color, alpha) {
-      if (alpha <= 0.001) return;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color === "#ffd166" ? "rgba(255,209,102,0.075)" : "rgba(143,211,255,0.075)";
-      ctx.lineWidth = 3;
-      roundRect(x, y, width, height, 12);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.setLineDash([6, 7]);
-      ctx.globalAlpha = alpha * 0.8;
-      ctx.beginPath();
-      ctx.moveTo(x, y + height / 2);
-      ctx.lineTo(x + width, y + height / 2);
-      ctx.stroke();
-
-      ctx.restore();
+    function waveStroke(voice, sheen) {
+      if (voice.gold >= 0.999) return goldFoil(0, w, sheen);
+      if (voice.gold <= 0.001) return colors.sounding;
+      return mix(colors.sounding, colors.gold, voice.gold);
     }
 
-    function drawPeriodBoxes(lowerY, upperY, spanWidth, stage, alpha) {
-      if (alpha <= 0.001) return;
-
-      const amp = Math.min(52, h * 0.08);
-      const startX = (w - spanWidth) / 2;
-      const boxH = amp * 2.45;
-      const lowerPeriod = spanWidth / stage.denominator;
-      const upperPeriod = spanWidth / stage.numerator;
-
-      for (let i = 0; i < stage.denominator; i++) {
-        drawPeriodBox(startX + lowerPeriod * i, lowerY - boxH / 2, lowerPeriod, boxH, "#8fd3ff", alpha);
-      }
-
-      for (let i = 0; i < stage.numerator; i++) {
-        drawPeriodBox(startX + upperPeriod * i, upperY - boxH / 2, upperPeriod, boxH, "#ffd166", alpha);
-      }
-
+    // Boxes one common period wide (cyclesPerBox root cycles), sliding with the waves.
+    function drawBoxes(boxes, sheen) {
+      if (!boxes || boxes.alpha <= 0.001) return;
+      const panelH = h / 4;
+      const boxW = (w / BASE_CYCLES) * boxes.cyclesPerBox;
+      const offset = (speedPx() * clock) % boxW;
       ctx.save();
-      ctx.globalAlpha = alpha * 0.7;
-      ctx.strokeStyle = "rgba(255,255,255,0.28)";
       ctx.lineWidth = 1.5;
-      ctx.setLineDash([5, 7]);
+      for (const panel of boxes.panels) {
+        const top = panel * panelH;
+        for (let x = offset - boxW; x <= w + boxW; x += boxW) {
+          // the box edge sits where every wave crests together
+          ctx.globalAlpha = boxes.alpha * (0.45 + 0.55 * boxes.gold);
+          ctx.strokeStyle = boxes.gold >= 0.999 ? goldFoil(0, w, sheen) : mix(colors.inkMuted, colors.gold, boxes.gold);
+          ctx.strokeRect(x, top + 4, boxW, panelH - 8);
+        }
+      }
+      ctx.restore();
+    }
 
-      const y1 = upperY + boxH / 2 + 12;
-      const y2 = lowerY - boxH / 2 - 12;
-
-      for (let i = 0; i <= stage.numerator; i++) {
-        const x = startX + upperPeriod * i;
+    function drawFraction(frac, cy, sheen) {
+      if (!frac || frac.alpha <= 0.001) return;
+      const panelH = h / 4;
+      ctx.save();
+      ctx.globalAlpha = frac.alpha;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      {
+        const size = panelH * 0.3;
+        const gap = panelH * 0.03;
+        const fill = goldFoil(w / 2 - size, w / 2 + size, sheen);
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = fill;
+        ctx.font = `500 ${size}px "IBM Plex Mono", ui-monospace, monospace`;
+        ctx.fillText(frac.text[0], w / 2, cy - size / 2 - gap);
+        ctx.fillText(frac.text[1], w / 2, cy + size / 2 + gap);
+        ctx.lineWidth = Math.max(2, size * 0.07);
+        ctx.lineCap = "butt";
         ctx.beginPath();
-        ctx.moveTo(x, y1);
-        ctx.lineTo(x, y2);
+        ctx.moveTo(w / 2 - size * 0.45, cy);
+        ctx.lineTo(w / 2 + size * 0.45, cy);
         ctx.stroke();
       }
-
       ctx.restore();
     }
 
-    function getStage(x) {
-      const stages = [
-        { numerator: 2, denominator: 1, upperAlpha: fadeInOut(x, 0.06, 0.12, 0.22, 0.27), boxAlpha: fadeInOut(x, 0.12, 0.18, 0.22, 0.27), ratioAlpha: fadeInOut(x, 0.17, 0.23, 0.24, 0.29), freq: 220, ratio: "2/1" },
-        { numerator: 3, denominator: 2, upperAlpha: fadeInOut(x, 0.25, 0.31, 0.41, 0.46), boxAlpha: fadeInOut(x, 0.31, 0.37, 0.41, 0.46), ratioAlpha: fadeInOut(x, 0.36, 0.42, 0.43, 0.48), freq: 165, ratio: "3/2" },
-        { numerator: 4, denominator: 3, upperAlpha: fadeInOut(x, 0.44, 0.50, 0.60, 0.65), boxAlpha: fadeInOut(x, 0.50, 0.56, 0.60, 0.65), ratioAlpha: fadeInOut(x, 0.55, 0.61, 0.62, 0.67), freq: 147, ratio: "4/3" },
-        { numerator: 5, denominator: 4, upperAlpha: fadeInOut(x, 0.63, 0.69, 0.79, 0.84), boxAlpha: fadeInOut(x, 0.69, 0.75, 0.79, 0.84), ratioAlpha: fadeInOut(x, 0.74, 0.80, 0.81, 0.86), freq: 138, ratio: "5/4" },
-        { numerator: 3, denominator: 1, upperAlpha: fadeInOut(x, 0.82, 0.88, 0.96, 1.00), boxAlpha: fadeInOut(x, 0.88, 0.93, 0.96, 1.00), ratioAlpha: fadeInOut(x, 0.92, 0.97, 0.98, 1.00), freq: 330, ratio: "3/1" }
-      ];
-
-      let active = stages[0];
-
-      for (const stage of stages) {
-        const total = stage.upperAlpha + stage.boxAlpha + stage.ratioAlpha;
-        if (total > 0.001) active = stage;
-      }
-
-      return active;
+    function drawCaption(caption, cy) {
+      if (!caption || caption.alpha <= 0.001) return;
+      const lines = captionLayout.lines[caption.index];
+      if (!lines) return;
+      const lineH = captionLayout.size * 1.5;
+      const startY = cy - ((lines.length - 1) * lineH) / 2;
+      ctx.save();
+      ctx.globalAlpha = caption.alpha;
+      ctx.fillStyle = colors.ink;
+      ctx.font = captionFont(captionLayout.size);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      lines.forEach((line, i) => ctx.fillText(line, w / 2, startY + i * lineH));
+      ctx.restore();
     }
 
-    function getSceneFade(x) {
-      return 1 - smoothstep(0.94, 1.00, x);
+    function drawLabel(label, cy, sheen) {
+      if (!label || label.alpha <= 0.001) return;
+      const size = Math.min(h / 4 * 0.42, w * 0.16);
+      ctx.save();
+      ctx.globalAlpha = label.alpha;
+      ctx.font = `500 ${size}px "IBM Plex Mono", ui-monospace, monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const half = ctx.measureText(label.text).width / 2;
+      ctx.fillStyle = goldFoil(w / 2 - half, w / 2 + half, sheen);
+      ctx.fillText(label.text, w / 2, cy);
+      ctx.restore();
     }
 
-    function updateAudio(lowerAlpha, upperAlpha, upperFreq) {
-      if (!isVisible() || !playing || muted) {
-        silenceAudio(0.02);
-        return;
-      }
+    let current = emptyState();
 
+    function draw() {
+      const time = progress * DURATION;
+      const s = stateAt(time);
+      current = s;
+      const panelH = h / 4;
+      const y = [0, 1, 2, 3].map(i => panelH / 2 + i * panelH);
+
+      ctx.clearRect(0, 0, w, h);
+      const ground = ctx.createLinearGradient(0, 0, w, h);
+      ground.addColorStop(0, colors.ground[0]);
+      ground.addColorStop(1, colors.ground[1]);
+      ctx.fillStyle = ground;
+      ctx.fillRect(0, 0, w, h);
+
+      drawBoxes(s.boxes, s.sheen);
+      drawWave(BASE_CYCLES, y[2], colors.root, s.lower);
+      if (s.mid) drawWave(BASE_CYCLES * 2 ** (s.mid.cents / 1200), y[1], waveStroke(s.mid, s.sheen), s.mid.alpha);
+      if (s.top) drawWave(BASE_CYCLES * 2 ** (s.top.cents / 1200), y[0], waveStroke(s.top, s.sheen), s.top.alpha);
+      drawFraction(s.frac, y[1], s.sheen);
+      drawCaption(s.caption, y[3]);
+      drawLabel(s.label, y[3], s.sheen);
+
+      updateAudio(s);
+    }
+
+    // ----- audio: exact ratios over a 110 Hz root, detuned by the stage's cents -----
+    const VOICES = ["ji-animation-root", "ji-animation-upper", "ji-animation-mid"];
+    function hz(voice) { return ROOT_HZ * 2 ** (voice.cents / 1200); }
+
+    function updateAudio(s) {
+      if (!isVisible() || !playing || muted) { silenceAudio(0.02); return; }
       if (!audioStarted || !window.XenAudio) return;
-      XenAudio.updateDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: lowerAlpha * 0.15,
-        rampTime: 0.035
-      });
-      XenAudio.updateDrone({
-        id: "ji-animation-upper",
-        frequency: upperFreq,
-        gain: upperAlpha * 0.12,
-        rampTime: 0.035
-      });
+      XenAudio.updateDrone({ id: VOICES[0], frequency: ROOT_HZ, gain: s.lower * 0.07, rampTime: 0.03 });
+      XenAudio.updateDrone({ id: VOICES[1], frequency: s.top ? hz(s.top) : ROOT_HZ * 2, gain: s.top ? s.top.alpha * 0.06 : 0, rampTime: 0.03 });
+      XenAudio.updateDrone({ id: VOICES[2], frequency: s.mid ? hz(s.mid) : ROOT_HZ * 1.25, gain: s.mid ? s.mid.alpha * 0.06 : 0, rampTime: 0.03 });
     }
 
     function silenceAudio(timeConstant = 0.025) {
       if (!audioStarted || !window.XenAudio) return;
-      XenAudio.updateDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: 0,
-        rampTime: timeConstant
-      });
-      XenAudio.updateDrone({
-        id: "ji-animation-upper",
-        frequency: getStage(progress).freq,
-        gain: 0,
-        rampTime: timeConstant
-      });
-    }
-
-    function draw() {
-      const sceneFade = getSceneFade(progress);
-      const lowerAlpha = smoothstep(0.04, 0.14, progress) * sceneFade;
-      const lowerY = h * 0.68;
-      const upperY = h * 0.28;
-      const stage = getStage(progress);
-      const upperAlpha = stage.upperAlpha * sceneFade;
-      const boxAlpha = stage.boxAlpha * sceneFade;
-      const ratioAlpha = stage.ratioAlpha * sceneFade;
-      const spanWidth = Math.min(420, w * 0.56);
-      const lowerPeriod = spanWidth / stage.denominator;
-      const upperPeriod = spanWidth / stage.numerator;
-
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#080912";
-      ctx.fillRect(0, 0, w, h);
-
-      drawWave(lowerY, lowerPeriod, "#8fd3ff", lowerAlpha);
-      drawWave(upperY, upperPeriod, "#ffd166", upperAlpha);
-
-      drawText("110 Hz", w / 2, lowerY + Math.min(95, h * 0.15), 34, "#8fd3ff", lowerAlpha);
-      drawText(String(stage.freq) + " Hz", w / 2, upperY - Math.min(95, h * 0.15), 34, "#ffd166", upperAlpha);
-
-      drawPeriodBoxes(lowerY, upperY, spanWidth, stage, boxAlpha);
-      drawText(stage.ratio, w / 2, h / 2, Math.min(120, w * 0.2), "#ffd166", ratioAlpha);
-
-      updateAudio(lowerAlpha, upperAlpha, stage.freq);
+      const s = current;
+      XenAudio.updateDrone({ id: VOICES[0], frequency: ROOT_HZ, gain: 0, rampTime: timeConstant });
+      XenAudio.updateDrone({ id: VOICES[1], frequency: s.top ? hz(s.top) : ROOT_HZ * 2, gain: 0, rampTime: timeConstant });
+      XenAudio.updateDrone({ id: VOICES[2], frequency: s.mid ? hz(s.mid) : ROOT_HZ * 1.25, gain: 0, rampTime: timeConstant });
     }
 
     async function startAudio() {
       if (!window.XenAudio || !XenAudio.isAvailable()) return;
       await XenAudio.resume();
-      await XenAudio.startDrone({
-        id: "ji-animation-root",
-        frequency: 110,
-        gain: 0,
-        voice: "soft"
-      });
-      await XenAudio.startDrone({
-        id: "ji-animation-upper",
-        frequency: getStage(progress).freq,
-        gain: 0,
-        voice: "soft"
-      });
+      for (const id of VOICES) await XenAudio.startDrone({ id, frequency: ROOT_HZ, gain: 0, voice: "bright" });
       audioStarted = true;
+    }
+
+    function isVisible() {
+      const rect = section.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < window.innerHeight;
     }
 
     function setProgress(value) {
@@ -320,54 +485,58 @@
     }
 
     function frame(now) {
-      const dt = Math.min(48, now - last);
+      const dt = Math.min(48, now - last) / 1000;
       last = now;
-      t += dt;
+      clock += dt;
       draw();
       requestAnimationFrame(frame);
     }
 
     window.addEventListener("message", event => {
-      if (event.origin !== window.location.origin) return;
+      if (event.source !== window.parent) return;
       const message = event.data || {};
 
       if (message.type === "lesson-animation-progress") setProgress(message.progress);
       if (message.type === "lesson-animation-play") {
         playing = true;
-        startAudio().catch(() => {
-          playing = false;
-          silenceAudio(0.015);
-        });
+        if (!(Number(message.progress) > 0)) clock = 0; // crests start at the left edge
+        startAudio().catch(() => { playing = false; silenceAudio(0.015); });
         setProgress(message.progress);
       }
-      if (message.type === "lesson-animation-pause") {
-        playing = false;
-        silenceAudio(0.015);
+      if (message.type === "lesson-animation-pause") { playing = false; silenceAudio(0.015); }
+      if (message.type === "lesson-animation-reset") { playing = false; clock = 0; setProgress(0); silenceAudio(0.015); }
+      if (message.type === "lesson-animation-finish") { playing = false; setProgress(1); silenceAudio(0.035); }
+      if (message.type === "lesson-animation-mute") { muted = Boolean(message.muted); if (muted) silenceAudio(0.015); }
+      if (message.type === "lesson-theme" && (message.theme === "light" || message.theme === "dark")) {
+        document.documentElement.dataset.theme = message.theme;
+        applyTheme();
       }
-      if (message.type === "lesson-animation-reset") {
-        playing = false;
-        setProgress(0);
-        silenceAudio(0.015);
-      }
-      if (message.type === "lesson-animation-finish") {
-        playing = false;
-        setProgress(1);
-        silenceAudio(0.035);
-      }
-      if (message.type === "lesson-animation-mute") {
-        muted = Boolean(message.muted);
-        if (muted) silenceAudio(0.015);
-      }
+    });
+
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+    window.addEventListener("storage", event => {
+      if (event.key !== "theme") return;
+      if (event.newValue === "light" || event.newValue === "dark") document.documentElement.dataset.theme = event.newValue;
+      else delete document.documentElement.dataset.theme;
+      applyTheme();
     });
 
     let resizeTimer = null;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        resize();
-        draw();
-      }, 120);
+      resizeTimer = setTimeout(() => { resize(); draw(); }, 120);
     });
+
+    // Re-measure captions once the brand faces have loaded.
+    if (document.fonts && document.fonts.load) {
+      Promise.all([
+        document.fonts.load(`400 16px Montserrat`),
+        document.fonts.load(`500 16px "IBM Plex Mono"`)
+      ]).then(() => { layoutCaptions(); draw(); }).catch(() => {});
+    }
+
+    // Exposed for the lesson's duration check.
+    window.JI_ANIMATION_DURATION = DURATION;
 
     resize();
     draw();

@@ -34,6 +34,19 @@
       filterFrequency: 3600,
       gain: 0.12
     },
+    // Harmonic-rich drone for tuning demos: every harmonic is present, so
+    // mistuned just intervals beat clearly and locked ones go still.
+    bright: {
+      waveform: "sawtooth",
+      colorWaveform: "triangle",
+      colorGain: 0.02,
+      attack: 0.08,
+      decay: 0.2,
+      sustain: 1,
+      release: 0.35,
+      filterFrequency: 2600,
+      gain: 0.07
+    },
     drone: {
       waveform: "sine",
       colorWaveform: "triangle",

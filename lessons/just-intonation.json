@@ -13,9 +13,9 @@
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/just-intonation.html?v=20260621-no-caption",
+      "file": "animations/just-intonation.html?v=20261107-ji-journey",
       "word": "ratios",
-      "durationMs": 38000,
+      "durationMs": 53500,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
