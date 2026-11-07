@@ -669,8 +669,50 @@
       });
     });
 
+    fitAllQa();
+    if (document.fonts?.ready) document.fonts.ready.then(fitAllQa);
+    if (window.ResizeObserver) {
+      const observer = new ResizeObserver(() => fitAllQa());
+      document.querySelectorAll(".sectionLayer[data-section-type=\"qa\"] .placeholderBox").forEach(box => observer.observe(box));
+    } else {
+      window.addEventListener("resize", fitAllQa);
+    }
+
     updateNavigation();
     activateSection(current);
+  }
+
+  // Shrink each Q&A until the question, choices and (revealed) answer fit the frame, so it never scrolls.
+  // It is sized as if the answer were already showing, so revealing it never makes the content overflow.
+  const QA_FIT_MIN = 0.2, QA_FIT_MARGIN = 6; // px kept free so rounding never tips it over
+  function qaFits(box, frame) {
+    const available = frame.getBoundingClientRect().height - QA_FIT_MARGIN;
+    return box.getBoundingClientRect().height <= available && box.scrollHeight <= available && box.scrollWidth <= box.clientWidth;
+  }
+  function fitQa(box) {
+    const frame = box.parentElement;
+    if (!frame || !frame.clientHeight) return;
+    box.classList.add("qaMeasuring");
+    box.style.maxHeight = "none";
+    let low = QA_FIT_MIN, high = 1, best = QA_FIT_MIN;
+    box.style.setProperty("--qa-fit", "1");
+    if (qaFits(box, frame)) {
+      best = 1;
+    } else {
+      for (let i = 0; i < 10; i += 1) {
+        const mid = (low + high) / 2;
+        box.style.setProperty("--qa-fit", mid.toFixed(4));
+        if (qaFits(box, frame)) { best = mid; low = mid; } else { high = mid; }
+      }
+    }
+    box.style.setProperty("--qa-fit", best.toFixed(4));
+    box.style.maxHeight = "";
+    box.classList.remove("qaMeasuring");
+  }
+  let qaFitFrame = 0;
+  function fitAllQa() {
+    cancelAnimationFrame(qaFitFrame);
+    qaFitFrame = requestAnimationFrame(() => document.querySelectorAll(".qaBox").forEach(fitQa));
   }
 
   async function init() {

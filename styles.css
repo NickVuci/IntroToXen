@@ -1781,3 +1781,40 @@ p {
    paint an opaque white backdrop behind the frame. */
 html { color-scheme: dark !important; }
 .embedFrame { color-scheme: dark !important; background: transparent; }
+
+/* Q&A fit-to-frame: template.js sets --qa-fit (0.2..1) on each .qaBox so the question,
+   choices and answer always fit the section without scrolling. Every size below scales with it. */
+.sectionLayer[data-section-type="qa"] .qaBox {
+  --qa-fit: 1;
+  overflow: hidden;
+  gap: calc(clamp(1rem, 2.4vh, 1.7rem) * var(--qa-fit));
+}
+.sectionLayer[data-section-type="qa"] .qaPrompt { gap: calc(0.9rem * var(--qa-fit)); }
+.sectionLayer[data-section-type="qa"] .qaSectionEyebrow { font-size: calc(clamp(0.9rem, 1.6vw, 1.1rem) * var(--qa-fit)); }
+.sectionLayer[data-section-type="qa"] .qaQuestionLabel { font-size: calc(clamp(1rem, 2vw, 1.35rem) * var(--qa-fit)); }
+.sectionLayer[data-section-type="qa"] .qaQuestionText {
+  font-size: calc(clamp(2.3rem, 5.9vw, 4.5rem) * var(--qa-fit));
+  overflow-wrap: break-word;
+}
+.sectionLayer[data-section-type="qa"] .qaHint { font-size: calc(clamp(1rem, 2.1vw, 1.35rem) * var(--qa-fit)); }
+.sectionLayer[data-section-type="qa"] .qaChoices { gap: calc(1rem * var(--qa-fit)); }
+.sectionLayer[data-section-type="qa"] .qaChoice {
+  min-height: calc(clamp(5.5rem, 12vw, 7rem) * var(--qa-fit));
+  padding: calc(clamp(1.15rem, 3vw, 1.65rem) * var(--qa-fit));
+  font-size: calc(clamp(1.2rem, 2.2vw, 1.7rem) * var(--qa-fit));
+  overflow-wrap: break-word;
+}
+.sectionLayer[data-section-type="qa"] .qaAnswer { font-size: calc(1rem * var(--qa-fit)); overflow-wrap: break-word; padding-left: 0.2em; padding-right: 0.2em; }
+.sectionLayer[data-section-type="qa"] .qaAnswer.visible { max-height: 100vh; }
+.sectionLayer[data-section-type="qa"] .showAnswerButton { font-size: calc(1rem * var(--qa-fit)); justify-self: center; }
+@media (max-width: 760px) {
+  .sectionLayer[data-section-type="qa"] .qaChoices { gap: calc(0.8rem * var(--qa-fit)); }
+}
+/* While measuring, show the answer at full size with no transitions. */
+.qaBox.qaMeasuring,
+.qaBox.qaMeasuring * { transition: none !important; }
+.qaBox.qaMeasuring .qaAnswer {
+  opacity: 0;
+  max-height: none;
+  padding-top: 0.8rem;
+}
