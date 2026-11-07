@@ -771,7 +771,7 @@
       });
 
       window.addEventListener("message", event => {
-        if (event.origin !== window.location.origin) return;
+        if (event.source !== window.parent) return;
         handleLessonMessage(event.data || {});
       });
 

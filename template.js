@@ -376,7 +376,7 @@
 
   function postAnimationMessage(type, detail = {}) {
     if (!animationControls?.frame?.contentWindow) return;
-    animationControls.frame.contentWindow.postMessage({ type, ...detail }, window.location.origin);
+    animationControls.frame.contentWindow.postMessage({ type, ...detail }, "*");
   }
 
   function updateMediaControls() {
