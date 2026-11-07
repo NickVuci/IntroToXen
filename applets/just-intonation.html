@@ -384,29 +384,70 @@
       .primaryButton { width: 100%; }
       .loopGrid { grid-template-columns: 1fr; }
     }
+    /* Lab layout: drone, slider and figure first; scale tools collapsed below. */
+    html, body { overflow-x: hidden; overflow-y: auto; }
+    .panel { height: auto; min-height: 100%; grid-template-rows: auto minmax(200px, 1fr) auto auto; }
+    .visualizer { min-height: 200px; }
+    .lissajousCanvas { position: absolute; inset: 0.52rem; width: calc(100% - 1.04rem); height: calc(100% - 1.04rem); min-height: 0; }
+    .more {
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      background: var(--panel);
+    }
+    .more > summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 0.68rem;
+      color: var(--soft);
+      font-size: 0.86rem;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .more > summary::-webkit-details-marker { display: none; }
+    .more > summary::after { content: "+"; color: var(--accent); font-size: 1.1rem; }
+    .more[open] > summary::after { content: "\2212"; }
+    .more > summary:hover, .more > summary:focus-visible { color: var(--accent); outline: none; }
+    .moreBody { display: grid; gap: 0.55rem; padding: 0 0.55rem 0.55rem; }
+    .moreBody .primaryButton { width: 100%; margin-bottom: 0.55rem; }
+    .moreBody .loopGrid { overflow: visible; }
   </style>
 </head>
 <body>
   <main class="panel">
     <section class="top">
-      <div class="status" id="statusText">Build a scale, play A-K, then generate loop cells.</div>
+      <div class="status" id="statusText">Start the drone, then slide the upper note until the figure holds still.</div>
       <button class="audioButton" id="audioButton" type="button">Start drone</button>
     </section>
 
-    <section class="body">
-      <div class="workspace">
+    <aside class="visualizer" aria-label="Lissajous figure for the current interval">
+      <canvas class="lissajousCanvas" id="lissajousCanvas"></canvas>
+      <div class="visualizerOverlay" aria-live="polite">
+        <strong id="ratioText">3/2</strong>
+        <span class="centsText" id="centsText">702c</span>
+      </div>
+    </aside>
+
+    <section class="card" aria-label="Upper note">
+      <div class="cardHeader">
+        <span>Upper note</span>
+        <span class="ratioValue" id="ratioReadout">3/2 - 702c</span>
+      </div>
+      <label class="sliderStack" for="ratioSlider">
+        <input id="ratioSlider" type="range" min="0" max="1200" step="1" value="702" />
+        <span class="ticks" id="ticks"></span>
+      </label>
+    </section>
+
+    <details class="more">
+      <summary>Build a scale and make loops</summary>
+      <div class="moreBody">
         <section class="card" aria-label="Interval picker">
           <div class="cardHeader">
             <span>Interval picker</span>
-            <span class="ratioValue" id="ratioReadout">3/2 - 702c</span>
           </div>
-          <div class="intervalGrid">
-            <label class="sliderStack" for="ratioSlider">
-              <input id="ratioSlider" type="range" min="0" max="1200" step="1" value="702" />
-              <span class="ticks" id="ticks"></span>
-            </label>
-            <button class="primaryButton" id="addNoteButton" type="button">Add note</button>
-          </div>
+          <button class="primaryButton" id="addNoteButton" type="button">Add the current interval to the scale</button>
           <label class="rootControl" for="rootSlider">
             <span class="rootHeader">
               <span>Root frequency</span>
@@ -433,15 +474,7 @@
           <div class="loopGrid" id="loopGrid"></div>
         </section>
       </div>
-
-      <aside class="visualizer" aria-label="Lissajous figure for the current interval">
-        <canvas class="lissajousCanvas" id="lissajousCanvas"></canvas>
-        <div class="visualizerOverlay" aria-live="polite">
-          <strong id="ratioText">3/2</strong>
-          <span class="centsText" id="centsText">702c</span>
-        </div>
-      </aside>
-    </section>
+    </details>
   </main>
 
   <script src="../audio/synth.js"></script>
@@ -463,6 +496,28 @@
       { ratio: "15/8", name: "Major seventh", value: 15 / 8 },
       { ratio: "2/1", name: "Octave", value: 2 }
     ].map(item => ({ ...item, cents: 1200 * Math.log2(item.value), exact: true }));
+
+    // Every 15-odd-limit ratio from 1/1 to 2/1, built exactly from odd numbers up to 15.
+    const ODD_LIMIT = 15;
+    const LOCK_CENTS = 5; // the figure locks when the slider is this close to a ratio
+    function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+    const lockTargets = (() => {
+      const seen = new Map();
+      for (let a = 1; a <= ODD_LIMIT; a += 2) {
+        for (let b = 1; b <= ODD_LIMIT; b += 2) {
+          let n = a, d = b;
+          while (n < d) n *= 2;
+          while (n >= 2 * d) d *= 2;
+          const g = gcd(n, d); n /= g; d /= g;
+          seen.set(`${n}/${d}`, { n, d });
+        }
+      }
+      seen.set("2/1", { n: 2, d: 1 });
+      return [...seen.entries()].map(([ratio, { n, d }]) => {
+        const named = intervals.find(item => item.ratio === ratio);
+        return { ratio, n, d, value: n / d, cents: 1200 * Math.log2(n / d), name: named ? named.name : ratio, exact: true };
+      }).sort((x, y) => x.cents - y.cents);
+    })();
 
     const keyboardKeys = ["a", "s", "d", "f", "g", "h", "j", "k"];
     const bpm = 90;
@@ -514,14 +569,16 @@
       return 2 ** (cents / 1200);
     }
 
-    function exactInterval(cents) {
-      return intervals.find(item => Math.abs(item.cents - cents) < 0.75);
+    function nearestInterval(cents) {
+      return lockTargets.reduce((best, item) => {
+        return Math.abs(item.cents - cents) < Math.abs(best.cents - cents) ? item : best;
+      }, lockTargets[0]);
     }
 
-    function nearestInterval(cents) {
-      return intervals.reduce((best, item) => {
-        return Math.abs(item.cents - cents) < Math.abs(best.cents - cents) ? item : best;
-      }, intervals[0]);
+    // The 15-odd-limit ratio the slider is locked to, or undefined.
+    function exactInterval(cents) {
+      const nearest = nearestInterval(cents);
+      return Math.abs(nearest.cents - cents) <= LOCK_CENTS ? nearest : undefined;
     }
 
     function currentCents() {
@@ -574,13 +631,22 @@
         gain: 0.12,
         voice: "drone"
       });
+      await XenAudio.startDrone({
+        id: "ji-upper",
+        frequency: baseFrequency() * currentRatio(),
+        gain: 0.1,
+        voice: "drone"
+      });
       playingDrone = true;
       audioButton.textContent = "Stop drone";
       audioButton.classList.add("playing");
     }
 
     function stopDrone() {
-      if (window.XenAudio) XenAudio.stopDrone("ji-root", 0.08);
+      if (window.XenAudio) {
+        XenAudio.stopDrone("ji-root", 0.08);
+        XenAudio.stopDrone("ji-upper", 0.08);
+      }
       playingDrone = false;
       audioButton.textContent = "Start drone";
       audioButton.classList.remove("playing");
@@ -592,6 +658,12 @@
         id: "ji-root",
         frequency: baseFrequency(),
         gain: 0.12,
+        rampTime: 0.015
+      });
+      XenAudio.updateDrone({
+        id: "ji-upper",
+        frequency: baseFrequency() * currentRatio(),
+        gain: 0.1,
         rampTime: 0.015
       });
     }
@@ -851,11 +923,7 @@
     }
 
     function lissajousFrequenciesFor(interval) {
-      if (!interval) {
-        return { xFrequency: renderedRatio, yFrequency: 1, turnCount: 12 };
-      }
-      const [numerator, denominator] = interval.ratio.split("/").map(Number);
-      return { xFrequency: numerator || 1, yFrequency: denominator || 1, turnCount: 1 };
+      return { xFrequency: interval.n, yFrequency: interval.d, turnCount: 1 };
     }
 
     function resizeLissajousCanvas() {
@@ -880,7 +948,8 @@
       const centerX = width / 2;
       const centerY = height / 2;
       const radius = Math.max(12, Math.min(width, height) * 0.38);
-      const { xFrequency, yFrequency, turnCount } = lissajousFrequenciesFor(exact);
+      const nearest = nearestInterval(currentCents());
+      const { xFrequency, yFrequency, turnCount } = lissajousFrequenciesFor(nearest);
       const fullTurn = Math.PI * 2 * turnCount;
       const pointCount = Math.max(1400, Math.ceil(Math.max(xFrequency, yFrequency) * turnCount * 700));
       const phase = lissajousPhase;
@@ -907,7 +976,12 @@
       lissajousCtx.lineWidth = 1.85;
       lissajousCtx.stroke();
       lissajousCtx.restore();
-      lissajousPhase = (lissajousPhase + (playingDrone ? 0.0007 : 0.00025)) % (Math.PI * 2);
+      // Off a ratio the figure turns, faster the further off; locked, it holds still.
+      if (!exact) {
+        const offBy = currentCents() - nearest.cents;
+        const step = Math.sign(offBy) * Math.min(0.25, Math.abs(offBy) * 0.004);
+        lissajousPhase = (lissajousPhase + step + Math.PI * 2) % (Math.PI * 2);
+      }
       window.requestAnimationFrame(drawLissajousFrame);
     }
 
@@ -920,12 +994,12 @@
       const label = exact ? exact.ratio : `${ratio.toFixed(4)}:1`;
 
       ratioText.textContent = label;
-      centsText.textContent = `${Math.round(cents)}c`;
-      ratioReadout.textContent = exact ? `${exact.ratio} - ${Math.round(cents)}c` : `${Math.round(cents)}c - near ${nearest.ratio}`;
+      centsText.textContent = exact ? `${exact.cents.toFixed(2)}¢` : `${Math.round(cents)}¢`;
+      ratioReadout.textContent = exact ? `${exact.ratio} - ${exact.cents.toFixed(2)}¢` : `${Math.round(cents)}¢ - near ${nearest.ratio}`;
       rootValue.textContent = `${root.toFixed(0)} Hz`;
 
       ticks.querySelectorAll(".tick").forEach((tick, index) => {
-        tick.classList.toggle("active", intervals[index] === exact);
+        tick.classList.toggle("active", Boolean(exact) && intervals[index].ratio === exact.ratio);
       });
 
       updateDroneFrequency();
