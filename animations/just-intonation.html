@@ -45,7 +45,7 @@
   </style>
 </head>
 <body>
-  <main class="scene" id="ratio-animation" aria-label="Just intonation: an upper note slides down from the octave and locks at 3/2, 4/3 and 5/4, then the just major triad 4:5:6">
+  <main class="scene" id="ratio-animation" aria-label="Just intonation: an upper note slides down from the octave and locks at 3/2, 4/3 and 5/4, then the chords 4:5:6:7 and 4:5:6:7:9:11">
     <canvas id="ratioCanvas"></canvas>
   </main>
 
@@ -64,8 +64,10 @@
         15–42  The journey: the upper note slides down from 2/1 and locks at 3/2, then slides on to
                4/3 and 5/4. Each glide eases into a long slow approach, so the beating slows and stops;
                at each lock the boxes line up, the wave turns gold foil (one sheen), then the ratio appears.
-        42–55  Chord: 5/4 stays (now in the middle panel) while the top note slides up to 3/2;
-               three waves share boxes; 4:5:6 appears; everything fades.
+        42–68  Chord: the waves move into four lanes; 5/4 stays in tune while 6 and 7 enter out of
+               tune and glide into 4:5:6:7; tall boxes line up and the ratios appear above the
+               closing caption. Then the waves make room for six: 9 and 11 enter out of tune above
+               and glide into 4:5:6:7:9:11; the full ratios appear; everything fades.
 
       The upper wave is drawn at its true pitch, so as it approaches a ratio its crests close in on the
       box edges (where every wave crests together) and settle exactly on them at the lock.
@@ -82,6 +84,7 @@
     const VERTICAL_MARGIN = 0.2;
     const MANIM_FRAME_WIDTH = 14.222;
     const FADE_OUT = 0.7;
+    const SHEEN = 1.2; // seconds for the shine to cross the screen, once a lock has turned gold
 
     // ----- intro timings (the Manim scene's, unchanged) -----
     const PRE_ROLL = 1.0, FADE_DUR = 1.5, HOLD_DUR = 2.5, CAPTION_OUT = 0.9, FINAL_HOLD_DUR = 2.5;
@@ -96,10 +99,10 @@
       "If the pitch or frequency of a musical note is the number of times per second it causes the air to vibrate,",
       "and an interval is when two notes play at the same time,",
       "then Just Intonation (or JI) is where the frequencies of the notes form whole-number ratios with each other.",
-      "As we move through the universe of frequency, we notice points where the two frequencies lock together.",
-      "As the note slides into place, the beating slows and stops, and the waves repeat together.",
-      "Every interval that locks like this is a whole-number ratio.",
-      "Three notes can lock at once. Here they form the just major triad."
+      "As we move through the frequency spectrum, we can hear points where frequencies lock together.",
+      "These points tend to be where the frequencies are related by small whole numbers…",
+      "They can guide us in our quest to explore new sounds…",
+      "…and discover new harmonies."
     ];
 
     // ----- easing -----
@@ -131,12 +134,28 @@
       cursor += stage.length;
     });
 
-    // ----- the chord: 5/4 stays, the top note slides up to 3/2 (6/4): 4:5:6 -----
-    const K_MID_IN = 1.0, K_GLIDE = 4.0;
-    const K_GLIDE_START = S_UNLOCK + K_MID_IN;
+    // ----- the chord, in two steps. 4:5:6:7: the waves make room for four; 5/4 stays in tune
+    //       while 6 and 7 enter out of tune and slide in. 4:5:6:7:9:11: room for six; 9 and 11
+    //       enter out of tune above and slide in. -----
+    const CHORD = [ // harmonic over the root's 4; lanes from the top in the 4- and 6-lane layouts
+      { n: 11, lane4: null, lane6: 0, D: -35, step: 2 },
+      { n: 9, lane4: null, lane6: 1, D: 25, step: 2 },
+      { n: 7, lane4: 0, lane6: 2, D: -30, step: 1 },
+      { n: 6, lane4: 1, lane6: 3, D: 35, step: 1 },
+      { n: 5, lane4: 2, lane6: 4, D: 0, step: 0 } // the 5/4 already sounding, kept in tune
+    ];
+    const K_MOVE_END = S_UNLOCK + 1.5;      // waves move into four lanes
+    const K_IN_START = 1.6, K_IN_END = 2.8; // 6 and 7 fade in, out of tune
+    const K_GLIDE_START = 3.0, K_GLIDE = 5.0;
     const K_LOCK = K_GLIDE_START + K_GLIDE;
     const K_LABEL = K_LOCK + 0.8;
-    const K_OUTRO = K_LABEL + 0.8 + 2.7;
+    const K2_START = K_LABEL + 0.8 + 1.8;   // then room for six
+    const K2_MOVE_END = K2_START + 1.5;
+    const K2_IN_START = K2_START + 0.9, K2_IN_END = K2_START + 2.1;
+    const K2_GLIDE_START = K2_START + 2.3, K2_GLIDE = 4.5;
+    const K2_LOCK = K2_GLIDE_START + K2_GLIDE;
+    const K2_LABEL = K2_LOCK + 0.8;
+    const K_OUTRO = K2_LABEL + 0.8 + 3.0;
     const K_LEN = K_OUTRO + 2.5 + 0.2;
     const CHORD_START = cursor;
     const DURATION = CHORD_START + K_LEN;
@@ -145,8 +164,12 @@
     function emptyState() {
       return {
         lower: 0,
+        rootGold: 0,   // the bass wave turns gold whenever the waves are locked
+        soften: 0,     // 0..1: the final chord eases to a very soft, dark sound
+        layout: 0,     // 0: two waves around the ratio; 1: four lanes for 4:5:6:7
+        layout2: 0,    // 0: four lanes; 1: six lanes for 4:5:6:7:9:11
         top: null,     // { cents, alpha, gold }
-        mid: null,
+        extra: null,   // chord voices: [{ n, lane4, lane6, cents, alpha, gold }]
         frac: null,    // { text: [num, den], alpha }
         boxes: null,   // { cyclesPerBox, alpha, gold, panels }
         caption: null, // { index, alpha }
@@ -163,6 +186,7 @@
       if (time < INTRO_END) {
         const goldIn = smooth(time, T3, T3 + FADE_DUR);
         s.top = { cents: 1200, alpha: smooth(time, T2, T2 + FADE_DUR), gold: goldIn };
+        s.rootGold = goldIn; // the root locks with the octave
         s.frac = { text: ["2", "1"], alpha: goldIn };
         s.boxes = { cyclesPerBox: 1, alpha: goldIn, gold: goldIn, panels: [0, 2] };
         const caps = [
@@ -172,7 +196,7 @@
         ];
         const index = caps.findIndex(a => a > 0.001);
         if (index >= 0) s.caption = { index, alpha: caps[index] };
-        if (time >= T3 && time < T3 + 0.9) s.sheen = (time - T3) / 0.9;
+        if (time >= T3 + FADE_DUR && time < T3 + FADE_DUR + SHEEN) s.sheen = (time - T3 - FADE_DUR) / SHEEN;
         return s;
       }
 
@@ -185,6 +209,7 @@
         const locked = smooth(u, stage.lock, stage.lock + 0.4);
         const c = glideCents(u - S_UNLOCK, cents(...stage.from), cents(...stage.to), stage.glide);
         s.top = { cents: c, alpha: 1, gold: Math.max(1 - smooth(u, 0, 0.4), locked) };
+        s.rootGold = s.top.gold; // the root unlocks and locks with the upper note
 
         // Old boxes and ratio fade as the note leaves; the new boxes gather near the lock.
         const arriving = smooth(u, S_UNLOCK + stage.glide * 0.6, stage.lock);
@@ -199,26 +224,52 @@
         s.caption = leaving > 0.001
           ? { index: prevCaption, alpha: leaving }
           : { index: stage.caption, alpha: smooth(u, S_UNLOCK, S_UNLOCK + 1.0) };
-        if (u >= stage.lock && u < stage.lock + 0.9) s.sheen = (u - stage.lock) / 0.9;
+        if (u >= stage.lock + 0.4 && u < stage.lock + 0.4 + SHEEN) s.sheen = (u - stage.lock - 0.4) / SHEEN;
         return s;
       }
 
       const u = time - CHORD_START;
       const leaving = 1 - smooth(u, 0, S_UNLOCK);
-      const locked = smooth(u, K_LOCK, K_LOCK + 0.4);
-      const c = glideCents(u - K_GLIDE_START, cents(5, 4), cents(3, 2), K_GLIDE);
-      s.mid = { cents: cents(5, 4), alpha: smooth(u, S_UNLOCK, K_GLIDE_START) * outro, gold: Math.max(1 - smooth(u, 0, 0.4), locked) };
-      s.top = { cents: c, alpha: outro, gold: Math.max(1 - smooth(u, 0, 0.4), locked) };
+      const locked1 = smooth(u, K_LOCK, K_LOCK + 0.4);
+      const locked2 = smooth(u, K2_LOCK, K2_LOCK + 0.4);
+      s.layout = smooth(u, S_UNLOCK, K_MOVE_END);
+      s.layout2 = smooth(u, K2_START, K2_MOVE_END);
+      s.rootGold = 1; // 5/4 stays locked to the root through the chord
+      s.soften = smooth(u, K2_START, K2_LOCK);
+      s.extra = CHORD.map(voice => {
+        const target = cents(voice.n, 4);
+        const from = target + voice.D;
+        const glideStart = voice.step === 2 ? K2_GLIDE_START : K_GLIDE_START;
+        const glideLen = voice.step === 2 ? K2_GLIDE : K_GLIDE;
+        const fade = voice.step === 0 ? 1
+          : voice.step === 1 ? smooth(u, K_IN_START, K_IN_END)
+          : smooth(u, K2_IN_START, K2_IN_END);
+        return {
+          n: voice.n,
+          lane4: voice.lane4,
+          lane6: voice.lane6,
+          cents: voice.step === 0 ? target : (u < glideStart ? from : glideCents(u - glideStart, from, target, glideLen)),
+          alpha: fade * outro,
+          gold: voice.step === 0 ? 1 : voice.step === 1 ? locked1 : locked2
+        };
+      });
+      // Tall boxes gather at the first lock, go quiet while 9 and 11 are out of tune, and
+      // turn gold again when all six lock.
       const arriving = smooth(u, K_GLIDE_START + K_GLIDE * 0.6, K_LOCK);
+      const boxGold = Math.min(locked1, 1 - smooth(u, K2_IN_START, K2_IN_END) + locked2);
       s.boxes = leaving > 0.001
         ? { cyclesPerBox: 4, alpha: leaving, gold: leaving, panels: [0, 2] }
-        : { cyclesPerBox: 4, alpha: arriving * outro, gold: locked, panels: [0, 1, 2] };
+        : { cyclesPerBox: 4, alpha: arriving * outro, gold: clamp(boxGold), tall: true };
       if (leaving > 0.001) s.frac = { text: ["5", "4"], alpha: leaving };
       s.caption = leaving > 0.001
         ? { index: 5, alpha: leaving }
-        : { index: 6, alpha: smooth(u, S_UNLOCK, S_UNLOCK + 1.0) * (1 - smooth(u, K_LABEL - 0.6, K_LABEL)) };
-      s.label = { text: "4:5:6", alpha: smooth(u, K_LABEL, K_LABEL + 0.8) * outro };
-      if (u >= K_LOCK && u < K_LOCK + 0.9) s.sheen = (u - K_LOCK) / 0.9;
+        : { index: 6, alpha: smooth(u, K_MOVE_END - 0.5, K_MOVE_END + 0.5) * outro, low: true };
+      const label1 = smooth(u, K_LABEL, K_LABEL + 0.8) * (1 - smooth(u, K2_START, K2_START + 0.6));
+      s.label = label1 > 0.001
+        ? { text: "4:5:6:7", alpha: label1 }
+        : { text: "4:5:6:7:9:11", alpha: smooth(u, K2_LABEL, K2_LABEL + 0.8) * outro };
+      if (u >= K_LOCK + 0.4 && u < K_LOCK + 0.4 + SHEEN) s.sheen = (u - K_LOCK - 0.4) / SHEEN;
+      if (u >= K2_LOCK + 0.4 && u < K2_LOCK + 0.4 + SHEEN) s.sheen = (u - K2_LOCK - 0.4) / SHEEN;
       return s;
     }
 
@@ -291,23 +342,31 @@
 
     function speedPx() { return w / MANIM_FRAME_WIDTH; }
 
-    function goldFoil(x0, x1, sheen) {
-      const g = ctx.createLinearGradient(x0, 0, x1, 0);
-      g.addColorStop(0, colors.goldLo);
-      g.addColorStop(0.35, colors.gold);
-      g.addColorStop(0.5, colors.goldHi);
-      g.addColorStop(0.65, colors.gold);
-      g.addColorStop(1, colors.goldLo);
-      if (sheen >= 0 && !reducedMotion.matches) {
-        const p = clamp(sheen * 1.2 - 0.1, 0, 1);
-        const g2 = ctx.createLinearGradient(x0, 0, x1, 0);
-        g2.addColorStop(0, colors.gold);
-        g2.addColorStop(Math.max(0, p - 0.08), colors.gold);
-        g2.addColorStop(p, "#ffffff");
-        g2.addColorStop(Math.min(1, p + 0.08), colors.gold);
-        g2.addColorStop(1, colors.gold);
-        return g2;
+    // One gold foil shared by every gold element, laid across the full width so waves, boxes,
+    // the bass and the ratio all match. At a lock a bright band sweeps across all of it at once.
+    const FOIL = [[0, "goldLo"], [0.35, "gold"], [0.5, "goldHi"], [0.65, "gold"], [1, "goldLo"]];
+    function foilAt(x) {
+      for (let i = 1; i < FOIL.length; i += 1) {
+        if (x <= FOIL[i][0]) {
+          const [x0, c0] = FOIL[i - 1], [x1, c1] = FOIL[i];
+          return mix(colors[c0], colors[c1], (x - x0) / (x1 - x0));
+        }
       }
+      return colors.goldLo;
+    }
+    function goldFoil(sheen) {
+      const g = ctx.createLinearGradient(0, 0, w, 0);
+      let stops = FOIL.map(([x, c]) => [x, colors[c]]);
+      if (sheen >= 0 && !reducedMotion.matches) {
+        const band = 0.12;
+        const p = -band + sheen * (1 + 2 * band); // enters at the left edge, leaves at the right
+        // the foil's own stops inside the band give way to the highlight
+        stops = stops.filter(([x]) => x === 0 || x === 1 || Math.abs(x - p) >= band);
+        for (const [x, color] of [[p - band, null], [p - band / 3, colors.goldHi], [p, "#ffffff"], [p + band / 3, colors.goldHi], [p + band, null]]) {
+          if (x > 0 && x < 1) stops.push([x, color || foilAt(x)]);
+        }
+      }
+      stops.sort((m, n) => m[0] - n[0]).forEach(([x, color]) => g.addColorStop(x, color));
       return g;
     }
 
@@ -317,10 +376,9 @@
       return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
     }
 
-    // A wave with `cycles` across the width, travelling right, offset by `offset` cycles.
-    function drawWave(cycles, yCenter, stroke, alpha, offset = 0) {
+    // A wave with `cycles` across the width, travelling right, cresting at the box edges.
+    function drawWave(cycles, yCenter, stroke, alpha, amp) {
       if (alpha <= 0.001) return;
-      const amp = (h / 8) * (1 - VERTICAL_MARGIN);
       const k = (2 * Math.PI * cycles) / w;
       const shift = speedPx() * clock;
       ctx.save();
@@ -331,7 +389,7 @@
       ctx.lineJoin = "round";
       ctx.beginPath();
       for (let x = 0; x <= w + 2; x += 2) {
-        const y = yCenter - amp * Math.sin(k * (x - shift) + Math.PI / 2 + 2 * Math.PI * offset);
+        const y = yCenter - amp * Math.sin(k * (x - shift) + Math.PI / 2);
         if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.stroke();
@@ -339,7 +397,7 @@
     }
 
     function waveStroke(voice, sheen) {
-      if (voice.gold >= 0.999) return goldFoil(0, w, sheen);
+      if (voice.gold >= 0.999) return goldFoil(sheen);
       if (voice.gold <= 0.001) return colors.sounding;
       return mix(colors.sounding, colors.gold, voice.gold);
     }
@@ -352,13 +410,13 @@
       const offset = (speedPx() * clock) % boxW;
       ctx.save();
       ctx.lineWidth = 1.5;
-      for (const panel of boxes.panels) {
-        const top = panel * panelH;
+      const rows = boxes.tall ? [[4, 3 * panelH - 8]] : boxes.panels.map(panel => [panel * panelH + 4, panelH - 8]);
+      for (const [top, height] of rows) {
         for (let x = offset - boxW; x <= w + boxW; x += boxW) {
           // the box edge sits where every wave crests together
           ctx.globalAlpha = boxes.alpha * (0.45 + 0.55 * boxes.gold);
-          ctx.strokeStyle = boxes.gold >= 0.999 ? goldFoil(0, w, sheen) : mix(colors.inkMuted, colors.gold, boxes.gold);
-          ctx.strokeRect(x, top + 4, boxW, panelH - 8);
+          ctx.strokeStyle = boxes.gold >= 0.999 ? goldFoil(sheen) : mix(colors.inkMuted, colors.gold, boxes.gold);
+          ctx.strokeRect(x, top, boxW, height);
         }
       }
       ctx.restore();
@@ -374,7 +432,7 @@
       {
         const size = panelH * 0.3;
         const gap = panelH * 0.03;
-        const fill = goldFoil(w / 2 - size, w / 2 + size, sheen);
+        const fill = goldFoil(sheen);
         ctx.fillStyle = fill;
         ctx.strokeStyle = fill;
         ctx.font = `500 ${size}px "IBM Plex Mono", ui-monospace, monospace`;
@@ -408,14 +466,14 @@
 
     function drawLabel(label, cy, sheen) {
       if (!label || label.alpha <= 0.001) return;
-      const size = Math.min(h / 4 * 0.42, w * 0.16);
+      const size = Math.min(h / 4 * 0.24, w * 0.075);
       ctx.save();
       ctx.globalAlpha = label.alpha;
       ctx.font = `500 ${size}px "IBM Plex Mono", ui-monospace, monospace`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const half = ctx.measureText(label.text).width / 2;
-      ctx.fillStyle = goldFoil(w / 2 - half, w / 2 + half, sheen);
+      ctx.fillStyle = goldFoil(sheen);
       ctx.fillText(label.text, w / 2, cy);
       ctx.restore();
     }
@@ -436,35 +494,71 @@
       ctx.fillStyle = ground;
       ctx.fillRect(0, 0, w, h);
 
+      // Two-wave layout (upper wave, ratio, root) blends into four lanes, then six, for the chord.
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const laneY = (count, lane) => (3 * panelH / count) * (lane + 0.5);
+      const laneAmp = count => (3 * panelH / count / 2) * (1 - VERTICAL_MARGIN);
+      const wideAmp = (panelH / 2) * (1 - VERTICAL_MARGIN);
+      // Where a voice sits: its two-wave place, then its 4-lane place, then its 6-lane place.
+      const place = (twoY, lane4, lane6) => {
+        const y4 = lane4 === null ? laneY(6, lane6) : laneY(4, lane4);
+        const a4 = lane4 === null ? laneAmp(6) : laneAmp(4);
+        const y1 = twoY === null ? y4 : lerp(twoY, y4, s.layout);
+        const a1 = twoY === null ? a4 : lerp(wideAmp, a4, s.layout);
+        return { y: lerp(y1, laneY(6, lane6), s.layout2), amp: lerp(a1, laneAmp(6), s.layout2) };
+      };
+
       drawBoxes(s.boxes, s.sheen);
-      drawWave(BASE_CYCLES, y[2], colors.root, s.lower);
-      if (s.mid) drawWave(BASE_CYCLES * 2 ** (s.mid.cents / 1200), y[1], waveStroke(s.mid, s.sheen), s.mid.alpha);
-      if (s.top) drawWave(BASE_CYCLES * 2 ** (s.top.cents / 1200), y[0], waveStroke(s.top, s.sheen), s.top.alpha);
+      const root = place(y[2], 3, 5);
+      const rootStroke = s.rootGold >= 0.999 ? goldFoil(s.sheen) : (s.rootGold > 0.001 ? mix(colors.root, colors.gold, s.rootGold) : colors.root);
+      drawWave(BASE_CYCLES, root.y, rootStroke, s.lower, root.amp);
+      if (s.top) drawWave(BASE_CYCLES * 2 ** (s.top.cents / 1200), y[0], waveStroke(s.top, s.sheen), s.top.alpha, wideAmp);
+      if (s.extra) {
+        for (const voice of s.extra) {
+          const at = place(voice.n === 5 ? y[0] : null, voice.lane4, voice.lane6);
+          drawWave(BASE_CYCLES * 2 ** (voice.cents / 1200), at.y, waveStroke(voice, s.sheen), voice.alpha, at.amp);
+        }
+      }
       drawFraction(s.frac, y[1], s.sheen);
-      drawCaption(s.caption, y[3]);
-      drawLabel(s.label, y[3], s.sheen);
+      // In the chord the caption sits low, leaving room for the chord's ratios above it.
+      drawCaption(s.caption, s.caption && s.caption.low ? 3 * panelH + panelH * 0.68 : y[3]);
+      drawLabel(s.label, 3 * panelH + panelH * 0.26, s.sheen);
 
       updateAudio(s);
     }
 
-    // ----- audio: exact ratios over a 110 Hz root, detuned by the stage's cents -----
-    const VOICES = ["ji-animation-root", "ji-animation-upper", "ji-animation-mid"];
+    // ----- audio: each voice at its current pitch over a 110 Hz root -----
+    const VOICES = ["ji-animation-root", "ji-animation-upper", "ji-animation-6", "ji-animation-7", "ji-animation-9", "ji-animation-11"];
+    // Pitch and loudness for each voice id at this moment.
+    const FILTER_HZ = 1500, SOFT_FILTER_HZ = 800; // the final chord closes the filter...
+    const SOFT_GAIN = 0.7;                        // ...and settles at 70% of the level
+    function voiceMix(s) {
+      const level = 1 - (1 - SOFT_GAIN) * s.soften;
+      const filter = FILTER_HZ + (SOFT_FILTER_HZ - FILTER_HZ) * s.soften;
+      const out = [{ hz: ROOT_HZ, gain: s.lower * 0.055 * level, filter }];
+      if (s.extra) {
+        const byN = n => s.extra.find(v => v.n === n);
+        for (const n of [5, 6, 7, 9, 11]) {
+          const v = byN(n);
+          out.push({ hz: hz(v), gain: v.alpha * 0.034 * level, filter });
+        }
+      } else {
+        out.push({ hz: s.top ? hz(s.top) : ROOT_HZ * 2, gain: s.top ? s.top.alpha * 0.045 : 0, filter });
+        for (const n of [6, 7, 9, 11]) out.push({ hz: ROOT_HZ * n / 4, gain: 0, filter });
+      }
+      return out;
+    }
     function hz(voice) { return ROOT_HZ * 2 ** (voice.cents / 1200); }
 
     function updateAudio(s) {
       if (!isVisible() || !playing || muted) { silenceAudio(0.02); return; }
       if (!audioStarted || !window.XenAudio) return;
-      XenAudio.updateDrone({ id: VOICES[0], frequency: ROOT_HZ, gain: s.lower * 0.07, rampTime: 0.03 });
-      XenAudio.updateDrone({ id: VOICES[1], frequency: s.top ? hz(s.top) : ROOT_HZ * 2, gain: s.top ? s.top.alpha * 0.06 : 0, rampTime: 0.03 });
-      XenAudio.updateDrone({ id: VOICES[2], frequency: s.mid ? hz(s.mid) : ROOT_HZ * 1.25, gain: s.mid ? s.mid.alpha * 0.06 : 0, rampTime: 0.03 });
+      voiceMix(s).forEach((v, i) => XenAudio.updateDrone({ id: VOICES[i], frequency: v.hz, gain: v.gain, filterFrequency: v.filter, rampTime: 0.03 }));
     }
 
     function silenceAudio(timeConstant = 0.025) {
       if (!audioStarted || !window.XenAudio) return;
-      const s = current;
-      XenAudio.updateDrone({ id: VOICES[0], frequency: ROOT_HZ, gain: 0, rampTime: timeConstant });
-      XenAudio.updateDrone({ id: VOICES[1], frequency: s.top ? hz(s.top) : ROOT_HZ * 2, gain: 0, rampTime: timeConstant });
-      XenAudio.updateDrone({ id: VOICES[2], frequency: s.mid ? hz(s.mid) : ROOT_HZ * 1.25, gain: 0, rampTime: timeConstant });
+      voiceMix(current).forEach((v, i) => XenAudio.updateDrone({ id: VOICES[i], frequency: v.hz, gain: 0, rampTime: timeConstant }));
     }
 
     async function startAudio() {

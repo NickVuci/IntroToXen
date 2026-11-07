@@ -44,7 +44,7 @@
       decay: 0.2,
       sustain: 1,
       release: 0.35,
-      filterFrequency: 2600,
+      filterFrequency: 1500,
       gain: 0.07
     },
     drone: {
@@ -269,7 +269,8 @@
     drone.main.frequency.setTargetAtTime(frequency, now, rampTime);
     drone.color.frequency.setTargetAtTime(frequency * 2, now, rampTime);
     drone.gain.gain.setTargetAtTime(gainAmount, now, rampTime);
-    drone.filter.frequency.setTargetAtTime(preset.filterFrequency, now, rampTime);
+    const filterFrequency = Number(options.filterFrequency) || preset.filterFrequency;
+    drone.filter.frequency.setTargetAtTime(filterFrequency, now, rampTime);
     return true;
   }
 

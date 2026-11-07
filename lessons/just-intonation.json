@@ -13,9 +13,9 @@
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/just-intonation.html?v=20261107-ji-journey",
+      "file": "animations/just-intonation.html?v=20261107-ji-two-chords",
       "word": "ratios",
-      "durationMs": 53500,
+      "durationMs": 66300,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
