@@ -4,7 +4,6 @@
   const nodes = [
     {
       id: "harmonic-series",
-      tag: "HS",
       title: "Harmonic Series",
       x: 50,
       y: 12,
@@ -13,7 +12,6 @@
     },
     {
       id: "just-intonation",
-      tag: "JI",
       title: "Just Intonation",
       x: 72,
       y: 32,
@@ -22,7 +20,6 @@
     },
     {
       id: "subharmonic-series",
-      tag: "SH",
       title: "Subharmonic Series",
       x: 18,
       y: 32,
@@ -31,7 +28,6 @@
     },
     {
       id: "tonality-diamond",
-      tag: "TD",
       title: "Tonality Diamond",
       x: 22,
       y: 56,
@@ -40,7 +36,6 @@
     },
     {
       id: "equal-tuning",
-      tag: "ET",
       title: "Equal Tuning",
       x: 82,
       y: 84,
@@ -49,7 +44,6 @@
     },
     {
       id: "period",
-      tag: "P",
       title: "Period",
       x: 50,
       y: 88,
@@ -58,7 +52,6 @@
     },
     {
       id: "generated-collection",
-      tag: "GC",
       title: "Generated Collection",
       x: 18,
       y: 84,
@@ -67,7 +60,6 @@
     },
     {
       id: "moments-of-symmetry",
-      tag: "MOS",
       title: "Moments of Symmetry",
       x: 50,
       y: 67,
@@ -76,7 +68,6 @@
     },
     {
       id: "temperaments",
-      tag: "T",
       title: "Temperaments",
       x: 78,
       y: 56,
@@ -98,18 +89,22 @@
     { from: "tonality-diamond", to: "subharmonic-series", type: "related" }
   ];
 
-  const nodeById = new Map(nodes.map(node => [node.id, node]));
-  const driftById = new Map(nodes.map((node, index) => [
-    node.id,
-    {
-      phaseX: 0.8 + index * 1.9,
-      phaseY: 1.4 + index * 1.55,
-      ampX: 0.9 + index * 0.16,
-      ampY: 0.65 + index * 0.12,
-      speedX: 0.00008 + index * 0.000012,
-      speedY: 0.000065 + index * 0.00001
-    }
-  ]));
+  /* ------------------------------------------------------------------ *
+   *  Physics. Every concept is a circle with a position and velocity in
+   *  pixels. Each frame it is pulled gently toward its home (its saved
+   *  place, plus a slow drift), damped, and kept clear of every other
+   *  circle and of the map's edges. A held circle follows the pointer
+   *  and pushes the others aside; when it is let go, wherever every
+   *  circle has settled becomes its new home.
+   * ------------------------------------------------------------------ */
+  const SPRING = 26;      // pull toward home, per second squared per pixel
+  const DAMPING = 9;      // velocity loss per second
+  const GAP = 8;          // clear space kept between circle edges, px
+  const EDGE = 6;         // clear space kept from the map's edge, px
+  const SOLVER_PASSES = 6;
+  const SETTLE_POLL_MS = 120; // after a drop, check this often whether everything has come to rest
+  const SETTLE_MAX_MS = 1500; // and save the arrangement after at most this long
+
   const conceptMap = document.querySelector(".conceptMap");
   const lineLayer = document.querySelector(".mapLines");
   const nodeLayer = document.querySelector(".conceptNodes");
@@ -119,32 +114,21 @@
   const totalCount = document.querySelector(".totalCount");
   const trackFill = document.querySelector(".trackFill");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const SVG_NS = "http://www.w3.org/2000/svg";
 
+  const nodeById = new Map(nodes.map(node => [node.id, node]));
   let selectedId = null;
   let completed = readCompleted();
-  let dragState = null;
+  let drag = null;              // { id, pointerId, offsetX, offsetY, startX, startY, moved }
   let suppressClickId = null;
-  let displayedPositions = new Map();
+  let settleTimer = null;
+  let mapW = 1, mapH = 1;
+  const bodies = new Map();     // id -> { x, y, vx, vy, r, el }
+  const lineEls = [];
 
   applyStoredPositions();
 
-  function boundsFor(nodeElement) {
-    const mapRect = conceptMap?.getBoundingClientRect();
-    const nodeRect = nodeElement?.getBoundingClientRect();
-    if (!mapRect || !nodeRect || !mapRect.width || !mapRect.height) {
-      return { minX: 16, maxX: 84, minY: 18, maxY: 82 };
-    }
-
-    const xMargin = (nodeRect.width / 2 / mapRect.width) * 100 + 1.5;
-    const yMargin = (nodeRect.height / 2 / mapRect.height) * 100 + 1.5;
-    return {
-      minX: clamp(xMargin, 10, 42),
-      maxX: clamp(100 - xMargin, 58, 90),
-      minY: clamp(yMargin, 12, 42),
-      maxY: clamp(100 - yMargin, 58, 88)
-    };
-  }
-
+  /* ----- storage ----- */
   function readCompleted() {
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -153,143 +137,308 @@
       return new Set();
     }
   }
-
   function saveCompleted() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(completed)));
-    } catch {
-      // Storage blocked: progress lasts for this visit only.
-    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(completed))); } catch {}
   }
-
   function applyStoredPositions() {
     try {
       const stored = JSON.parse(localStorage.getItem(POSITION_KEY) || "{}");
       nodes.forEach(node => {
         const saved = stored?.[node.id];
         if (!saved) return;
-        if (Number.isFinite(saved.x)) node.x = clamp(saved.x, 10, 90);
-        if (Number.isFinite(saved.y)) node.y = clamp(saved.y, 12, 88);
+        if (Number.isFinite(saved.x)) node.x = clamp(saved.x, 5, 95);
+        if (Number.isFinite(saved.y)) node.y = clamp(saved.y, 5, 95);
       });
-    } catch {
-      // Ignore invalid stored positions.
-    }
+    } catch {}
   }
-
   function savePositions() {
-    const stored = Object.fromEntries(nodes.map(node => [node.id, { x: node.x, y: node.y }]));
-    try {
-      localStorage.setItem(POSITION_KEY, JSON.stringify(stored));
-    } catch {
-      // Storage blocked: the arrangement lasts for this visit only.
-    }
+    const stored = Object.fromEntries(nodes.map(node => [node.id, { x: +node.x.toFixed(2), y: +node.y.toFixed(2) }]));
+    try { localStorage.setItem(POSITION_KEY, JSON.stringify(stored)); } catch {}
   }
 
-  function driftOffset(node, time = performance.now()) {
-    const drift = driftById.get(node.id);
-    if (!drift || reducedMotion.matches) return { x: 0, y: 0 };
-    return {
-      x: Math.sin(time * drift.speedX + drift.phaseX) * drift.ampX,
-      y: Math.cos(time * drift.speedY + drift.phaseY) * drift.ampY
-    };
-  }
-
-  function boundedPosition(x, y, bounds) {
-    return {
-      x: clamp(x, bounds.minX, bounds.maxX),
-      y: clamp(y, bounds.minY, bounds.maxY)
-    };
-  }
-
-  function displayPosition(node, time = performance.now(), bounds = { minX: 10, maxX: 90, minY: 12, maxY: 88 }) {
-    if (dragState?.id === node.id) return { x: dragState.currentX, y: dragState.currentY };
-
-    const offset = driftOffset(node, time);
-    return boundedPosition(node.x + offset.x, node.y + offset.y, bounds);
-  }
-
-  function nodeElement(id) {
-    return nodeLayer.querySelector(`.conceptNode[data-node-id="${id}"]`);
-  }
-
-  function svgPoint(node, time = performance.now()) {
-    const resolved = displayedPositions.get(node.id);
-    if (resolved) return resolved;
-
-    const element = nodeElement(node.id);
-    const position = displayPosition(node, time, element ? boundsFor(element) : undefined);
-    return { x: position.x, y: position.y };
-  }
-
-  function isConnected(link) {
-    return link.from === selectedId || link.to === selectedId;
-  }
-
-  function renderLines(time = performance.now()) {
-    const namespace = "http://www.w3.org/2000/svg";
+  /* ----- build the DOM once ----- */
+  function build() {
+    nodeLayer.replaceChildren();
     lineLayer.replaceChildren();
+    lineEls.length = 0;
 
     links.forEach(link => {
-      const from = nodeById.get(link.from);
-      const to = nodeById.get(link.to);
-      if (!from || !to) return;
-      const start = svgPoint(from, time);
-      const end = svgPoint(to, time);
-      const line = document.createElementNS(namespace, "line");
-      line.setAttribute("x1", start.x);
-      line.setAttribute("y1", start.y);
-      line.setAttribute("x2", end.x);
-      line.setAttribute("y2", end.y);
+      const line = document.createElementNS(SVG_NS, "line");
       line.classList.add("mapLink", link.type === "required" ? "requiredLink" : "relatedLink");
-      line.classList.toggle("active", isConnected(link));
       lineLayer.appendChild(line);
+      lineEls.push({ link, line });
     });
-  }
-
-  function renderNodes() {
-    nodeLayer.replaceChildren();
 
     nodes.forEach(node => {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "conceptNode";
-      card.classList.toggle("selected", node.id === selectedId);
-      card.classList.toggle("complete", completed.has(node.id));
-      card.style.setProperty("--x", node.x);
-      card.style.setProperty("--y", node.y);
       card.dataset.nodeId = node.id;
-      card.setAttribute("aria-pressed", String(node.id === selectedId));
-      card.setAttribute("aria-label", completed.has(node.id) ? `${node.title}, complete` : node.title);
-
-      const hexWrap = document.createElement("span");
-      hexWrap.className = "hexWrap";
-      hexWrap.setAttribute("aria-hidden", "true");
-      const hex = document.createElement("span");
-      hex.className = "hex";
-      hex.textContent = node.tag;
-      hexWrap.appendChild(hex);
+      const circle = document.createElement("span");
+      circle.className = "circle";
       const title = document.createElement("span");
       title.className = "nodeName";
       title.textContent = node.title;
+      circle.appendChild(title);
+      card.appendChild(circle);
 
-      card.addEventListener("pointerdown", event => startPointerDrag(event, node.id, card));
+      card.addEventListener("pointerdown", event => startDrag(event, node.id));
       card.addEventListener("click", () => {
-        if (suppressClickId === node.id) {
-          suppressClickId = null;
-          return;
-        }
+        if (suppressClickId === node.id) { suppressClickId = null; return; }
         selectNode(node.id);
       });
-      card.addEventListener("keydown", event => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        event.preventDefault();
-        selectNode(node.id);
-      });
-      card.append(hexWrap, title);
       nodeLayer.appendChild(card);
+      bodies.set(node.id, { x: 0, y: 0, vx: 0, vy: 0, r: 40, el: card, placed: false });
     });
 
-    updateNodePositions(performance.now());
+    measure();
+    fitNames();
+  }
+
+  /* ----- geometry ----- */
+  function measure() {
+    const rect = conceptMap.getBoundingClientRect();
+    const oldW = mapW, oldH = mapH;
+    mapW = Math.max(1, rect.width);
+    mapH = Math.max(1, rect.height);
+    bodies.forEach((body, id) => {
+      body.r = body.el.offsetWidth / 2 || 40;
+      if (!body.placed) {
+        const home = homeOf(nodeById.get(id), 0);
+        body.x = home.x; body.y = home.y; body.placed = true;
+      } else if (oldW > 1 && oldH > 1) {
+        body.x *= mapW / oldW; body.y *= mapH / oldH; // keep the arrangement on resize
+      }
+    });
+  }
+
+  // Home in pixels: the saved place, plus a slow drift unless motion is reduced.
+  const drift = new Map(nodes.map((node, i) => [node.id, {
+    px: 0.8 + i * 1.9, py: 1.4 + i * 1.55, ax: 5 + (i % 3), ay: 4 + (i % 2), sx: 0.17 + i * 0.013, sy: 0.13 + i * 0.011
+  }]));
+  function homeOf(node, t) {
+    let x = (node.x / 100) * mapW;
+    let y = (node.y / 100) * mapH;
+    if (!reducedMotion.matches) {
+      const d = drift.get(node.id);
+      x += Math.sin(t * d.sx + d.px) * d.ax;
+      y += Math.cos(t * d.sy + d.py) * d.ay;
+    }
+    return { x, y };
+  }
+
+  function clampToMap(body) {
+    const minX = body.r + EDGE, maxX = mapW - body.r - EDGE;
+    const minY = body.r + EDGE, maxY = mapH - body.r - EDGE;
+    body.x = minX > maxX ? mapW / 2 : clamp(body.x, minX, maxX);
+    body.y = minY > maxY ? mapH / 2 : clamp(body.y, minY, maxY);
+  }
+
+  /* ----- simulation step ----- */
+  function step(dt, t) {
+    // springs toward home, with damping (a held circle simply follows the pointer)
+    bodies.forEach((body, id) => {
+      if (drag && drag.id === id) { body.vx = 0; body.vy = 0; return; }
+      const home = homeOf(nodeById.get(id), t);
+      body.vx += (home.x - body.x) * SPRING * dt;
+      body.vy += (home.y - body.y) * SPRING * dt;
+      const keep = Math.exp(-DAMPING * dt);
+      body.vx *= keep;
+      body.vy *= keep;
+      body.x += body.vx * dt;
+      body.y += body.vy * dt;
+    });
+
+    // collisions: push overlapping circles apart. A held circle does not yield,
+    // so it shoves the others; two free circles share the push.
+    const list = Array.from(bodies.entries());
+    for (let pass = 0; pass < SOLVER_PASSES; pass += 1) {
+      for (let i = 0; i < list.length; i += 1) {
+        for (let j = i + 1; j < list.length; j += 1) {
+          const [idA, a] = list[i];
+          const [idB, b] = list[j];
+          let dx = b.x - a.x;
+          let dy = b.y - a.y;
+          let dist = Math.hypot(dx, dy);
+          const min = a.r + b.r + GAP;
+          if (dist >= min) continue;
+          if (dist < 0.001) { dx = 1; dy = 0; dist = 1; }
+          const nx = dx / dist, ny = dy / dist;
+          const overlap = min - dist;
+          const aFixed = drag && drag.id === idA;
+          const bFixed = drag && drag.id === idB;
+          const shareA = aFixed ? 0 : bFixed ? 1 : 0.5;
+          const shareB = bFixed ? 0 : aFixed ? 1 : 0.5;
+          a.x -= nx * overlap * shareA; a.y -= ny * overlap * shareA;
+          b.x += nx * overlap * shareB; b.y += ny * overlap * shareB;
+          // remove the approaching part of the velocity so pushed circles don't bounce back in
+          const rel = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+          if (rel < 0) {
+            a.vx += nx * rel * shareA; a.vy += ny * rel * shareA;
+            b.vx -= nx * rel * shareB; b.vy -= ny * rel * shareB;
+          }
+        }
+      }
+      bodies.forEach(clampToMap);
+    }
+
+    // A circle pinned against the map's edge cannot make room, so the held
+    // circle stops against it instead of overlapping it.
+    if (drag) {
+      const held = bodies.get(drag.id);
+      for (let pass = 0; pass < 3; pass += 1) {
+        bodies.forEach((other, id) => {
+          if (id === drag.id) return;
+          let dx = held.x - other.x, dy = held.y - other.y;
+          let dist = Math.hypot(dx, dy);
+          const min = held.r + other.r + GAP;
+          if (dist >= min) return;
+          if (dist < 0.001) { dx = 0; dy = -1; dist = 1; }
+          held.x += (dx / dist) * (min - dist);
+          held.y += (dy / dist) * (min - dist);
+        });
+        clampToMap(held);
+      }
+    }
+  }
+
+  /* ----- drawing ----- */
+  function draw() {
+    bodies.forEach(body => {
+      body.el.style.transform = `translate3d(${(body.x - body.r).toFixed(2)}px, ${(body.y - body.r).toFixed(2)}px, 0)`;
+    });
+    lineEls.forEach(({ link, line }) => {
+      const a = bodies.get(link.from), b = bodies.get(link.to);
+      if (!a || !b) return;
+      line.setAttribute("x1", ((a.x / mapW) * 100).toFixed(3));
+      line.setAttribute("y1", ((a.y / mapH) * 100).toFixed(3));
+      line.setAttribute("x2", ((b.x / mapW) * 100).toFixed(3));
+      line.setAttribute("y2", ((b.y / mapH) * 100).toFixed(3));
+    });
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const elapsed = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    // fixed small steps keep the springs stable on slow frames
+    const steps = Math.max(1, Math.ceil(elapsed / (1 / 120)));
+    for (let k = 0; k < steps; k += 1) step(elapsed / steps, now / 1000);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  /* ----- dragging ----- */
+  function pointerInMap(event) {
+    const rect = conceptMap.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  }
+
+  function startDrag(event, id) {
+    if (event.button !== 0 || drag) return;
+    const body = bodies.get(id);
+    const p = pointerInMap(event);
+    drag = { id, pointerId: event.pointerId, offsetX: body.x - p.x, offsetY: body.y - p.y, startX: event.clientX, startY: event.clientY, moved: false };
+    clearTimeout(settleTimer);
+    body.el.classList.add("dragging");
+    body.el.setPointerCapture?.(event.pointerId);
+  }
+
+  function moveDrag(event) {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (!drag.moved && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 6) drag.moved = true;
+    if (!drag.moved) return;
+    const body = bodies.get(drag.id);
+    const p = pointerInMap(event);
+    body.x = p.x + drag.offsetX;
+    body.y = p.y + drag.offsetY;
+    clampToMap(body);
+    event.preventDefault();
+  }
+
+  function endDrag(event, cancelled = false) {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const { id, moved } = drag;
+    const body = bodies.get(id);
+    body.el.classList.remove("dragging");
+    body.el.releasePointerCapture?.(event.pointerId);
+    drag = null;
+    if (!moved || cancelled) return;
+    suppressClickId = id;
+    setTimeout(() => { if (suppressClickId === id) suppressClickId = null; }, 0);
+    // The dropped circle's home is where it was let go; the circles it pushed
+    // settle, and then their resting places become their homes too.
+    const node = nodeById.get(id);
+    const home = homeOf(node, performance.now() / 1000);
+    node.x += ((body.x - home.x) / mapW) * 100;
+    node.y += ((body.y - home.y) / mapH) * 100;
+    settleAndSave(performance.now());
+  }
+
+  // Wait until every circle has come to rest (or a short while has passed), then make
+  // each resting place its home, so nothing springs back into a neighbour.
+  function settleAndSave(startedAt) {
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      if (drag) return;
+      let fastest = 0;
+      bodies.forEach(body => { fastest = Math.max(fastest, Math.hypot(body.vx, body.vy)); });
+      if (fastest > 6 && performance.now() - startedAt < SETTLE_MAX_MS) {
+        settleAndSave(startedAt);
+        return;
+      }
+      const t = performance.now() / 1000;
+      nodes.forEach(node => {
+        const body = bodies.get(node.id);
+        const home = homeOf(node, t);
+        // keep the drift: shift the saved place by how far the circle sits from its home
+        node.x += ((body.x - home.x) / mapW) * 100;
+        node.y += ((body.y - home.y) / mapH) * 100;
+      });
+      savePositions();
+    }, SETTLE_POLL_MS);
+  }
+
+  /* ----- names fit inside their circles: one shared size for all ----- */
+  function nameFits(card) {
+    const box = card.getBoundingClientRect();
+    const cx = box.left + box.width / 2;
+    const cy = box.top + box.height / 2;
+    const radius = box.width / 2 - 4;
+    const range = document.createRange();
+    range.selectNodeContents(card.querySelector(".nodeName"));
+    return [...range.getClientRects()].every(r =>
+      [[r.left, r.top], [r.right, r.top], [r.left, r.bottom], [r.right, r.bottom]]
+        .every(([x, y]) => Math.hypot(x - cx, y - cy) <= radius));
+  }
+  function fitNames() {
+    const cards = [...nodeLayer.querySelectorAll(".conceptNode")];
+    if (!cards.length) return;
+    nodeLayer.style.removeProperty("--name-size");
+    const base = parseFloat(getComputedStyle(cards[0].querySelector(".nodeName")).fontSize);
+    for (let size = base; size >= 8; size -= 0.5) {
+      nodeLayer.style.setProperty("--name-size", `${size}px`);
+      if (cards.every(nameFits)) return;
+    }
+  }
+
+  /* ----- state shown on the map (classes only; nothing is rebuilt) ----- */
+  function updateStates() {
+    bodies.forEach((body, id) => {
+      const done = completed.has(id);
+      const node = nodeById.get(id);
+      body.el.classList.toggle("selected", id === selectedId);
+      body.el.classList.toggle("complete", done);
+      body.el.setAttribute("aria-pressed", String(id === selectedId));
+      body.el.setAttribute("aria-label", done ? `${node.title}, complete` : node.title);
+    });
+    lineEls.forEach(({ link, line }) => {
+      line.classList.toggle("active", link.from === selectedId || link.to === selectedId);
+    });
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
   }
 
   function renderInspector() {
@@ -403,172 +552,8 @@
     render();
   }
 
-  function startPointerDrag(event, id, card) {
-    if (event.button !== 0 || dragState || !conceptMap) return;
-
-    const node = nodeById.get(id);
-    if (!node) return;
-
-    const now = performance.now();
-    const position = displayPosition(node, now, boundsFor(card));
-    dragState = {
-      id,
-      card,
-      pointerId: event.pointerId,
-      startClientX: event.clientX,
-      startClientY: event.clientY,
-      originX: position.x,
-      originY: position.y,
-      currentX: position.x,
-      currentY: position.y,
-      moved: false
-    };
-
-    card.classList.add("dragging");
-    card.setPointerCapture?.(event.pointerId);
-  }
-
-  function movePointerDrag(event) {
-    if (!dragState || dragState.pointerId !== event.pointerId || !conceptMap) return;
-
-    const rect = conceptMap.getBoundingClientRect();
-    const dx = ((event.clientX - dragState.startClientX) / rect.width) * 100;
-    const dy = ((event.clientY - dragState.startClientY) / rect.height) * 100;
-
-    if (!dragState.moved && Math.hypot(event.clientX - dragState.startClientX, event.clientY - dragState.startClientY) > 6) {
-      dragState.moved = true;
-    }
-
-    const position = boundedPosition(dragState.originX + dx, dragState.originY + dy, boundsFor(dragState.card));
-    dragState.currentX = position.x;
-    dragState.currentY = position.y;
-    updateNodePositions(performance.now());
-    renderLines(performance.now());
-    event.preventDefault();
-  }
-
-  function endPointerDrag(event) {
-    if (!dragState || dragState.pointerId !== event.pointerId) return;
-
-    const state = dragState;
-    const node = nodeById.get(state.id);
-    state.card.classList.remove("dragging");
-    state.card.releasePointerCapture?.(event.pointerId);
-    dragState = null;
-
-    if (node && state.moved) {
-      const offset = driftOffset(node, performance.now());
-      const position = boundedPosition(state.currentX - offset.x, state.currentY - offset.y, boundsFor(state.card));
-      node.x = position.x;
-      node.y = position.y;
-      suppressClickId = node.id;
-      savePositions();
-    }
-
-    updateNodePositions(performance.now());
-    renderLines(performance.now());
-  }
-
-  function cancelPointerDrag(event) {
-    if (!dragState || dragState.pointerId !== event.pointerId) return;
-    dragState.card.classList.remove("dragging");
-    dragState.card.releasePointerCapture?.(event.pointerId);
-    dragState = null;
-    updateNodePositions(performance.now());
-    renderLines(performance.now());
-  }
-
-  function collisionEntry(nodeElement, time) {
-    const node = nodeById.get(nodeElement.dataset.nodeId || "");
-    const mapRect = conceptMap?.getBoundingClientRect();
-    const nodeRect = nodeElement.getBoundingClientRect();
-    if (!node || !mapRect || !mapRect.width || !mapRect.height) return null;
-
-    const bounds = boundsFor(nodeElement);
-    node.x = clamp(node.x, bounds.minX, bounds.maxX);
-    node.y = clamp(node.y, bounds.minY, bounds.maxY);
-
-    return {
-      id: node.id,
-      element: nodeElement,
-      bounds,
-      locked: dragState?.id === node.id,
-      radiusPx: nodeRect.width / 2,
-      position: displayPosition(node, time, bounds)
-    };
-  }
-
-  function separateEntries(entries) {
-    const mapRect = conceptMap?.getBoundingClientRect();
-    if (!mapRect || !mapRect.width || !mapRect.height) return entries;
-    if (dragState) return entries;
-
-    for (let pass = 0; pass < 5; pass += 1) {
-      for (let i = 0; i < entries.length; i += 1) {
-        for (let j = i + 1; j < entries.length; j += 1) {
-          const a = entries[i];
-          const b = entries[j];
-          let dx = ((b.position.x - a.position.x) / 100) * mapRect.width;
-          let dy = ((b.position.y - a.position.y) / 100) * mapRect.height;
-          let distance = Math.hypot(dx, dy);
-          const minimum = Math.min(a.radiusPx, b.radiusPx) * 1.05 + 6;
-
-          if (distance >= minimum) continue;
-          if (distance < 0.01) {
-            dx = 1;
-            dy = 0;
-            distance = 1;
-          }
-
-          const push = (minimum - distance) / distance;
-          const aShare = a.locked ? 0 : b.locked ? 1 : 0.5;
-          const bShare = b.locked ? 0 : a.locked ? 1 : 0.5;
-
-          a.position = boundedPosition(
-            a.position.x - ((dx * push * aShare) / mapRect.width) * 100,
-            a.position.y - ((dy * push * aShare) / mapRect.height) * 100,
-            a.bounds
-          );
-          b.position = boundedPosition(
-            b.position.x + ((dx * push * bShare) / mapRect.width) * 100,
-            b.position.y + ((dy * push * bShare) / mapRect.height) * 100,
-            b.bounds
-          );
-        }
-      }
-    }
-
-    return entries;
-  }
-
-  function updateNodePositions(time = performance.now()) {
-    const entries = separateEntries(
-      Array.from(nodeLayer.querySelectorAll(".conceptNode"))
-        .map(nodeElement => collisionEntry(nodeElement, time))
-        .filter(Boolean)
-    );
-
-    displayedPositions = new Map();
-    entries.forEach(entry => {
-      displayedPositions.set(entry.id, entry.position);
-      entry.element.style.setProperty("--x", entry.position.x);
-      entry.element.style.setProperty("--y", entry.position.y);
-    });
-  }
-
-  function animate(time) {
-    updateNodePositions(time);
-    renderLines(time);
-    window.requestAnimationFrame(animate);
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
   function render() {
-    renderNodes();
-    renderLines(performance.now());
+    updateStates();
     renderInspector();
     renderStanding();
   }
@@ -579,10 +564,19 @@
     render();
   });
 
-  window.addEventListener("pointermove", movePointerDrag);
-  window.addEventListener("pointerup", endPointerDrag);
-  window.addEventListener("pointercancel", cancelPointerDrag);
+  window.addEventListener("pointermove", moveDrag, { passive: false });
+  window.addEventListener("pointerup", event => endDrag(event));
+  window.addEventListener("pointercancel", event => endDrag(event, true));
 
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { measure(); fitNames(); }, 120);
+  });
+  document.fonts?.ready.then(() => { fitNames(); measure(); });
+
+  build();
   render();
-  window.requestAnimationFrame(animate);
+  draw();
+  requestAnimationFrame(frame);
 })();

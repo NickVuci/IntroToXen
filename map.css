@@ -300,7 +300,6 @@ a { color: var(--blue); }
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   overflow: hidden;
-  touch-action: none;
 }
 .mapLines {
   position: absolute;
@@ -321,76 +320,65 @@ a { color: var(--blue); }
 
 .conceptNodes { position: absolute; inset: 0; }
 
-/* each concept: a level-map hexagon with its name beneath */
+/* each concept: a circle with its name inside */
 .conceptNode {
+  --size: 104px;
   position: absolute;
-  left: calc(var(--x) * 1%);
-  top: calc(var(--y) * 1%);
-  transform: translate(-50%, -26px);
-  width: 104px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 0;
+  left: 0;
+  top: 0;
+  width: var(--size);
+  height: var(--size);
+  will-change: transform; /* placed every frame by the map's physics */
+  padding: 1.5px; /* the ring shows through as the edge */
   border: 0;
-  background: none;
+  border-radius: 50%;
+  background: var(--burgundy-mid);
   color: var(--ink);
   cursor: pointer;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-.conceptNode:focus-visible { outline: none; }
-.conceptNode:focus-visible .hex { outline: 2px solid var(--blue); outline-offset: 3px; }
-.hexWrap {
-  /* hexagon edge: the outer hexagon shows through as a 1px border */
-  width: 46px;
-  height: 52px;
-  padding: 1.5px;
-  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  background: var(--burgundy-mid);
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-.hex {
+.conceptNode:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.circle {
   width: 100%;
   height: 100%;
   display: grid;
   place-items: center;
-  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  padding: 0 10px;
+  border-radius: 50%;
   background: var(--surface-raised);
-  color: var(--burgundy-mid);
-  font: 500 12px/1 var(--font-mono);
-  letter-spacing: 0.02em;
   transition: background 0.2s ease, color 0.2s ease;
 }
 .nodeName {
-  font: 600 12px/15px var(--font-sans);
-  letter-spacing: 0.02em;
+  font: 600 12px/1.25 var(--font-sans);
+  font-size: var(--name-size, 12px);
+  letter-spacing: 0.01em;
   text-align: center;
   color: var(--ink);
   text-wrap: balance;
-  padding: 1px 4px;
-  background: var(--surface-sunk); /* lines pass behind the names */
-  border-radius: var(--radius-sm);
+  overflow-wrap: normal;
+  hyphens: none;
 }
-.conceptNode:hover .hexWrap { transform: translateY(-2px); background: var(--gold); }
-.conceptNode.complete .hexWrap { background: var(--foil); }
-.conceptNode.complete .hex {
+@media (hover: hover) {
+  .conceptNode:hover { background: var(--gold); }
+}
+.conceptNode.complete { background: var(--foil); }
+.conceptNode.complete .circle {
   /* the gold wash over a solid ground, so the foil edge never shows through */
   background: linear-gradient(var(--gold-soft), var(--gold-soft)), var(--surface-raised);
-  color: var(--gold-ink);
 }
-.conceptNode.selected .hexWrap { background: var(--blue); transform: scale(1.08); }
-.conceptNode.selected .hex { background: var(--blue); color: var(--on-blue); }
-.conceptNode.selected .nodeName { color: var(--ink); }
-.conceptNode.dragging { cursor: grabbing; z-index: 2; }
-.conceptNode.dragging .hexWrap { transform: scale(1.12); }
+.conceptNode.complete .nodeName { color: var(--gold-ink); }
+/* highlight by colour and a ring only: sizes never change, so names stay put */
+.conceptNode.selected { background: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+.conceptNode.selected .circle { background: var(--blue); }
+.conceptNode.selected .nodeName { color: var(--on-blue); }
+.conceptNode.dragging { cursor: grabbing; z-index: 2; box-shadow: 0 0 0 4px var(--gold-soft); }
+.conceptNode.selected.dragging { box-shadow: 0 0 0 4px var(--blue-soft); }
 
+.mapFoot { margin-top: var(--space-2); }
 .mapLegend {
-  position: absolute;
-  left: var(--space-3);
-  top: 10px;
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
@@ -403,7 +391,7 @@ a { color: var(--blue); }
 .legendLine.related { border-top-style: dashed; opacity: 0.55; }
 
 .mapHint {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-1) 0 0;
   font: 500 13px/18px var(--font-sans);
   color: var(--ink-muted);
 }
@@ -510,11 +498,10 @@ a { color: var(--blue); }
   .appBarTop { gap: 10px; }
   .wordmark { font-size: 14px; letter-spacing: 0.14em; }
   .themeToggle { width: 32px; height: 32px; }
-  .conceptMap { aspect-ratio: auto; height: 560px; min-height: 0; }
-  .conceptNode { width: 88px; }
-  .nodeName { font-size: 11px; line-height: 14px; }
-  .hexWrap { width: 40px; height: 46px; }
-  .conceptNode { transform: translate(-50%, -23px); }
+  .conceptMap { aspect-ratio: auto; height: 600px; min-height: 0; }
+  .conceptNode { --size: 90px; }
+  .circle { padding: 0 6px; }
+  .nodeName { font-size: var(--name-size, 11px); letter-spacing: 0; }
 }
 @media (max-width: 380px) {
   .mapInspector { height: 272px; } /* room for one more row of key ideas */
