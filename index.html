@@ -1,73 +1,116 @@
 <!DOCTYPE html>
-<html lang="en" class="mapRoot">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta
     name="description"
-    content="An interactive concept map for learning the harmonic series, just intonation, and the subharmonic series."
+    content="An interactive concept map for learning xenharmonic music: the harmonic series, just intonation, equal tunings, generated scales and temperaments."
   />
-  <title>Intro to Xenharmonic Music</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Intro to Xen · Nick Vuci</title>
+  <script>
+    // Theme before first paint: the stored choice, else the device setting.
+    try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="map.css" />
 </head>
 
-<body class="mapPage">
-  <main class="mapShell">
-    <header class="mapHeader" aria-labelledby="mapTitle">
-      <div>
-        <div class="eyebrow sectionLabel">Intro to Xen</div>
-        <h1 id="mapTitle">Xenharmonic Music</h1>
-        <p>
-          Explore tuning from the inside out. Start with the harmonic series,
-          branch into just intonation, then compare the shadow logic of the
-          subharmonic series.
-        </p>
+<body>
+  <header class="appBar">
+    <div class="appBarTop">
+      <a class="home" href="https://nickvuci.com" target="_blank" rel="noopener" aria-label="Nick Vuci — nickvuci.com">
+        <svg width="38" height="15" role="img" aria-hidden="true" viewBox="-9.89 0 209.79 80" shape-rendering="geometricPrecision">
+          <defs>
+            <clipPath id="nvClip"><rect x="-29.89" y="0" width="249.79" height="80" /></clipPath>
+            <linearGradient id="nvBlend" gradientUnits="userSpaceOnUse" x1="110" y1="0" x2="118" y2="0">
+              <stop offset="0" style="stop-color: var(--brand-blue)" />
+              <stop offset="1" style="stop-color: var(--gold)" />
+            </linearGradient>
+          </defs>
+          <polyline clip-path="url(#nvClip)" points="-17.74,102.14 0,72.14 38,7.86 76,72.14 114,7.86 152,72.14 190,7.86 207.74,-22.14" fill="none" stroke="url(#nvBlend)" stroke-width="16" stroke-linejoin="miter" stroke-miterlimit="10" />
+        </svg>
+        <span class="wordmark"><span class="n">Nick</span> <span class="v">Vuci</span></span>
+      </a>
+      <span class="appName">Intro to Xen</span>
+      <button type="button" class="themeToggle" aria-pressed="false" aria-label="Switch to dark theme" title="Switch to dark theme">
+        <svg class="ti ti-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M19.5 14.2A7.5 7.5 0 0 1 9.8 4.5a7.5 7.5 0 1 0 9.7 9.7Z" /></svg>
+        <svg class="ti ti-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="3.6" /><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" /></svg>
+      </button>
+    </div>
+    <div class="standing" aria-label="Your progress">
+      <span class="standingText"><b class="completeCount">0</b> of <b class="totalCount">9</b> concepts complete</span>
+      <span class="track" aria-hidden="true"><i class="trackFill"></i></span>
+      <button type="button" class="btn danger small mapResetButton">Reset progress</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <div class="mapLayout">
+      <aside class="mapInspector" aria-live="polite"></aside>
+      <div class="mapColumn">
+        <section class="conceptMap" aria-label="Concept map. Choose a concept to see its key ideas and open its lesson.">
+          <svg class="mapLines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="conceptNodes"></div>
+          <div class="mapLegend" aria-hidden="true">
+            <span><i class="legendLine"></i>Suggested order</span>
+            <span><i class="legendLine related"></i>Related idea</span>
+          </div>
+        </section>
+        <p class="mapHint">Choose a concept to see its key ideas. Drag concepts to arrange the map.</p>
       </div>
 
-      <div class="mapHeaderTools" aria-label="Map controls">
-        <div class="mapProgress" aria-label="Course map contains three lessons">
-          <span class="mapProgressText">3 lesson path</span>
-          <span class="mapProgressTrack" aria-hidden="true">
-            <span class="mapProgressFill"></span>
-          </span>
-        </div>
-        <button class="mapResetButton" type="button">Reset</button>
-      </div>
-    </header>
-
-    <div class="mapWorkspace">
-      <section class="conceptMap" aria-label="Interactive xenharmonic lesson map">
-        <svg
-          class="mapLines"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        ></svg>
-
-        <div class="conceptNodes"></div>
-
-        <div class="mapLegend" aria-label="Connection legend">
-          <span><i class="legendLine requiredLegend"></i>Suggested order</span>
-          <span><i class="legendLine relatedLegend"></i>Related idea</span>
-        </div>
-      </section>
-
-      <aside class="mapInspector" hidden aria-live="polite"></aside>
     </div>
 
     <noscript>
       <section class="mapInspector">
         <h2>Lessons</h2>
-        <p>JavaScript is needed for the interactive map, but the lessons are still available.</p>
-        <div class="inspectorActions">
-          <a class="inspectorLessonLink" href="harmonic-series.html">Harmonic Series</a>
-          <a class="inspectorLessonLink" href="template.html?lesson=lessons/just-intonation.json">Just Intonation</a>
-          <a class="inspectorLessonLink" href="template.html?lesson=lessons/subharmonic-series.json">Subharmonic Series</a>
-        </div>
+        <p>The interactive map needs JavaScript. The lessons are still available.</p>
+        <ul class="lessonList">
+          <li><a href="harmonic-series.html">Harmonic Series</a></li>
+          <li><a href="template.html?lesson=lessons/just-intonation.json">Just Intonation</a></li>
+          <li><a href="template.html?lesson=lessons/subharmonic-series.json">Subharmonic Series</a></li>
+          <li><a href="template.html?lesson=lessons/tonality-diamond.json">Tonality Diamond</a></li>
+          <li><a href="template.html?lesson=lessons/period.json">Period</a></li>
+          <li><a href="template.html?lesson=lessons/equal-tuning.json">Equal Tuning</a></li>
+          <li><a href="template.html?lesson=lessons/generated-collection.json">Generated Collection</a></li>
+          <li><a href="template.html?lesson=lessons/moments-of-symmetry.json">Moments of Symmetry</a></li>
+          <li><a href="template.html?lesson=lessons/temperaments.json">Temperaments</a></li>
+        </ul>
       </section>
     </noscript>
   </main>
 
+  <script>
+    // Theme toggle: follows the device until pressed, then keeps the choice (key "theme").
+    (() => {
+      const button = document.querySelector(".themeToggle");
+      const media = window.matchMedia("(prefers-color-scheme: dark)");
+      const isDark = () => {
+        const set = document.documentElement.dataset.theme;
+        return set ? set === "dark" : media.matches;
+      };
+      const sync = () => {
+        const dark = isDark();
+        const label = dark ? "Switch to light theme" : "Switch to dark theme";
+        button.classList.toggle("isDark", dark);
+        button.setAttribute("aria-pressed", String(dark));
+        button.setAttribute("aria-label", label);
+        button.title = label;
+      };
+      button.addEventListener("click", () => {
+        const next = isDark() ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem("theme", next); } catch (e) {}
+        sync();
+      });
+      media.addEventListener("change", sync);
+      sync();
+    })();
+  </script>
   <script src="map.js"></script>
 </body>
 </html>

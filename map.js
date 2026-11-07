@@ -4,73 +4,82 @@
   const nodes = [
     {
       id: "harmonic-series",
+      tag: "HS",
       title: "Harmonic Series",
       x: 50,
-      y: 26,
+      y: 12,
       topics: ["Overtones", "Whole-number ratios", "3/2 and 5/4", "Timbre and tuning"],
       lesson: "harmonic-series.html"
     },
     {
       id: "just-intonation",
+      tag: "JI",
       title: "Just Intonation",
-      x: 70,
-      y: 52,
+      x: 72,
+      y: 32,
       topics: ["Simple ratios", "Consonant intervals", "5/4 and 6/5", "JI triads"],
       lesson: "template.html?lesson=lessons/just-intonation.json"
     },
     {
       id: "subharmonic-series",
+      tag: "SH",
       title: "Subharmonic Series",
-      x: 30,
-      y: 52,
+      x: 18,
+      y: 32,
       topics: ["Undertones", "8:n ratios", "Inversional color", "Octave reduction"],
       lesson: "template.html?lesson=lessons/subharmonic-series.json"
     },
     {
       id: "tonality-diamond",
+      tag: "TD",
       title: "Tonality Diamond",
-      x: 18,
-      y: 72,
+      x: 22,
+      y: 56,
       topics: ["Odd-limit harmony", "Ratio grids", "Otonal and utonal sets", "Chord families"],
       lesson: "template.html?lesson=lessons/tonality-diamond.json"
     },
     {
       id: "equal-tuning",
+      tag: "ET",
       title: "Equal Tuning",
-      x: 50,
-      y: 76,
+      x: 82,
+      y: 84,
       topics: ["Equal divisions", "Step size", "EDO and EDx", "Approximation"],
       lesson: "template.html?lesson=lessons/equal-tuning.json"
     },
     {
       id: "period",
+      tag: "P",
       title: "Period",
-      x: 82,
-      y: 72,
+      x: 50,
+      y: 88,
       topics: ["Equivalence interval", "Octaves and non-octaves", "Repeat span", "Scale frame"],
       lesson: "template.html?lesson=lessons/period.json"
     },
     {
       id: "generated-collection",
+      tag: "GC",
       title: "Generated Collection",
-      x: 28,
-      y: 30,
+      x: 18,
+      y: 84,
       topics: ["Generator", "Stacking", "Modulo period", "Scale ordering"],
       lesson: "template.html?lesson=lessons/generated-collection.json"
     },
     {
       id: "moments-of-symmetry",
+      tag: "MOS",
       title: "Moments of Symmetry",
       x: 50,
-      y: 50,
+      y: 67,
       topics: ["MOS scales", "Large and small steps", "Well-formedness", "Generator chains"],
       lesson: "template.html?lesson=lessons/moments-of-symmetry.json"
     },
     {
       id: "temperaments",
+      tag: "T",
       title: "Temperaments",
-      x: 72,
-      y: 30,
+      x: 78,
+      y: 56,
       topics: ["Commas", "Tempering", "Mappings", "Consistent approximation"],
       lesson: "template.html?lesson=lessons/temperaments.json"
     }
@@ -106,6 +115,10 @@
   const nodeLayer = document.querySelector(".conceptNodes");
   const inspector = document.querySelector(".mapInspector");
   const resetButton = document.querySelector(".mapResetButton");
+  const completeCount = document.querySelector(".completeCount");
+  const totalCount = document.querySelector(".totalCount");
+  const trackFill = document.querySelector(".trackFill");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   let selectedId = null;
   let completed = readCompleted();
@@ -142,7 +155,11 @@
   }
 
   function saveCompleted() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(completed)));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(completed)));
+    } catch {
+      // Storage blocked: progress lasts for this visit only.
+    }
   }
 
   function applyStoredPositions() {
@@ -161,12 +178,16 @@
 
   function savePositions() {
     const stored = Object.fromEntries(nodes.map(node => [node.id, { x: node.x, y: node.y }]));
-    localStorage.setItem(POSITION_KEY, JSON.stringify(stored));
+    try {
+      localStorage.setItem(POSITION_KEY, JSON.stringify(stored));
+    } catch {
+      // Storage blocked: the arrangement lasts for this visit only.
+    }
   }
 
   function driftOffset(node, time = performance.now()) {
     const drift = driftById.get(node.id);
-    if (!drift) return { x: 0, y: 0 };
+    if (!drift || reducedMotion.matches) return { x: 0, y: 0 };
     return {
       x: Math.sin(time * drift.speedX + drift.phaseX) * drift.ampX,
       y: Math.cos(time * drift.speedY + drift.phaseY) * drift.ampY
@@ -238,9 +259,17 @@
       card.style.setProperty("--y", node.y);
       card.dataset.nodeId = node.id;
       card.setAttribute("aria-pressed", String(node.id === selectedId));
-      card.setAttribute("aria-label", node.title);
+      card.setAttribute("aria-label", completed.has(node.id) ? `${node.title}, complete` : node.title);
 
-      const title = document.createElement("h2");
+      const hexWrap = document.createElement("span");
+      hexWrap.className = "hexWrap";
+      hexWrap.setAttribute("aria-hidden", "true");
+      const hex = document.createElement("span");
+      hex.className = "hex";
+      hex.textContent = node.tag;
+      hexWrap.appendChild(hex);
+      const title = document.createElement("span");
+      title.className = "nodeName";
       title.textContent = node.title;
 
       card.addEventListener("pointerdown", event => startPointerDrag(event, node.id, card));
@@ -256,7 +285,7 @@
         event.preventDefault();
         selectNode(node.id);
       });
-      card.append(title);
+      card.append(hexWrap, title);
       nodeLayer.appendChild(card);
     });
 
@@ -265,69 +294,101 @@
 
   function renderInspector() {
     if (!inspector) return;
-    if (!selectedId) {
-      inspector.hidden = true;
-      inspector.replaceChildren();
-      return;
-    }
-
-    const node = nodeById.get(selectedId);
-    if (!node) {
-      inspector.hidden = true;
-      inspector.replaceChildren();
-      return;
-    }
-
-    inspector.hidden = false;
     inspector.replaceChildren();
+    const node = selectedId ? nodeById.get(selectedId) : null;
+
+    if (!node) {
+      const empty = document.createElement("div");
+      empty.className = "emptyInspector";
+      const eyebrow = document.createElement("p");
+      eyebrow.className = "eyebrow";
+      eyebrow.textContent = "Where to begin";
+      const text = document.createElement("p");
+      text.textContent = "Start with the harmonic series. Choose any concept on the map to see its key ideas and open its lesson.";
+      const start = document.createElement("button");
+      start.type = "button";
+      start.className = "btn primary";
+      start.textContent = "Harmonic Series";
+      start.addEventListener("click", () => selectNode("harmonic-series"));
+      const actions = document.createElement("div");
+      actions.className = "inspectorActions";
+      actions.appendChild(start);
+      empty.append(eyebrow, text, actions);
+      inspector.appendChild(empty);
+      return;
+    }
+
+    const done = completed.has(node.id);
+    const eyebrow = document.createElement("p");
+    eyebrow.className = "eyebrow";
+    eyebrow.textContent = "Concept";
 
     const title = document.createElement("h2");
     title.textContent = node.title;
 
-    const outcome = document.createElement("div");
-    outcome.className = "mapOutcome";
-    outcome.textContent = completed.has(node.id) ? "Complete" : "Open";
+    const verdict = document.createElement("p");
+    verdict.className = done ? "verdict done" : "verdict";
+    verdict.textContent = done ? "Complete." : "";
 
-    const listBlock = document.createElement("section");
-    listBlock.className = "mapListBlock";
-    const listLabel = document.createElement("strong");
-    listLabel.textContent = "Key Ideas";
+    const rule = document.createElement("div");
+    rule.className = "inspectorRule";
+
+    const label = document.createElement("p");
+    label.className = "ideasLabel";
+    label.textContent = "Key ideas";
     const list = document.createElement("ul");
+    list.className = "ideas";
     node.topics.forEach(topic => {
       const item = document.createElement("li");
       item.textContent = topic;
       list.appendChild(item);
     });
-    listBlock.append(listLabel, list);
 
     const actions = document.createElement("div");
     actions.className = "inspectorActions";
 
-    const complete = document.createElement("button");
-    complete.type = "button";
-    complete.className = "conceptCompleteButton";
-    complete.textContent = completed.has(node.id) ? "Undo" : "Done";
-    complete.addEventListener("click", () => toggleComplete(node.id));
-    actions.appendChild(complete);
-
     if (node.lesson) {
       const lesson = document.createElement("a");
-      lesson.className = "inspectorLessonLink";
+      lesson.className = "btn primary";
       lesson.href = node.lesson;
       lesson.textContent = "Open lesson";
       actions.appendChild(lesson);
     }
 
+    const complete = document.createElement("button");
+    complete.type = "button";
+    complete.className = "btn second";
+    complete.textContent = done ? "Mark not complete" : "Mark complete";
+    complete.addEventListener("click", () => toggleComplete(node.id));
+    actions.appendChild(complete);
+
     const close = document.createElement("button");
     close.type = "button";
-    close.textContent = "Close";
+    close.className = "closeButton";
+    close.setAttribute("aria-label", "Close");
+    close.title = "Close";
+    close.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
     close.addEventListener("click", () => {
       selectedId = null;
       render();
     });
-    actions.appendChild(close);
+    const top = document.createElement("div");
+    top.className = "inspectorTop";
+    top.append(eyebrow, close);
 
-    inspector.append(title, outcome, listBlock, actions);
+    const head = document.createElement("div");
+    head.className = "inspectorHead";
+    head.append(title, verdict);
+
+    inspector.append(top, head, rule, label, list, actions);
+  }
+
+  function renderStanding() {
+    const done = nodes.filter(node => completed.has(node.id)).length;
+    if (completeCount) completeCount.textContent = String(done);
+    if (totalCount) totalCount.textContent = String(nodes.length);
+    if (trackFill) trackFill.style.width = `${(done / nodes.length) * 100}%`;
+    if (resetButton) resetButton.disabled = done === 0;
   }
 
   function selectNode(id) {
@@ -450,7 +511,7 @@
           let dx = ((b.position.x - a.position.x) / 100) * mapRect.width;
           let dy = ((b.position.y - a.position.y) / 100) * mapRect.height;
           let distance = Math.hypot(dx, dy);
-          const minimum = Math.min(a.radiusPx, b.radiusPx) * 0.55 + 8;
+          const minimum = Math.min(a.radiusPx, b.radiusPx) * 1.05 + 6;
 
           if (distance >= minimum) continue;
           if (distance < 0.01) {
@@ -509,6 +570,7 @@
     renderNodes();
     renderLines(performance.now());
     renderInspector();
+    renderStanding();
   }
 
   resetButton?.addEventListener("click", () => {
