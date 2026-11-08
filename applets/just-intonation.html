@@ -332,7 +332,7 @@
   </header>
   <main class="panel">
     <section class="top">
-      <p class="intro">Below is a Lissajous figure, which helps us visualize the interference patterns made by intervals. Play the drone and slide the slider to see where it locks. For fine tuning, click the slider dot and use the arrow keys: 0.1¢ per press, or 1¢ with Shift.</p>
+      <p class="intro">Below is a Lissajous figure, which helps us visualize the interference patterns made by intervals. Play the drone and slide the slider to see where it locks. For fine tuning, click the slider dot and use the arrow keys: 1¢ per press, or 0.1¢ with Shift.</p>
       <button class="audioButton" id="audioButton" type="button">Play drone</button>
     </section>
 
@@ -351,7 +351,7 @@
       </div>
       <label class="sliderStack" for="ratioSlider">
         <input id="ratioSlider" type="range" min="0" max="1200" step="0.1" value="702" aria-describedby="fineTuneHint" />
-        <span class="srOnly" id="fineTuneHint">Arrow keys fine-tune by 0.1 cents; hold Shift for 1 cent; Page Up and Page Down move 10 cents.</span>
+        <span class="srOnly" id="fineTuneHint">Arrow keys adjust by 1 cent; hold Shift for 0.1 cents; Page Up and Page Down move 10 cents.</span>
         <span class="ticks" id="ticks"></span>
       </label>
     </section>
@@ -1003,7 +1003,7 @@
       const steps = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: PAGE_STEP, PageDown: -PAGE_STEP };
       if (!(event.key in steps)) return;
       event.preventDefault();
-      const size = event.key.startsWith("Page") ? 1 : (event.shiftKey ? COARSE_STEP : FINE_STEP);
+      const size = event.key.startsWith("Page") ? 1 : (event.shiftKey ? FINE_STEP : COARSE_STEP);
       const next = Math.max(0, Math.min(1200, currentCents() + steps[event.key] * size));
       slider.value = (Math.round(next * 10) / 10).toFixed(1);
       update();

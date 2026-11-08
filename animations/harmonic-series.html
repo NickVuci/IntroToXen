@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Harmonic Series</title>
+  <script>
+    // Theme before first paint. Embedded in a lesson, follow the host: the lesson page is
+    // Nocturne until it sends {type: "lesson-theme"}. Standalone: stored choice, else the device.
+    if (window.parent !== window) { document.documentElement.dataset.theme = "dark"; document.documentElement.style.setProperty("color-scheme", "dark", "important"); }
+    else try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+  <style>
+    :root {
+      --ground-start: #f7f4ec;
+      --ground-end: #f7f4ec;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --ground-start: #1e1f26; --ground-end: #283c63; }
+    }
+    :root[data-theme="dark"] { --ground-start: #1e1f26; --ground-end: #283c63; }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .scene { width: 100%; height: 100%; position: relative; }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+<body>
+  <main class="scene" id="ratio-animation" aria-label="The octave morphs into vibrating strings; harmonics 3 through 16 enter one by one, then all play together">
+    <canvas id="ratioCanvas"></canvas>
+  </main>
+
+  <script src="../audio/synth.js?v=20261107-pluck"></script>
+  <script src="harmonic-series.js"></script>
+</body>
+</html>

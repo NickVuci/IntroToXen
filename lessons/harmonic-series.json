@@ -26,9 +26,9 @@
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/example.html",
+      "file": "animations/harmonic-series.html",
       "word": "partials",
-      "durationMs": 7800,
+      "durationMs": 72000,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
@@ -76,8 +76,8 @@
           "body": "Match one ratio from the lesson, such as 3/2 or 5/4, to the interval quality it suggests."
         },
         {
-          "title": "Listen for color",
-          "body": "Describe how adding higher partials changes the sound or timbre you imagine."
+          "title": "Compare low and high harmonics",
+          "body": "Keep the fundamental sounding in the lab. Compare harmonics 3 and 4 with 15 and 16. Describe how their spacing changes."
         }
       ]
     }

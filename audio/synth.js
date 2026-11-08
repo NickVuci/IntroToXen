@@ -7,6 +7,7 @@
   const scheduledVoices = new Set();
   let active = true;
   let playbackGeneration = 0;
+  let noteGeneration = 0;
   try {
     const section = window.frameElement?.closest(".sectionLayer");
     if (section) active = section.classList.contains("active");
@@ -15,16 +16,25 @@
   function setActive(value) {
     active = Boolean(value);
     if (active) return;
+    stopAll();
+    window.dispatchEvent(new Event("lesson-audio-stop"));
+  }
+
+  function stopAll() {
     playbackGeneration += 1;
-    scheduledVoices.forEach(voice => {
-      releaseVoice(voice);
-    });
-    scheduledVoices.clear();
+    stopNotes();
     drones.forEach(drone => {
       releaseVoice(drone);
     });
     drones.clear();
-    window.dispatchEvent(new Event("lesson-audio-stop"));
+  }
+
+  function stopNotes() {
+    noteGeneration += 1;
+    scheduledVoices.forEach(voice => {
+      releaseVoice(voice);
+    });
+    scheduledVoices.clear();
   }
 
   function releaseVoice(voice) {
@@ -43,8 +53,33 @@
   let compressor = null;
   let muted = false;
   let masterVolume = 0.86;
+  let voiceLimit = 64;
+  let outputCeiling = 0.8;
+  let outputLimiter = null;
+
+  function limiterCurve(ceiling) {
+    const curve = new Float32Array(8193);
+    for (let i = 0; i < curve.length; i++) {
+      const input = i * 2 / (curve.length - 1) - 1;
+      curve[i] = ceiling * Math.tanh(input / ceiling);
+    }
+    return curve;
+  }
+
+  function configurePlayback(options = {}) {
+    if (Number.isFinite(options.maxVoices)) voiceLimit = Math.max(1, Math.min(64, Math.floor(options.maxVoices)));
+    if (Number.isFinite(options.outputCeiling)) {
+      outputCeiling = clamp(options.outputCeiling, 0.02, 0.8);
+      if (outputLimiter) outputLimiter.curve = limiterCurve(outputCeiling);
+    }
+  }
 
   const voices = {
+    partial: {
+      waveform: "sine", colorWaveform: "sine", colorGain: 0,
+      attack: 0.015, decay: 0.15, sustain: 0.65, release: 0.25,
+      filterFrequency: 20000, gain: 0.12
+    },
     default: {
       waveform: "sine",
       colorWaveform: "triangle",
@@ -135,32 +170,48 @@
 
   function makeOutputGraph(context, destination) {
     const output = context.createGain();
-    const comp = context.createDynamicsCompressor();
+    connectProtectedOutput(context, output, destination);
     output.gain.value = 0.92;
-    comp.threshold.value = -18;
-    comp.knee.value = 18;
-    comp.ratio.value = 8;
-    comp.attack.value = 0.005;
-    comp.release.value = 0.18;
-    output.connect(comp);
-    comp.connect(destination);
     return output;
+  }
+
+  function connectProtectedOutput(context, input, destination) {
+    const comp = context.createDynamicsCompressor();
+    comp.threshold.value = -24;
+    comp.knee.value = 12;
+    comp.ratio.value = 12;
+    comp.attack.value = 0.003;
+    comp.release.value = 0.25;
+    // A second, fast high-ratio stage catches dense strums and chord peaks.
+    const peaks = context.createDynamicsCompressor();
+    peaks.threshold.value = -8;
+    peaks.knee.value = 0;
+    peaks.ratio.value = 20;
+    peaks.attack.value = 0.001;
+    peaks.release.value = 0.12;
+    const headroom = context.createGain();
+    headroom.gain.value = 0.7;
+    input.connect(comp);
+    comp.connect(peaks);
+    peaks.connect(headroom);
+    // Compressors can add makeup gain and let fast transients through. Bound
+    // the final samples after both stages, with a smooth saturation curve.
+    const limiter = context.createWaveShaper();
+    limiter.curve = limiterCurve(outputCeiling);
+    limiter.oversample = 'none';
+    headroom.connect(limiter);
+    limiter.connect(destination);
+    if (context === audioContext) outputLimiter = limiter;
+    return comp;
   }
 
   function ensureAudio() {
     if (!isAvailable()) return null;
     if (audioContext) return audioContext;
     audioContext = new AudioContextClass();
-    compressor = audioContext.createDynamicsCompressor();
     masterGain = audioContext.createGain();
-    compressor.threshold.value = -18;
-    compressor.knee.value = 18;
-    compressor.ratio.value = 8;
-    compressor.attack.value = 0.005;
-    compressor.release.value = 0.18;
     masterGain.gain.value = outputGainValue();
-    masterGain.connect(compressor);
-    compressor.connect(audioContext.destination);
+    compressor = connectProtectedOutput(audioContext, masterGain, audioContext.destination);
     return audioContext;
   }
 
@@ -202,6 +253,19 @@
 
   function scheduleVoice(destination, options) {
     const context = destination.context;
+    if (context === audioContext) {
+      for (const voice of scheduledVoices) {
+        if (options.id && voice.id === options.id) {
+          releaseVoice(voice);
+          scheduledVoices.delete(voice);
+        }
+      }
+      while (scheduledVoices.size >= voiceLimit) {
+        const oldest = scheduledVoices.values().next().value;
+        releaseVoice(oldest);
+        scheduledVoices.delete(oldest);
+      }
+    }
     const preset = voicePreset(options.voice);
     const frequency = Math.max(1, Number(options.frequency) || 440);
     const duration = Math.max(0.04, Number(options.duration) || 0.6);
@@ -246,7 +310,7 @@
     release.connect(destination);
 
     if (context === audioContext) {
-      const voice = { main, color, envelope, release, when };
+      const voice = { main, color, envelope, release, when, id: options.id };
       scheduledVoices.add(voice);
       main.onended = () => {
         envelope.disconnect();
@@ -263,8 +327,10 @@
 
   async function playTone(options = {}) {
     const generation = playbackGeneration;
-    if (!(await resume()) || !active || generation !== playbackGeneration) return false;
+    const notes = noteGeneration;
+    if (!(await resume()) || !active || generation !== playbackGeneration || notes !== noteGeneration) return false;
     scheduleVoice(masterGain, {
+      id: options.id,
       frequency: options.frequency,
       duration: options.duration,
       gain: options.gain,
@@ -466,6 +532,9 @@
   }
 
   window.XenAudio = {
+    stopNotes,
+    configurePlayback,
+    stopAll,
     setActive,
     resume,
     suspend,
