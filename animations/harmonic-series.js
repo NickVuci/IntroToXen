@@ -3,15 +3,27 @@ const canvas = document.getElementById('ratioCanvas');
 const ctx = canvas.getContext('2d');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const ROOT_HZ = 110, BASE_CYCLES = 6, MANIM_FRAME_WIDTH = 14.222;
-const MORPH_START = 3, MORPH_END = 7, SERIES_START = 8, HARMONIC_HOLD = 4;
+const MORPH_START = 3, MORPH_END = 7, SERIES_START = 8, HARMONIC_HOLD = 2;
 const ARPEGGIO = SERIES_START + 14 * HARMONIC_HOLD, ARP_STEP = .2;
 const TOGETHER = ARPEGGIO + 4, STRUM_GAP = .018;
 const FADE_START = TOGETHER + 2.8, DURATION = TOGETHER + 4;
 const PLUCK_DURATION = 2.6;
+const partialLevel = n => .06 / n**.8;
 const PLUCKS = [
   ...Array.from({length:16},(_,i)=>({n:i+1,at:ARPEGGIO+i*ARP_STEP})),
   ...Array.from({length:16},(_,i)=>({n:i+1,at:TOGETHER+i*STRUM_GAP}))
 ];
+// The lab's pure-partial attack, decay, sustain and release envelope.
+// Driving the existing sine voices lets us balance their combined level
+// continuously, including arpeggio tails overlapping the final chord.
+function noteEnvelope(time,at) {
+  const age=time-at;
+  if(age<0||age>=PLUCK_DURATION)return 0;
+  if(age<.015)return age/.015;
+  if(age<.165)return 1-(age-.015)/.15*.35;
+  if(age<PLUCK_DURATION-.25)return .65;
+  return .65*(PLUCK_DURATION-age)/.25;
+}
 function pluckEnvelope(time,at) {
   const age=time-at;
   return age<0||age>=PLUCK_DURATION ? 0 : (1-age/PLUCK_DURATION)**1.5;
@@ -28,14 +40,26 @@ function stateAt(time) {
   const strings = Array.from({length:16},(_,i)=>{
     const n=i+1, at=SERIES_START+(n-3)*HARMONIC_HOLD;
     const shown=n<=2 ? 1 : smooth(time,at,at+.55);
-    const solo=n===1 ? 1 : n===2 ? 1-smooth(time,SERIES_START-.5,SERIES_START)
-      : smooth(time,at,at+.12)*(1-smooth(time,at+3.4,at+3.9));
+    const solo=n===1 ? 1-smooth(time,ARPEGGIO-.12,ARPEGGIO-.03) : n===2 ? 1-smooth(time,SERIES_START-.5,SERIES_START)
+      : smooth(time,at,at+.22)*(1-smooth(time,at+HARMONIC_HOLD-.5,at+HARMONIC_HOLD-.08));
     const pluck=Math.max(pluckEnvelope(time,ARPEGGIO+i*ARP_STEP),pluckEnvelope(time,TOGETHER+i*STRUM_GAP));
     const sounding=Math.max(solo,pluck)*fade;
-    const droneGain=solo*.09/Math.sqrt(n)*fade;
-    const gain=droneGain+pluck*.16/Math.sqrt(n);
-    return {n,shown,sounding,gain,droneGain};
+    // Higher pure partials need less level than the bass reference. Keep their
+    // exact frequencies, but roll off their level and soften each entrance.
+    const droneGain=solo*(n===1 ? .07 : partialLevel(n))*fade;
+    const endingGain=partialLevel(n)*PLUCKS.reduce((sum,note)=>
+      sum+(note.n===n ? noteEnvelope(time,note.at) : 0),0);
+    return {n,shown,sounding,gain:droneGain,droneGain,endingGain};
   });
+  if(time>=ARPEGGIO) {
+    // Hold the same energy as the preceding bass-led examples, distributing
+    // it across the actual active notes instead of a fixed voice count.
+    const energy=Math.sqrt(strings.reduce((sum,v)=>sum+v.endingGain**2,0));
+    const target=.07*smooth(time,ARPEGGIO,ARPEGGIO+.04)
+      *(1-smooth(time,TOGETHER+2.3,TOGETHER+2.9));
+    const scale=energy>1e-8 ? target/energy : 0;
+    strings.forEach(v=>{v.gain=v.endingGain*scale;});
+  }
   return {morph,fade,black,together,strings};
 }
 let w=1,h=1,clock=0,last=performance.now(),progress=0,playing=false,muted=false;
@@ -222,7 +246,7 @@ function draw() {
   updateAudio(s);
 }
 // Exact harmonic frequencies throughout; the envelope alone controls entrances.
-let audioStarted=false,audioGeneration=0,lastAudioTime=null;
+let audioStarted=false,audioGeneration=0;
 const voiceId=n=>'harmonic-series-'+n;
 function isVisible() {
   const host=window.frameElement?.closest('.sectionLayer');
@@ -230,33 +254,25 @@ function isVisible() {
 }
 function silenceAudio() {
   audioGeneration++;audioStarted=false;
-  lastAudioTime=null;
   if(!window.XenAudio)return;
   XenAudio.stopAll();
 }
 async function startAudio() {
   silenceAudio();
   if(!window.XenAudio||!isVisible()||muted||!playing)return;
+  XenAudio.setMasterVolume(.5);
+  XenAudio.configurePlayback({outputCeiling:.18});
   const token=audioGeneration;
   for(let n=1;n<=16;n++) {
     if(token!==audioGeneration||!playing||muted||!isVisible())return;
     if(!(await XenAudio.startDrone({id:voiceId(n),frequency:ROOT_HZ*n,gain:.000001,voice:'partial'})))return;
   }
   if(token!==audioGeneration)return;
-  lastAudioTime=progress*DURATION;
   audioStarted=true;updateAudio(current);
-}
-function triggerPlucks(time) {
-  const previous=lastAudioTime;lastAudioTime=time;
-  if(previous===null||time<=previous||time-previous>.25)return;
-  PLUCKS.filter(note=>note.at>previous&&note.at<=time).forEach(note=>{
-    XenAudio.playTone({frequency:ROOT_HZ*note.n,duration:PLUCK_DURATION,voice:'partial',gain:.16/Math.sqrt(note.n)});
-  });
 }
 function updateAudio(s) {
   if(!audioStarted||!playing||muted||!isVisible())return;
-  s.strings.forEach(v=>XenAudio.updateDrone({id:voiceId(v.n),frequency:ROOT_HZ*v.n,gain:v.droneGain,rampTime:.025}));
-  triggerPlucks(progress*DURATION);
+  s.strings.forEach(v=>XenAudio.updateDrone({id:voiceId(v.n),frequency:ROOT_HZ*v.n,gain:v.gain,rampTime:.015}));
 }
 function setProgress(value) {
   const next=clamp(Number(value)||0),delta=(next-progress)*DURATION;

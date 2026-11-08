@@ -28,7 +28,7 @@
       "label": "Animation",
       "file": "animations/harmonic-series.html",
       "word": "partials",
-      "durationMs": 72000,
+      "durationMs": 44000,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },

@@ -145,7 +145,7 @@ test('entire animation fades from black and returns to black at completion', () 
 test('strings enter sequentially, stay visible, and sound together at the end', () => {
   const context=animationContext(source('animations/harmonic-series.js'));
   for(let n=3;n<=16;n++) {
-    const state=JSON.parse(vm.runInContext('JSON.stringify(stateAt(SERIES_START+'+(n-3)+'*4+1))',context));
+    const state=JSON.parse(vm.runInContext('JSON.stringify(stateAt(SERIES_START+'+(n-3)+'*HARMONIC_HOLD+1))',context));
     assert.equal(state.strings.filter(v=>v.shown===1).length,n);
     assert.ok(state.strings[n-1].gain>0);
     assert.ok(state.strings[0].droneGain>0,'fundamental continues under each introduction');
@@ -160,25 +160,44 @@ test('strings enter sequentially, stay visible, and sound together at the end', 
   vm.runInContext('setProgress(.07);draw();setProgress(.5);draw();setProgress(.93);draw();',context);
 });
 
-test('ending plucks all sixteen harmonics in order, then strums with the lab sound', () => {
+test('ending articulates the full series and chord while the reference drone stays off', () => {
   const context=animationContext(source('animations/harmonic-series.js'));
-  const notes=[];
-  context.XenAudio={playTone: options=>notes.push(options)};
-  vm.runInContext('lastAudioTime=ARPEGGIO-.01; for(let t=ARPEGGIO;t<TOGETHER+1;t+=.01) triggerPlucks(t);',context);
-  assert.equal(notes.length,32);
-  for(let i=0;i<32;i++) {
-    const n=i%16+1;
-    assert.equal(notes[i].frequency,110*n);
-    assert.equal(notes[i].duration,2.6);
-    assert.equal(notes[i].voice,'partial');
-    assert.equal(notes[i].gain,.16/Math.sqrt(n));
+  const notes=JSON.parse(vm.runInContext('JSON.stringify(PLUCKS)',context));
+  assert.deepEqual(notes.map(note=>note.n),Array.from({length:32},(_,i)=>i%16+1));
+  for(let n=1;n<=16;n++) {
+    assert.ok(vm.runInContext('stateAt(ARPEGGIO+'+(n-1)+'*ARP_STEP+.05).strings['+(n-1)+'].gain',context)>0);
   }
-  notes.length=0;
-  vm.runInContext('lastAudioTime=ARPEGGIO-1;triggerPlucks(TOGETHER+1);',context);
-  assert.equal(notes.length,0,'seeking does not replay skipped notes');
-  for(const time of [63.9,64,66,68,69]) {
-    assert.ok(vm.runInContext(`stateAt(${time}).strings[0].droneGain`,context)>0);
+  assert.equal(vm.runInContext('stateAt(ARPEGGIO-.12).strings[0].droneGain',context),.07);
+  const fading=vm.runInContext('stateAt(ARPEGGIO-.075).strings[0].droneGain',context);
+  assert.ok(fading>0&&fading<.07);
+  for(const time of ['ARPEGGIO-.03','ARPEGGIO','ARPEGGIO+2','TOGETHER','TOGETHER+1']) {
+    assert.equal(vm.runInContext('stateAt('+time+').strings[0].droneGain',context),0);
   }
+  assert.equal(vm.runInContext('noteEnvelope(0,0)',context),0);
+  assert.equal(vm.runInContext('noteEnvelope(.015,0)',context),1);
+  assert.equal(vm.runInContext('noteEnvelope(1,0)',context),.65);
+  assert.equal(vm.runInContext('noteEnvelope(2.6,0)',context),0);
+});
+
+test('arpeggio and chord maintain the reference level across changing overlap', () => {
+  const context=animationContext(source('animations/harmonic-series.js'));
+  const levels=JSON.parse(vm.runInContext(
+    'JSON.stringify(Array.from({length:621},(_,i)=>{const t=ARPEGGIO+.05+i*.01;return Math.sqrt(stateAt(t).strings.reduce((sum,v)=>sum+v.gain*v.gain,0));}))',context));
+  for(const level of levels)assert.ok(Math.abs(level-.07)<1e-10,'no volume drop or chord buildup');
+  assert.equal(vm.runInContext('stateAt(TOGETHER+2.9).strings.reduce((sum,v)=>sum+v.gain,0)',context),0,'ending still releases to silence');
+});
+
+test('partials enter every two seconds with softer high-harmonic levels', () => {
+  const context=animationContext(source('animations/harmonic-series.js'));
+  assert.equal(vm.runInContext('HARMONIC_HOLD',context),2);
+  let previous=Infinity;
+  for(let n=3;n<=16;n++) {
+    const level=vm.runInContext(`stateAt(SERIES_START+${n-3}*HARMONIC_HOLD+1).strings[${n-1}].droneGain`,context);
+    assert.ok(level>0&&level<previous);
+    assert.ok(level<.09/Math.sqrt(n));
+    previous=level;
+  }
+  assert.ok(vm.runInContext('stateAt(SERIES_START+.1).strings[2].droneGain < stateAt(SERIES_START+.3).strings[2].droneGain',context));
 });
 
 test('harmonic modes have fixed nodes and correct octave ratios', () => {
