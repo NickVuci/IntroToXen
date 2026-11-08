@@ -1,0 +1,636 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>MOS Explorer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument bench — tuning strip on top; Wilson family-tree bars + horogram side by side; then cards for the selected MOS, hardness, modes and intervals */
+:root{
+  --bg:#E9EDF0; --panel:#F8FAFB; --well:#F1F4F6; --ink:#14202A; --mute:#566772; --line:#C6D0D6; --grid:#D9E0E5;
+  --p3:#B06F08; --p5:#0C838A; --p7:#7447BE; --p11:#3A8529; --p13:#BB3A58;
+  --good:#22844A; --bad:#C0392B; --sel-ink:#F8FAFB; --hi:#3567C9;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0C1216; --panel:#131B20; --well:#0F171B; --ink:#DCE4E8; --mute:#8999A3; --line:#2B373E; --grid:#1A242A;
+  --p3:#E3A33A; --p5:#3BC3C9; --p7:#AA8AEE; --p11:#7CC264; --p13:#EE7A92;
+  --good:#4FCB7E; --bad:#F06B5B; --sel-ink:#0C1216; --hi:#7FA6F2; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0C1216; --panel:#131B20; --well:#0F171B; --ink:#DCE4E8; --mute:#8999A3; --line:#2B373E; --grid:#1A242A;
+  --p3:#E3A33A; --p5:#3BC3C9; --p7:#AA8AEE; --p11:#7CC264; --p13:#EE7A92;
+  --good:#4FCB7E; --bad:#F06B5B; --sel-ink:#0C1216; --hi:#7FA6F2; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 32px}
+.app{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(26px,4vw,38px);font-weight:700;line-height:1}
+h2{font-size:17px;font-weight:700}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.brand{display:flex;flex-direction:column;gap:6px;min-width:0}
+.brand p{margin:0;color:var(--mute);max-width:64ch}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label.ctl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+input,select,button{font:inherit;color:var(--ink)}
+input[type=number],select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:14px}
+input[type=number]{width:84px;font-family:var(--f-mono)}
+input[type=range]{accent-color:var(--ink)}
+button{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font-size:14px;cursor:pointer;line-height:1.1}
+button:hover{border-color:var(--mute)}
+button:focus-visible,input:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--ink);color:var(--sel-ink);border-color:var(--ink)}
+button.primary{background:var(--ink);color:var(--sel-ink);border-color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:6px 10px;font-size:13px}
+.seg button+button{border-left:1px solid var(--line)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.pad{padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.hint{margin:0;color:var(--mute);font-size:13px}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px}
+.drone{display:inline-flex;align-items:center;gap:8px;border-radius:999px;font-weight:700}
+.drone .dot{width:9px;height:9px;border-radius:50%;background:var(--mute)}
+.drone[aria-pressed="true"] .dot{background:var(--sel-ink);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25;transform:scale(.7)}}
+
+/* tuning strip */
+.tune{display:flex;flex-direction:column;gap:12px}
+.tune-row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.tune-row .grp{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+.tune-row select{font-size:13px;padding:5px 6px;max-width:100%}
+.gslide{display:flex;align-items:center;gap:10px;flex:1 1 300px;min-width:0}
+.gslide input[type=range]{flex:1;min-width:0}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 18px;margin:0;border-top:1px solid var(--line);padding-top:12px}
+.summary div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.summary dt{font-size:12px;color:var(--mute)}
+.summary dd{margin:0;font-family:var(--f-mono);font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.summary dd small{color:var(--mute);font-size:12px}
+
+/* diagrams */
+.diag{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px}
+.dcard{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.dhead{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.dhead p{margin:0;font-size:12.5px;color:var(--mute)}
+.barwrap{position:relative;padding:12px 10px 14px;background:var(--panel)}
+canvas#bars{display:block;width:100%;cursor:pointer;touch-action:manipulation}
+.horowrap{position:relative;padding:12px;display:flex;justify-content:center;align-items:center;flex:1;background:var(--panel)}
+canvas#horo{display:block;width:100%;max-width:520px;aspect-ratio:1/1;cursor:pointer;touch-action:manipulation}
+
+/* detail cards */
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+@media (max-width:760px){.cards{grid-template-columns:minmax(0,1fr)}}
+.mosname{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.mosname b{font-family:var(--f-display);font-size:40px;line-height:1}
+.mosname span{color:var(--mute);font-size:15px}
+dl.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:13.5px}
+dl.facts dt{color:var(--mute)}
+dl.facts dd{margin:0;font-family:var(--f-mono);min-width:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.pattern{font-family:var(--f-mono);font-size:15px;letter-spacing:.06em;overflow-wrap:anywhere}
+.pattern .L{font-weight:600}
+.pattern .s{color:var(--mute)}
+.hscale{display:flex;flex-wrap:wrap;gap:5px}
+.hscale button{display:flex;flex-direction:column;align-items:flex-start;gap:0;padding:6px 9px;font-size:12px;min-width:74px}
+.hscale button b{font-family:var(--f-mono);font-weight:600;font-size:13px}
+.hscale button small{color:var(--mute);font-size:11px}
+.hscale button[aria-pressed="true"] small{color:var(--sel-ink);opacity:.8}
+.hard-row{display:flex;align-items:center;gap:10px}
+.hard-row input{flex:1;min-width:0}
+.hard-row output{font-family:var(--f-mono);font-size:13px;min-width:9ch;text-align:right}
+.modes{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.mode{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 10px;border:0;border-bottom:1px solid var(--grid);border-radius:0;background:transparent;text-align:left}
+.mode:last-child{border-bottom:0}
+.mode:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.mode[aria-pressed="true"]{background:color-mix(in srgb,var(--hi) 16%,transparent);color:var(--ink)}
+.mode .udp{font-family:var(--f-mono);font-size:13px;color:var(--mute)}
+.mode .nm{font-size:12px;color:var(--mute);white-space:nowrap}
+.mode .mb{display:block;height:12px;margin-top:4px}
+table.t{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+table.t th{color:var(--mute);font-weight:400;font-size:12px;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--well);position:sticky;top:0}
+table.t td{padding:5px 8px;border-bottom:1px solid var(--grid);font-family:var(--f-mono);white-space:nowrap;vertical-align:top}
+table.t td.k{font-family:var(--f-display);font-weight:700;font-size:14px}
+table.t tr.gen td{background:color-mix(in srgb,var(--hi) 10%,transparent)}
+.tw{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.ji{display:inline-block;padding:0 5px;border-left:3px solid var(--c);background:var(--well);border-radius:0 3px 3px 0;margin-left:4px}
+.ji small{color:var(--mute)}
+.far{opacity:.5}
+@media (max-width:980px){.diag{grid-template-columns:minmax(0,1fr)}}
+
+/* generator dock: fixed on the right on wide screens, along the bottom on narrow ones */
+.gdock{position:fixed;z-index:20;background:var(--panel);border:1px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.14);display:flex;align-items:center;gap:8px}
+.gdock .gd-val{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:center}
+.gdock .gd-val b{font-size:15px;font-weight:600}
+.gdock .gd-val span{font-size:11.5px;color:var(--mute)}
+.gdock .gd-val .ji{margin:2px 0 0}
+.gdock button{width:38px;height:34px;padding:0;font-size:18px;flex:0 0 auto}
+.gdock .gd-mos{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;color:var(--mute);text-align:center}
+.gdock .gd-mos b{font-family:var(--f-display);font-size:15px;color:var(--ink);white-space:nowrap}
+.gdock input[type=range]{accent-color:var(--hi);margin:0}
+@media (min-width:901px){
+  body{padding-right:max(124px,env(safe-area-inset-right,0px))}
+  .gdock{right:max(14px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);width:96px;flex-direction:column;padding:12px 8px;border-radius:14px;max-height:calc(100vh - 40px)}
+  .gdock input[type=range]{writing-mode:vertical-lr;direction:rtl;height:min(46vh,380px);width:28px}
+}
+@media (max-width:900px){
+  body{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .gdock{left:0;right:0;bottom:0;border-radius:14px 14px 0 0;border-bottom:0;flex-wrap:wrap;
+    padding:8px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"lab val val mos" "dn r r up";column-gap:10px;row-gap:6px}
+  .gdock .eyebrow{grid-area:lab;align-self:center}
+  .gdock .gd-val{grid-area:val;flex-direction:row;gap:8px;align-items:baseline;justify-content:flex-start}
+  .gdock .gd-mos{grid-area:mos;flex-direction:row;gap:6px;align-items:baseline}
+  .gdock #gdDn{grid-area:dn}.gdock #gdUp{grid-area:up}
+  .gdock input[type=range]{grid-area:r;width:100%;height:34px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="nv-brand">
+/* Nick Vuci house style: Ivory (light) and Nocturne (dark, the original nickvuci.com palette).
+   The applet's own variables are mapped onto the design-system tokens below. */
+:root{--nv-ground-start:#f7f4ec;--nv-ground-end:#f7f4ec;--nv-surface:#f7f4ec;--nv-surface-raised:#fffdf8;--nv-surface-sunk:#ece7db;--nv-ink:#121933;--nv-ink-muted:#565c70;--nv-hairline:#dcd5c6;--nv-brand-blue:#1640c8;--nv-blue:#1640c8;--nv-on-blue:#fffdf8;--nv-blue-soft:#dde4f7;--nv-gold:#b8892b;--nv-gold-ink:#7a5a1c;--nv-gold-soft:#efe4cb;--nv-on-gold:#121933;--nv-alert:#b42a12;--nv-focus-ring:#1640c8;--nv-burgundy:#6b1d34;--nv-burgundy-ink:#6b1d34;--nv-burgundy-mid:#7a2c40;--nv-burgundy-soft:#f3e4e8;--nv-burgundy-wash:#faf2f3;--nv-band:#2e0f16;--nv-on-band:#f5ecee;--nv-on-band-muted:#d1b6bd;--nv-band-line:#4f2530;--nv-band-edge:#916a72;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#d1a246;--nv-prime-3:#3d5ba9;--nv-prime-5:#2f7d6b;--nv-prime-7:#a2562e;--nv-prime-11:#6b4f9e;--nv-prime-13:#963c8c;--nv-edge:#8F897C;--nv-grid:#e8e2d5;--nv-font-display:"Cormorant Garamond","EB Garamond",Garamond,"Times New Roman",serif;--nv-font-sans:"Montserrat","Helvetica Neue",Arial,system-ui,sans-serif;--nv-font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--well:var(--nv-surface-sunk);--ink:var(--nv-ink);--mute:var(--nv-ink-muted);--line:var(--nv-hairline);--grid:var(--nv-grid);--p3:var(--nv-prime-3);--p5:var(--nv-prime-5);--p7:var(--nv-prime-7);--p11:var(--nv-prime-11);--p13:var(--nv-prime-13);--good:var(--nv-gold-ink);--bad:var(--nv-alert);--sel-ink:var(--nv-on-blue);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);--hi:var(--nv-blue);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--well:var(--nv-surface-sunk);--ink:var(--nv-ink);--mute:var(--nv-ink-muted);--line:var(--nv-hairline);--grid:var(--nv-grid);--p3:var(--nv-prime-3);--p5:var(--nv-prime-5);--p7:var(--nv-prime-7);--p11:var(--nv-prime-11);--p13:var(--nv-prime-13);--good:var(--nv-gold-ink);--bad:var(--nv-alert);--sel-ink:var(--nv-on-blue);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);--hi:var(--nv-blue);color-scheme:dark}}
+:root[data-theme="dark"]{--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--well:var(--nv-surface-sunk);--ink:var(--nv-ink);--mute:var(--nv-ink-muted);--line:var(--nv-hairline);--grid:var(--nv-grid);--p3:var(--nv-prime-3);--p5:var(--nv-prime-5);--p7:var(--nv-prime-7);--p11:var(--nv-prime-11);--p13:var(--nv-prime-13);--good:var(--nv-gold-ink);--bad:var(--nv-alert);--sel-ink:var(--nv-on-blue);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);--hi:var(--nv-blue);color-scheme:dark}
+html body{background-color:var(--nv-surface);background-image:linear-gradient(135deg,var(--nv-ground-start),var(--nv-ground-end));background-attachment:fixed;color:var(--nv-ink)}
+.eyebrow{color:var(--nv-gold-ink)}
+h2,h3{color:var(--nv-burgundy-ink)}
+
+.nv-appbar{position:relative;z-index:30;background:var(--nv-surface-raised);border-bottom:1px solid var(--nv-burgundy-soft);
+  padding-top:env(safe-area-inset-top,0px);font-family:var(--nv-font-sans);color:var(--nv-ink)}
+.nv-appbar,.nv-appbar *{box-sizing:border-box}
+.nv-appbar{text-align:left;grid-column:1/-1;align-self:stretch}
+.nv-in{max-width:var(--nv-appbar-max,1200px);margin:0 auto;justify-content:flex-start;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:14px}
+.nv-lock{display:flex;align-items:center;gap:12px;flex:none;text-decoration:none;color:inherit}
+.nv-lock:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-mark{display:block;width:40px;height:auto}
+.nv-wm{font-weight:400;font-size:18px;letter-spacing:.18em;white-space:nowrap;line-height:1}
+.nv-wm .n{color:var(--nv-brand-blue)}.nv-wm .v{color:var(--nv-gold)}
+.nv-name{margin:0;padding-left:14px;border-left:1px solid var(--nv-burgundy-soft);font-family:var(--nv-font-sans);font-weight:400;font-size:18px;
+  line-height:1;letter-spacing:.18em;color:var(--nv-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:640px){.nv-wm{display:none}.nv-mark{width:34px}.nv-name{font-size:15px;letter-spacing:.1em;padding-left:12px}.nv-in{gap:12px;padding-top:10px;padding-bottom:10px}}
+
+.nv-theme{flex:none;display:grid;place-items:center;width:36px;height:36px;padding:0;margin-left:auto;cursor:pointer;
+  color:var(--nv-ink-muted);background:transparent;border:1px solid var(--nv-burgundy-soft);border-radius:2px;
+  transition:color .2s ease,border-color .2s ease,background-color .2s ease}
+.nv-theme:hover{color:var(--nv-gold);border-color:var(--nv-gold)}
+.nv-theme:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-ti{grid-area:1/1;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity .3s ease,transform .3s ease}
+.nv-ti-sun{opacity:0;transform:rotate(-45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-moon{opacity:0;transform:rotate(45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-sun{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.nv-ti,.nv-theme{transition:none}}
+
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nv-appbar{border-bottom-width:2px}
+  :root:not([data-theme="light"]) .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+  :root:not([data-theme="light"]) .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}}
+:root[data-theme="dark"] .nv-appbar{border-bottom-width:2px}
+:root[data-theme="dark"] .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+:root[data-theme="dark"] .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}
+
+</style>
+
+<div class="nv-appbar" role="banner"><div class="nv-in"><a class="nv-lock" href="https://nickvuci.com" target="_blank" rel="noopener" aria-label="Nick Vuci — nickvuci.com"><svg class="nv-mark" viewBox="-7.75 0 205.50 80" role="img" aria-label="Nick Vuci"><defs><clipPath id="nvc"><rect x="-9.75" y="0" width="209.50" height="80"/></clipPath><polyline id="nvz" points="-20.50,106.19 0.00,71.84 38.00,8.16 76.00,71.84 114.00,8.16 152.00,71.84 190.00,8.16 210.50,-26.19" fill="none" stroke-width="7.0" stroke-linejoin="miter" stroke-miterlimit="10"/><clipPath id="nvf0"><polygon points="114.00,16.31 106.69,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf1"><polygon points="114.00,16.31 107.90,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf2"><polygon points="114.00,16.31 109.12,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf3"><polygon points="114.00,16.31 110.34,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf4"><polygon points="114.00,16.31 111.56,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf5"><polygon points="114.00,16.31 112.78,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf6"><polygon points="114.00,16.31 114.00,-43.69 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf7"><polygon points="114.00,16.31 115.22,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf8"><polygon points="114.00,16.31 116.44,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf9"><polygon points="114.00,16.31 117.66,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf10"><polygon points="114.00,16.31 118.88,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf11"><polygon points="114.00,16.31 120.10,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf12"><polygon points="114.00,16.31 121.31,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath></defs><g clip-path="url(#nvc)"><use href="#nvz" style="stroke:var(--nv-brand-blue)"/><g clip-path="url(#nvf0)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 4.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf1)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 12.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf2)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 20.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf3)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 29.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf4)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 37.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf5)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 45.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf6)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 54.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf7)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 62.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf8)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 70.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf9)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 79.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf10)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 87.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf11)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 95.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf12)"><use href="#nvz" style="stroke:var(--nv-gold)"/></g></g></svg><span class="nv-wm"><span class="n">Nick</span> <span class="v">Vuci</span></span></a><h1 class="nv-name">MOS Explorer</h1><button type="button" class="nv-theme" aria-label="Switch to dark theme" aria-pressed="false" title="Switch to dark theme"><svg class="nv-ti nv-ti-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M19.5 14.2A7.5 7.5 0 0 1 9.8 4.5a7.5 7.5 0 1 0 9.7 9.7Z"/></svg><svg class="nv-ti nv-ti-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button></div></div>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Moment of symmetry scales</span>
+      <h2 class="nv-dup" aria-hidden="true" hidden>MOS Explorer</h2>
+      <p>Stack a generator inside a period and watch two step sizes appear. Every row of the tree and every ring of the horogram is a MOS; pick one to see its hardness, modes and just approximations.</p>
+    </div>
+    <div class="toolbar">
+      <label class="ctl" for="base">1/1 <input id="base" type="number" value="261.63" min="20" max="2000" step="0.01"> Hz</label>
+      <label class="ctl" for="timbre">Timbre
+        <select id="timbre"><option value="reed">Reed</option><option value="glass">Glass</option><option value="sine">Sine</option></select>
+      </label>
+      <label class="ctl" for="vol">Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.6" style="width:90px"></label>
+    </div>
+  </header>
+
+  <section class="card pad tune" aria-label="Tuning">
+    <div class="tune-row">
+      <span class="seg" id="tmode" aria-label="Tuning type"><button data-v="edo">EDO</button><button data-v="free">Free generator</button></span>
+      <span class="grp"><label for="preset">Preset</label><select id="preset"></select></span>
+      <span class="grp"><label for="per">Periods per octave</label><select id="per"></select></span>
+      <button id="drone" class="drone" aria-pressed="false"><span class="dot"></span><span id="droneTxt">Drone 1/1</span></button>
+    </div>
+    <div class="tune-row" id="edoRow">
+      <span class="grp"><label for="nIn">EDO</label><input id="nIn" type="number" min="2" max="72" value="11"></span>
+      <span class="grp"><label for="gSel">Generator</label><select id="gSel"></select></span>
+      <button id="flip" title="Use the complementary generator (period minus generator)">Flip generator</button>
+    </div>
+    <div class="tune-row" id="freeRow" hidden>
+      <div class="gslide"><label class="ctl" for="gRange">Generator</label><input id="gRange" type="range" min="1" max="1199" step="0.01" value="696.58"><input id="gNum" type="number" step="0.01" min="0.01" max="1199.99" value="696.58" aria-label="Generator in cents">¢</div>
+      <button id="flip2" title="Use the complementary generator">Flip generator</button>
+    </div>
+    <dl class="summary" id="summary"></dl>
+  </section>
+
+  <section class="diag">
+    <div class="card dcard">
+      <div class="dhead"><div><span class="eyebrow">Family tree</span><h2 id="barsTitle">Scales of the generator</h2></div><p>Each row stacks one more generator than a MOS below it. Right column: L:s hardness.</p></div>
+      <div class="barwrap" id="barwrap"><canvas id="bars" tabindex="0" aria-label="Family tree of MOS scales as bars. Tap a row to select and hear it."></canvas></div>
+    </div>
+    <div class="card dcard">
+      <div class="dhead"><div><span class="eyebrow">Wilson horogram</span><h2>Rings of the tree</h2></div><p>Innermost ring is 1L 1s; each ring outward is the next MOS. Tap a ring.</p></div>
+      <div class="horowrap" id="horowrap"><canvas id="horo" tabindex="0" aria-label="Horogram: concentric rings, one per MOS. Tap a ring to select it."></canvas></div>
+    </div>
+  </section>
+
+  <section class="cards">
+    <div class="card pad" aria-label="Selected MOS">
+      <span class="eyebrow">Selected MOS</span>
+      <div class="mosname"><b id="mName">5L 2s</b><span id="mAlias"></span></div>
+      <div class="pattern" id="mPat"></div>
+      <dl class="facts" id="mFacts"></dl>
+      <div class="btnrow"><button id="mPlay" class="primary">Play brightest mode</button><button id="mChord">Play as chord</button></div>
+    </div>
+
+    <div class="card pad" aria-label="Hardness">
+      <div><span class="eyebrow">Hardness</span><h2>Tuning spectrum of <span id="hName">5L 2s</span></h2></div>
+      <p class="hint">L:s sets how different the two steps are. Standard ratios give these EDOs; tap one to switch.</p>
+      <div class="hscale" id="hScale"></div>
+      <div class="hard-row"><label class="ctl" for="hRange">Any L:s</label><input id="hRange" type="range" min="0" max="0.96" step="0.001" value="0.5"><output id="hOut">2.000</output></div>
+      <p class="hint" id="hNote">Moving this slider switches to a free generator that keeps the selected pattern.</p>
+    </div>
+
+    <div class="card pad" aria-label="Modes">
+      <div><span class="eyebrow">Rotations</span><h2>Modes, brightest to darkest</h2></div>
+      <div class="modes" id="modes"></div>
+      <p class="hint">UDP u|d: the mode is u generators up and d down from its tonic. Tap a mode to hear it; its degrees appear below.</p>
+      <div class="tw"><table class="t" id="degT"></table></div>
+    </div>
+
+    <div class="card pad" aria-label="Intervals">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap"><div><span class="eyebrow">Intervals</span><h2>Each degree's two sizes</h2></div>
+        <label class="ctl" for="lim">Just targets <select id="lim"><option value="5">5-odd-limit</option><option value="7">7-odd-limit</option><option value="9">9-odd-limit</option><option value="11">11-odd-limit</option><option value="13">13-odd-limit</option><option value="15">15-odd-limit</option></select></label></div>
+      <div class="tw"><table class="t" id="ivT"></table></div>
+      <p class="hint">Across all the modes, each scale degree comes in at most two sizes. The highlighted row holds the generator. Faded readings are more than 15¢ off.</p>
+    </div>
+  </section>
+</div>
+
+<aside class="gdock" id="gdock" aria-label="Generator">
+  <span class="eyebrow">Generator</span>
+  <div class="gd-val"><b id="gdC">436.4¢</b><span id="gdS"></span><span id="gdJ"></span></div>
+  <button id="gdUp" aria-label="Larger generator">+</button>
+  <input type="range" id="gdR" aria-label="Generator size" min="1" max="10" step="1" value="4">
+  <button id="gdDn" aria-label="Smaller generator">−</button>
+  <div class="gd-mos"><span>Selected</span><b id="gdM">3L 5s</b></div>
+</aside>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const root=document.documentElement,tok=n=>getComputedStyle(root).getPropertyValue(n).trim();
+const L2=Math.log2,gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a},mod=(a,n)=>((a%n)+n)%n;
+const lpf=n=>{let p=1;for(let k=2;k*k<=n;k++)while(n%k===0){p=k;n/=k}return n>1?n:p};
+const PCOL=p=>p<=2?'--ink':[3,5,7,11,13].includes(p)?'--p'+p:'--mute';
+const sgn=(x,d=1)=>(x>=0?'+':'−')+Math.abs(x).toFixed(d);
+
+/* ---------- state ---------- */
+const S={tmode:'edo',N:11,d:1,g:4,gc:696.58,base:261.63,timbre:'reed',vol:.6,lim:11,sel:null,modeRank:0};
+try{const s=JSON.parse(localStorage.getItem('mosexp')||'null');if(s)Object.assign(S,s)}catch(e){}
+const save=()=>{try{localStorage.setItem('mosexp',JSON.stringify(S))}catch(e){}};
+
+/* ---------- just targets ---------- */
+let RAT=[];
+function buildRat(){const m=new Map();for(let a=1;a<=S.lim;a+=2)for(let b=1;b<=S.lim;b+=2){let n=a,d=b;while(n/d>=2)d*=2;while(n/d<1)n*=2;const g=gcd(n,d);n/=g;d/=g;const k=n+'/'+d;if(!m.has(k))m.set(k,{k,c:1200*L2(n/d),p:lpf(n*d)})}
+  m.set('2/1',{k:'2/1',c:1200,p:2});RAT=[...m.values()]}
+function nearJI(c){let best=null;for(const r of RAT){const e=c-r.c;if(!best||Math.abs(e)<Math.abs(best.e))best={...r,e}}return best}
+const jiHTML=c=>{const r=nearJI(c);return r?`<span class="ji${Math.abs(r.e)>15?' far':''}" style="--c:var(${PCOL(r.p)})">${r.k} <small>${sgn(r.e)}</small></span>`:''};
+
+/* ---------- MOS theory ---------- */
+// Tuning: period P (cents), generator g (cents, 0<g<P), optional EDO step grid.
+function tuning(){
+  if(S.tmode==='edo'){const N=S.N,d=S.d,Pst=N/d,gst=mod(S.g,Pst);return{edo:true,N,d,Pst,gst,P:1200/d,g:gst*1200/N,u:1200/N}}
+  const P=1200/S.d;return{edo:false,d:S.d,P,g:mod(S.gc,P),u:null};
+}
+function computeLevels(T){
+  const out=[],maxN=T.edo?T.Pst:60,tol=1e-6;
+  for(let n=2;n<=maxN;n++){
+    const raw=[];for(let i=0;i<n;i++)raw.push(T.edo?mod(i*T.gst,T.Pst):mod(i*T.g,T.P));
+    const pos=[...raw].sort((a,b)=>a-b);
+    if(T.edo&&pos.some((v,i)=>i&&v===pos[i-1]))break; // chain closed early
+    const per=T.edo?T.Pst:T.P,steps=pos.map((v,i)=>(i<n-1?pos[i+1]:per)-v);
+    const sizes=[];for(const s of steps)if(!sizes.some(z=>Math.abs(z-s)<tol))sizes.push(s);
+    if(sizes.length>2)continue;
+    sizes.sort((a,b)=>b-a);
+    const L=sizes[0],s=sizes.length>1?sizes[1]:sizes[0];
+    // only follow the Stern–Brocot path: the next MOS splits L into s and L−s. (In an EDO, extra
+    // two-size scales appear after a 2:1 level; Wilson's tree goes straight to the EDO instead.)
+    if(out.length){const p=out[out.length-1],want=[p.s,p.L-p.s].sort((a,b)=>b-a);if(Math.abs(want[0]-L)>tol||Math.abs(want[1]-s)>tol)continue}
+    const x=steps.filter(v=>Math.abs(v-L)<tol).length,y=n-x;
+    const eq=sizes.length===1;
+    out.push({n,pos,steps,L,s,x:eq?n:x,y:eq?0:y,eq,
+      Lc:T.edo?L*T.u:L,sc:T.edo?s*T.u:s,cents:pos.map(v=>T.edo?v*T.u:v)});
+    if(eq)break;
+    if(!T.edo&&s<1)break;
+  }
+  return out;
+}
+const fmtR=(T,lv)=>lv.eq?'1:1':T.edo?`${lv.L}:${lv.s}`:(lv.L/lv.s).toFixed(lv.L/lv.s>=10?1:3);
+function mosName(T,lv){if(lv.eq)return T.edo?`${T.N}edo`:`${lv.n*T.d}-equal`;return`${lv.x*T.d}L ${lv.y*T.d}s`}
+const ALIAS={'5,2':'diatonic','2,5':'antidiatonic','2,3':'pentic','3,2':'antipentic','4,3':'smitonic','3,4':'mosh','5,3':'oneirotonic'};
+const DIA=['Lydian','Ionian','Mixolydian','Dorian','Aeolian','Phrygian','Locrian'];
+function hardName(r){
+  const pts=[[1,'equalized'],[4/3,'supersoft'],[3/2,'soft'],[5/3,'semisoft'],[2,'basic'],[5/2,'semihard'],[3,'hard'],[4,'superhard']];
+  if(!isFinite(r))return'collapsed';
+  for(const[v,n]of pts)if(Math.abs(r-v)<1e-6)return n;
+  const rng=[[1,4/3,'ultrasoft'],[4/3,3/2,'parasoft'],[3/2,5/3,'quasisoft'],[5/3,2,'minisoft'],[2,5/2,'minihard'],[5/2,3,'quasihard'],[3,4,'parahard'],[4,Infinity,'ultrahard']];
+  for(const[a,b,n]of rng)if(r>a&&r<b)return n;return'';
+}
+// rotations within one period, brightest first
+function modesOf(T,lv){
+  const per=T.edo?T.Pst:T.P,n=lv.n,list=[];
+  for(let r=0;r<n;r++){const deg=[];for(let i=0;i<n;i++)deg.push(mod(lv.pos[(r+i)%n]-lv.pos[r],per));
+    const st=deg.map((v,i)=>(i<n-1?deg[i+1]:per)-v);list.push({r,deg,st,sum:deg.reduce((a,b)=>a+b,0)})}
+  list.sort((a,b)=>b.sum-a.sum);
+  // dedupe identical rotations (only when equal-stepped)
+  const seen=new Set(),out=[];for(const m of list){const k=m.st.join(',');if(seen.has(k))continue;seen.add(k);out.push(m)}
+  out.forEach((m,i)=>{m.up=n-1-i;m.dn=i;m.pat=m.st.map(v=>Math.abs(v-lv.L)<1e-6&&!lv.eq?'L':'s').join('')});
+  return out;
+}
+function brightGen(T,lv){
+  // the bright generator is whichever of g and period−g, stacked upward from the tonic, gives the brighter mode
+  const per=T.edo?T.Pst:T.P,g=T.edo?T.gst:T.g,n=lv.n;
+  const sum=x=>{let t=0;for(let i=0;i<n;i++)t+=mod(i*x,per);return t};
+  return sum(g)>=sum(per-g)-1e-9?g:per-g;
+}
+// how many L and s the generator spans (from tonic up to the generator note, in the chain-from-0 rotation)
+function genComposition(T,lv){const g=T.edo?T.gst:T.g;let a=0,b=0;for(let i=0;i<lv.n;i++){if(Math.abs(lv.pos[i]-g)<1e-6)break;if(Math.abs(lv.steps[i]-lv.L)<1e-6)a++;else b++}return{a,b}}
+
+/* ---------- audio ---------- */
+let ac,master,waves={},droneN=null;
+function audio(){if(!ac){ac=new(window.AudioContext||window.webkitAudioContext)();const c=ac.createDynamicsCompressor();c.threshold.value=-14;c.ratio.value=4;master=ac.createGain();master.gain.value=S.vol;master.connect(c);c.connect(ac.destination);
+  const mk=f=>{const N=16,re=new Float32Array(N),im=new Float32Array(N);for(let k=1;k<N;k++)im[k]=f(k);return ac.createPeriodicWave(re,im)};waves.reed=mk(k=>(k%2?1:.55)/Math.pow(k,1.25));waves.glass=mk(k=>[0,1,.18,.42,.06,.2,.03,.1][k]||0)}
+  if(ac.state==='suspended')ac.resume();return ac}
+function osc(a){const o=a.createOscillator();if(S.timbre==='sine')o.type='sine';else o.setPeriodicWave(waves[S.timbre]);return o}
+function tone(f,when=0,dur=1.6,amp=.2){const a=audio(),t=a.currentTime+when+.005,o=osc(a),g=a.createGain();o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(amp,t+.012);g.gain.exponentialRampToValueAtTime(amp*.55,t+.35);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(master);o.start(t);o.stop(t+dur+.05)}
+const hzc=c=>S.base*2**(c/1200);
+function setDrone(on){const a=audio();if(on&&!droneN){const o=osc(a),g=a.createGain();o.frequency.value=S.base/2;g.gain.setValueAtTime(0,a.currentTime);g.gain.linearRampToValueAtTime(.08,a.currentTime+.4);o.connect(g).connect(master);o.start();droneN={o,g}}
+  else if(!on&&droneN){const{o,g}=droneN;g.gain.setTargetAtTime(0,a.currentTime,.08);o.stop(a.currentTime+.5);droneN=null}
+  $('drone').setAttribute('aria-pressed',String(on));$('droneTxt').textContent=on?'Stop drone':'Drone 1/1'}
+function fullCents(T,degPer){const out=[];for(let k=0;k<T.d;k++)for(const v of degPer)out.push(v*(T.edo?T.u:1)+k*T.P);return out}
+function playScale(cs){cs=[...cs,1200];const st=Math.min(.28,6/cs.length);cs.forEach((c,i)=>tone(hzc(c),i*st,1.1,.18))}
+
+/* ---------- derived ---------- */
+let T,LV=[],SEL=null,MODES=[];
+function derive(){
+  T=tuning();LV=computeLevels(T);
+  let i=LV.findIndex(l=>S.sel&&l.x===S.sel[0]&&l.y===S.sel[1]&&!l.eq);
+  if(i<0){let best=0,bd=1e9;LV.forEach((l,k)=>{if(l.eq)return;const dd=Math.abs(l.n*T.d-7)+(l.n*T.d>12?5:0);if(dd<bd){bd=dd;best=k}});i=best}
+  SEL=LV[i]||LV[0];if(SEL)S.sel=[SEL.x,SEL.y];
+  MODES=SEL?modesOf(T,SEL):[];if(S.modeRank>=MODES.length)S.modeRank=0;
+}
+
+/* ---------- tuning controls ---------- */
+const PRESETS=[
+  ['e:11:1:4','11edo · 4 steps (as in the chart)'],['e:11:1:2','11edo · 2 steps'],['e:11:1:3','11edo · 3 steps'],['e:11:1:5','11edo · 5 steps'],['e:11:1:1','11edo · 1 step'],
+  ['e:12:1:7','12edo · fifth (diatonic family)'],['e:13:1:5','13edo · 5 steps (oneirotonic)'],['e:17:1:10','17edo · fifth'],['e:19:1:11','19edo · meantone fifth'],
+  ['e:22:1:13','22edo · superpyth fifth'],['e:22:2:2','22edo · 2 periods · pajara'],['e:31:1:18','31edo · meantone fifth'],['e:16:1:9','16edo · mavila fifth'],
+  ['f:1:696.578','Free · quarter-comma meantone'],['f:1:741.641','Free · golden generator (1200/φ)'],['f:1:701.955','Free · just fifth (Pythagorean)']];
+$('preset').innerHTML='<option value="">Choose…</option>'+PRESETS.map(p=>`<option value="${p[0]}">${p[1]}</option>`).join('');
+$('preset').onchange=e=>{const v=e.target.value;if(!v)return;const a=v.split(':');
+  if(a[0]==='e'){S.tmode='edo';S.N=+a[1];S.d=+a[2];S.g=+a[3]}else{S.tmode='free';S.d=+a[1];S.gc=+a[2]}
+  S.sel=null;e.target.value='';update(true)};
+function syncTuneUI(){
+  $('tmode').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===S.tmode)));
+  $('edoRow').hidden=S.tmode!=='edo';$('freeRow').hidden=S.tmode!=='free';
+  // periods per octave
+  const divs=S.tmode==='edo'?[1,2,3,4,5,6].filter(d=>S.N%d===0&&S.N/d>=2):[1,2,3,4,5,6];
+  if(!divs.includes(S.d))S.d=1;
+  $('per').innerHTML=divs.map(d=>`<option value="${d}">${d}${d===1?' (octave)':` (${(1200/d).toFixed(1)}¢)`}</option>`).join('');$('per').value=S.d;
+  if(S.tmode==='edo'){
+    if(document.activeElement!==$('nIn'))$('nIn').value=S.N;
+    const Pst=S.N/S.d,opts=[];for(let g=1;g<Pst;g++)if(gcd(g,Pst)===1)opts.push(g);
+    if(!opts.length){$('gSel').innerHTML='<option>no generator</option>';return}
+    if(!opts.includes(S.g))S.g=opts.includes(Math.round(Pst*.585))?Math.round(Pst*.585):opts[0];
+    buildRat();
+    $('gSel').innerHTML=opts.map(g=>{const c=g*1200/S.N,r=nearJI(c);return`<option value="${g}">${g} step${g>1?'s':''} · ${c.toFixed(1)}¢ ≈ ${r.k}</option>`}).join('');$('gSel').value=S.g;
+  }else{
+    const P=1200/S.d;S.gc=Math.min(P-.01,Math.max(.01,S.gc));
+    $('gRange').max=(P-.01).toFixed(2);$('gNum').max=(P-.01).toFixed(2);$('gRange').value=S.gc;if(document.activeElement!==$('gNum'))$('gNum').value=S.gc.toFixed(2);
+  }
+}
+$('tmode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.dataset.v===S.tmode)return;
+  if(b.dataset.v==='free'){S.gc=mod(S.g*1200/S.N,1200/S.d)}else{const P=1200/S.d;S.N=Math.max(2,Math.min(72,S.N));const Pst=S.N/(S.d||1);S.g=Math.round(mod(S.gc,P)/P*Pst)}
+  S.tmode=b.dataset.v;update()});
+$('per').onchange=e=>{const d=+e.target.value;if(S.tmode==='edo'){S.d=d}else{const f=S.gc/(1200/S.d);S.d=d;S.gc=f*1200/d}S.sel=null;update(true)};
+$('nIn').onchange=e=>{const v=Math.round(+e.target.value);if(v>=2&&v<=72){const f=S.g/(S.N/S.d);S.N=v;if(S.N%S.d)S.d=1;S.g=Math.max(1,Math.round(f*S.N/S.d));update(true)}else e.target.value=S.N};
+$('gSel').onchange=e=>{S.g=+e.target.value;S.sel=null;update(true)};
+const flip=()=>{if(S.tmode==='edo')S.g=S.N/S.d-S.g;else S.gc=1200/S.d-S.gc;update()};
+$('flip').onclick=flip;$('flip2').onclick=flip;
+let gT=0;$('gRange').oninput=e=>{S.gc=+e.target.value;$('gNum').value=S.gc.toFixed(2);cancelAnimationFrame(gT);gT=requestAnimationFrame(()=>update())};
+$('gNum').onchange=e=>{const v=+e.target.value;const P=1200/S.d;if(v>0&&v<P){S.gc=v;update()}else e.target.value=S.gc.toFixed(2)};
+
+function renderSummary(){
+  const g=T.g,r=nearJI(g),p=T.P,bg=SEL?brightGen(T,SEL)*(T.edo?T.u:1):g;
+  const dark=p-bg;
+  $('summary').innerHTML=
+    `<div><dt>Period</dt><dd>${p.toFixed(2)}¢${T.d>1?` <small>(${T.d} per octave)</small>`:''}</dd></div>`+
+    `<div><dt>Generator</dt><dd>${g.toFixed(2)}¢ ${jiHTML(g)}</dd></div>`+
+    `<div><dt>Bright / dark generator</dt><dd>${bg.toFixed(1)}¢ / ${dark.toFixed(1)}¢</dd></div>`+
+    `<div><dt>MOS in the tree</dt><dd>${LV.filter(l=>!l.eq).length}${T.edo?` <small>then ${T.N}edo</small>`:''}</dd></div>`;
+  $('barsTitle').textContent=T.edo?`${T.N}edo, generator ${T.gst} step${T.gst>1?'s':''}`:`Generator ${g.toFixed(2)}¢`;
+}
+
+/* ---------- bars (Wilson-style family tree) ---------- */
+const bc=$('bars'),bx=bc.getContext('2d');let bGeom=null;
+const MAXROWS=24;
+function shownLevels(){if(LV.length<=MAXROWS)return LV;const head=LV.slice(0,MAXROWS-1),last=LV[LV.length-1];return last.eq?[...head,last]:LV.slice(0,MAXROWS)}
+function drawBars(){
+  const W=bc.parentElement.clientWidth-20;if(W<=0)return;const rows=shownLevels(),rh=rows.length<=6?38:rows.length<=10?30:24,top=6,H=top+rows.length*rh+6;
+  const dpr=window.devicePixelRatio||1;bc.style.height=H+'px';
+  if(bc.width!==Math.round(W*dpr)||bc.height!==Math.round(H*dpr)){bc.width=Math.round(W*dpr);bc.height=Math.round(H*dpr)}
+  bx.setTransform(dpr,0,0,dpr,0,0);bx.clearRect(0,0,W,H);
+  const ink=tok('--ink'),mute=tok('--mute'),hi=tok('--hi'),panel=tok('--panel'),body=tok('--f-body'),mono=tok('--f-mono');
+  const lw=W<460?58:76,rw=W<460?44:58,x0=lw,x1=W-rw,w=x1-x0;
+  bGeom={rows,rh,top,x0,x1};
+  bx.textBaseline='middle';
+  rows.forEach((lv,ri)=>{
+    const i=rows.length-1-ri,y=top+i*rh,sel=lv===SEL;
+    if(sel){bx.fillStyle=hi;bx.globalAlpha=.16;bx.fillRect(0,y,W,rh);bx.globalAlpha=1}
+    bx.fillStyle=sel?ink:ink;bx.font=`${sel?700:400} ${W<460?12:13.5}px ${body}`;bx.textAlign='right';bx.fillText(mosName(T,lv),x0-8,y+rh/2);
+    bx.textAlign='left';bx.font=`${sel?600:400} ${W<460?11.5:13}px ${mono}`;bx.fillStyle=sel?ink:mute;bx.fillText(lv.eq&&T.edo?'L:s':fmtR(T,lv),x1+8,y+rh/2);
+    // bar: outline + ticks at every note of the full octave
+    bx.strokeStyle=ink;bx.lineWidth=2;bx.strokeRect(x0,y,w,rh);
+    bx.lineWidth=1.5;bx.beginPath();
+    for(const c of fullCents(T,lv.pos)){if(c<=1e-6)continue;const xx=x0+w*c/1200;bx.moveTo(xx,y);bx.lineTo(xx,y+rh)}
+    bx.stroke();
+  });
+}
+bc.addEventListener('click',e=>{if(!bGeom)return;const r=bc.getBoundingClientRect(),y=e.clientY-r.top-bGeom.top,i=Math.floor(y/bGeom.rh);if(i<0||i>=bGeom.rows.length)return;
+  pickLevel(bGeom.rows[bGeom.rows.length-1-i])});
+bc.addEventListener('keydown',e=>{if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;e.preventDefault();const i=LV.indexOf(SEL)+(e.key==='ArrowUp'?1:-1);if(LV[i])pickLevel(LV[i])});
+
+/* ---------- horogram ---------- */
+const hc=$('horo'),hx=hc.getContext('2d');let hGeom=null;
+function drawHoro(){
+  const W=hc.clientWidth;if(!W)return;const H=W,dpr=window.devicePixelRatio||1;
+  if(hc.width!==Math.round(W*dpr)){hc.width=Math.round(W*dpr);hc.height=Math.round(H*dpr)}
+  hx.setTransform(dpr,0,0,dpr,0,0);hx.clearRect(0,0,W,H);
+  const rows=shownLevels(),ink=tok('--ink'),hi=tok('--hi'),mute=tok('--mute');
+  const cx=W/2,cy=H/2,R=W/2-6,r0=Math.max(10,R*.09),dr=(R-r0)/rows.length;
+  hGeom={cx,cy,r0,dr,rows};
+  const si=rows.indexOf(SEL);
+  if(si>=0){hx.beginPath();hx.arc(cx,cy,r0+dr*(si+1),0,Math.PI*2);hx.arc(cx,cy,r0+dr*si,0,Math.PI*2,true);hx.fillStyle=hi;hx.globalAlpha=.18;hx.fill();hx.globalAlpha=1}
+  hx.strokeStyle=ink;hx.lineWidth=1;
+  hx.beginPath();hx.arc(cx,cy,r0,0,Math.PI*2);hx.stroke();
+  rows.forEach((lv,i)=>{
+    const ra=r0+dr*i,rb=r0+dr*(i+1);
+    hx.beginPath();hx.arc(cx,cy,rb,0,Math.PI*2);hx.lineWidth=i===rows.length-1?1.6:1;hx.stroke();
+    hx.beginPath();
+    for(const c of fullCents(T,lv.pos)){const a=-Math.PI/2+2*Math.PI*c/1200;hx.moveTo(cx+Math.cos(a)*ra,cy+Math.sin(a)*ra);hx.lineTo(cx+Math.cos(a)*rb,cy+Math.sin(a)*rb)}
+    hx.lineWidth=1;hx.stroke();
+  });
+  // the 0 line from the centre, as in Wilson's drawings
+  hx.beginPath();hx.moveTo(cx,cy);hx.lineTo(cx,cy-r0);hx.stroke();
+}
+hc.addEventListener('click',e=>{if(!hGeom)return;const r=hc.getBoundingClientRect(),s=hc.clientWidth/r.width,x=(e.clientX-r.left)*s-hGeom.cx,y=(e.clientY-r.top)*s-hGeom.cy,d=Math.hypot(x,y);
+  const i=Math.floor((d-hGeom.r0)/hGeom.dr);if(i>=0&&i<hGeom.rows.length)pickLevel(hGeom.rows[i])});
+
+/* ---------- detail cards ---------- */
+function patHTML(p){return p.split('').map(c=>`<span class="${c}">${c}</span>`).join('')}
+function renderSelected(){
+  if(!SEL)return;const lv=SEL,name=mosName(T,lv),al=ALIAS[`${lv.x*T.d},${lv.y*T.d}`];
+  $('mName').textContent=name;$('hName').textContent=name;
+  $('mAlias').textContent=lv.eq?'all steps equal':(al?al+' · ':'')+`${lv.n*T.d} notes`+(T.d>1?` · ${T.d} periods of ${lv.x}L ${lv.y}s`:'');
+  const b=MODES[0];$('mPat').innerHTML=b?patHTML(b.pat.repeat(T.d)):'';
+  const r=lv.eq?1:lv.L/lv.s,stepTxt=v=>T.edo?`${v} step${v>1?'s':''} · ${(v*T.u).toFixed(1)}¢`:`${v.toFixed(2)}¢`;
+  const bg=brightGen(T,lv),bgc=bg*(T.edo?T.u:1),gc=genComposition(T,lv);
+  $('mFacts').innerHTML=lv.eq?`<dt>Step</dt><dd>${stepTxt(lv.L)}</dd>`:
+    `<dt>Large step L</dt><dd>${stepTxt(lv.L)} ${jiHTML(lv.Lc)}</dd>`+
+    `<dt>Small step s</dt><dd>${stepTxt(lv.s)} ${jiHTML(lv.sc)}</dd>`+
+    `<dt>Hardness</dt><dd>${T.edo?`${lv.L}:${lv.s} = `:''}${r.toFixed(3)} · ${hardName(r)}</dd>`+
+    `<dt>Chroma L − s</dt><dd>${(lv.Lc-lv.sc).toFixed(2)}¢</dd>`+
+    `<dt>Bright generator</dt><dd>${bgc.toFixed(2)}¢ ${jiHTML(bgc)}</dd>`+
+    `<dt>Generator spans</dt><dd>${gc.a}L + ${gc.b}s (${gc.a+gc.b} step${gc.a+gc.b>1?'s':''})</dd>`;
+  $('mPlay').textContent=lv.eq?'Play scale':'Play brightest mode';
+}
+function renderHardness(){
+  const lv=SEL,box=$('hScale');if(!lv||lv.eq){box.innerHTML='<p class="hint">Pick a MOS (not the equal row) to see its hardness spectrum.</p>';return}
+  const gc=genComposition(T,lv),bright=brightGen(T,lv),useDark=Math.abs(bright-(T.edo?T.gst:T.g))>1e-6;
+  const STD=[[1,1,'equalized'],[4,3,'supersoft'],[3,2,'soft'],[5,3,'semisoft'],[2,1,'basic'],[5,2,'semihard'],[3,1,'hard'],[4,1,'superhard'],[1,0,'collapsed']];
+  box.innerHTML=STD.map(([p,q,nm])=>{const Pst=lv.x*p+lv.y*q,N=Pst*T.d,g=gc.a*p+gc.b*q;const cur=T.edo&&N===T.N&&!lv.eq&&lv.L*q===lv.s*p;
+    return`<button data-p="${p}" data-q="${q}" aria-pressed="${cur}"><b>${p}:${q}</b><small>${nm} · ${N}edo</small></button>`}).join('');
+  const r=lv.L/lv.s;$('hRange').value=Math.min(.96,1-1/r);$('hOut').textContent=r.toFixed(3);
+}
+$('hScale').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-p]');if(!b||!SEL)return;const p=+b.dataset.p,q=+b.dataset.q,lv=SEL,gc=genComposition(T,lv);
+  const Pst=lv.x*p+lv.y*q,N=Pst*T.d,g=gc.a*p+gc.b*q;
+  if(N>72){$('hNote').textContent=`${N}edo is beyond the 72-EDO limit here; use the slider instead.`;return}
+  const keep=[lv.x,lv.y];S.tmode='edo';S.N=N;S.d=T.d;S.g=mod(g,Pst)||g;
+  if(gcd(S.g,Pst)!==1){S.tmode='free';S.gc=g*1200/N} // collapsed/equalized cases can close the chain early
+  S.sel=keep;update();
+});
+$('hRange').oninput=e=>{
+  if(!SEL||SEL.eq)return;const t=+e.target.value,r=1/(1-t),lv=SEL,gc=genComposition(T,lv);
+  const s=T.P/(lv.x*r+lv.y),L=r*s,keep=[lv.x,lv.y];
+  S.tmode='free';S.gc=gc.a*L+gc.b*s;S.sel=keep;$('hOut').textContent=r.toFixed(3);update();
+};
+function renderModes(){
+  const lv=SEL;if(!lv){$('modes').innerHTML='';return}
+  const dia=lv.x*T.d===5&&lv.y*T.d===2&&T.d===1;
+  $('modes').innerHTML=MODES.map((m,i)=>{
+    const segs=m.st.map(v=>v/(T.edo?T.Pst:T.P));let acc=0;
+    const ticks=segs.slice(0,-1).map(v=>{acc+=v;return`<line x1="${(acc*100).toFixed(2)}%" x2="${(acc*100).toFixed(2)}%" y1="0" y2="12" stroke="currentColor" stroke-width="1.3"/>`}).join('');
+    return`<button class="mode" data-i="${i}" aria-pressed="${i===S.modeRank}"><span class="udp">${m.up}|${m.dn}${T.d>1?`(${T.d})`:''}</span><span style="min-width:0"><span class="pattern">${patHTML(m.pat)}</span><svg class="mb" width="100%" height="12" aria-hidden="true"><rect x="0.75" y="0.75" width="calc(100% - 1.5px)" height="10.5" fill="none" stroke="currentColor" stroke-width="1.5"/>${ticks}</svg></span><span class="nm">${dia?DIA[i]:''}</span></button>`;
+  }).join('');
+  renderDegrees();
+}
+$('modes').addEventListener('click',e=>{const b=e.target.closest('.mode');if(!b)return;S.modeRank=+b.dataset.i;save();
+  $('modes').querySelectorAll('.mode').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderDegrees();
+  const m=MODES[S.modeRank];playScale(fullCents(T,m.deg))});
+function renderDegrees(){
+  const m=MODES[S.modeRank];if(!m){$('degT').innerHTML='';return}
+  const cs=fullCents(T,m.deg);let h='<tr><th>Degree</th><th>Cents</th><th>Nearest just</th></tr>';
+  cs.forEach((c,i)=>{h+=`<tr><td class="k">${i}</td><td>${c.toFixed(1)}</td><td>${jiHTML(c)}</td></tr>`});
+  h+=`<tr><td class="k">${cs.length}</td><td>1200.0</td><td>${jiHTML(1200)}</td></tr>`;$('degT').innerHTML=h;
+}
+function renderIntervals(){
+  const lv=SEL;if(!lv){$('ivT').innerHTML='';return}
+  const per=T.edo?T.Pst:T.P,n=lv.n,u=T.edo?T.u:1,bg=brightGen(T,lv),dg=per-bg;
+  let h='<tr><th>Degree</th><th>Smaller</th><th>Larger</th></tr>';
+  for(let k=1;k<n;k++){
+    const sz=new Set();for(let r=0;r<n;r++){const a=lv.pos[r],b=lv.pos[(r+k)%n];sz.add(+((mod(b-a,per)||per)).toFixed(6))}
+    const v=[...sz].sort((a,b)=>a-b),isGen=v.some(x=>Math.abs(x-bg)<1e-6||Math.abs(x-dg)<1e-6);
+    const cell=x=>`${(x*u).toFixed(1)}¢ ${jiHTML(x*u)}`;
+    h+=`<tr class="${isGen?'gen':''}"><td class="k">${k}</td><td>${cell(v[0])}</td><td>${v.length>1?cell(v[1]):'<span style="color:var(--mute)">same</span>'}</td></tr>`;
+  }
+  h+=`<tr><td class="k">${n}</td><td colspan="2">${T.P.toFixed(1)}¢ period ${jiHTML(T.P)}</td></tr>`;
+  $('ivT').innerHTML=h;
+}
+$('mPlay').onclick=()=>{if(!SEL)return;const m=MODES[0];playScale(fullCents(T,m?m.deg:SEL.pos))};
+$('mChord').onclick=()=>{if(!SEL)return;const cs=fullCents(T,(MODES[0]||{deg:SEL.pos}).deg),amp=.22/Math.sqrt(cs.length);cs.forEach(c=>tone(hzc(c),0,2.6,amp))};
+
+function pickLevel(lv){
+  S.sel=[lv.x,lv.y];if(lv.eq)S.sel=null;SEL=lv;MODES=modesOf(T,lv);S.modeRank=0;save();
+  renderAll(false);playScale(fullCents(T,(MODES[0]||{deg:lv.pos}).deg));
+}
+
+/* ---------- generator dock ---------- */
+function edoGens(){const Pst=S.N/S.d,o=[];for(let g=1;g<Pst;g++)if(gcd(g,Pst)===1)o.push(g);return o}
+function syncDock(){
+  const r=$('gdR');
+  if(S.tmode==='edo'){const Pst=S.N/S.d;r.min=1;r.max=Math.max(1,Pst-1);r.step=1;r.value=S.g;
+    $('gdS').textContent=`${S.g} of ${Pst} steps`}
+  else{const P=1200/S.d;r.min=.5;r.max=(P-.5).toFixed(2);r.step=.01;r.value=S.gc;$('gdS').textContent=S.d>1?`period ${P.toFixed(1)}¢`:'free'}
+  $('gdC').textContent=T.g.toFixed(T.edo?1:2)+'¢';$('gdJ').innerHTML=jiHTML(T.g);
+  $('gdM').textContent=SEL?mosName(T,SEL):'—';
+}
+let dockRaf=0;
+function dockSet(v){
+  if(S.tmode==='edo'){const o=edoGens();if(!o.length)return;let best=o[0];for(const g of o)if(Math.abs(g-v)<Math.abs(best-v))best=g;if(best===S.g)return;S.g=best}
+  else{const P=1200/S.d;S.gc=Math.min(P-.5,Math.max(.5,v))}
+  cancelAnimationFrame(dockRaf);dockRaf=requestAnimationFrame(()=>update());
+}
+$('gdR').addEventListener('input',e=>dockSet(+e.target.value));
+const nudge=dir=>{if(S.tmode==='edo'){const o=edoGens(),i=o.indexOf(S.g)+dir;if(o[i]!=null){S.g=o[i];update()}}else{S.gc=+(S.gc+dir*.5).toFixed(2);dockSet(S.gc)}};
+$('gdUp').onclick=()=>nudge(1);$('gdDn').onclick=()=>nudge(-1);
+
+/* ---------- glue ---------- */
+function renderAll(){syncDock();renderSummary();drawBars();drawHoro();renderSelected();renderHardness();renderModes();renderIntervals()}
+function update(resetSel){if(resetSel)S.modeRank=0;syncTuneUI();buildRat();derive();renderAll();save()}
+$('lim').value=S.lim;$('lim').onchange=e=>{S.lim=+e.target.value;buildRat();syncTuneUI();renderAll();save()};
+$('base').value=S.base;$('base').onchange=e=>{const v=+e.target.value;if(v>=20&&v<=2000){S.base=v;if(droneN){setDrone(false);setDrone(true)}save()}else e.target.value=S.base};
+$('timbre').value=S.timbre;$('timbre').onchange=e=>{S.timbre=e.target.value;if(droneN){setDrone(false);setDrone(true)}save()};
+$('vol').value=S.vol;$('vol').oninput=e=>{S.vol=+e.target.value;if(master)master.gain.value=S.vol;save()};
+$('drone').onclick=()=>setDrone(!droneN);
+new ResizeObserver(()=>{drawBars()}).observe($('barwrap'));
+new ResizeObserver(()=>{drawHoro()}).observe($('horowrap'));
+const redraw=()=>{drawBars();drawHoro()};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redraw);
+new MutationObserver(redraw).observe(root,{attributes:true,attributeFilter:['data-theme']});
+buildRat();update();
+document.fonts&&document.fonts.ready.then(redraw);
+})();
+</script>
+<script>
+/* Nick Vuci light/dark toggle: follows the device until the viewer picks; the choice is kept and set as data-theme on <html>. */
+(function(){
+  var root=document.documentElement, sys=window.matchMedia('(prefers-color-scheme: dark)');
+  var btns=[].slice.call(document.querySelectorAll('.nv-theme'));
+  function cur(){var c=root.dataset.theme;return c==='light'||c==='dark'?c:(sys.matches?'dark':'light')}
+  function sync(){var d=cur()==='dark',l=d?'Switch to light theme':'Switch to dark theme';
+    btns.forEach(function(b){b.classList.toggle('is-dark',d);b.setAttribute('aria-label',l);b.title=l;b.setAttribute('aria-pressed',String(d))});
+    document.dispatchEvent(new CustomEvent('nv-theme',{detail:cur()}))}
+  btns.forEach(function(b){b.addEventListener('click',function(){var t=cur()==='dark'?'light':'dark';root.dataset.theme=t;
+    try{localStorage.setItem('theme',t)}catch(e){}sync()})});
+  if(sys.addEventListener)sys.addEventListener('change',sync);
+  /* the app bar spans the full window, edge to edge, whatever margins the page sets on its container */
+  var bar=document.querySelector('.nv-appbar');
+  function bleed(){if(!bar)return;bar.style.marginLeft=bar.style.marginTop=bar.style.width='';
+    var r=bar.getBoundingClientRect(),w=document.documentElement.clientWidth;
+    bar.style.marginLeft=(-r.left)+'px';bar.style.width=w+'px';bar.style.marginTop=(-(r.top+window.scrollY))+'px';
+    var r2=bar.getBoundingClientRect();if(Math.abs(r2.left)>1){bar.style.marginLeft=(-r.left-r2.left)+'px'}}
+  bleed();addEventListener('resize',bleed);addEventListener('load',bleed);
+  sync();
+})();
+</script>
+
+</body></html>
