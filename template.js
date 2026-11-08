@@ -429,6 +429,13 @@
   }
 
   function activateSection(index) {
+    sections.forEach((section, sectionIndex) => {
+      section.querySelectorAll("iframe").forEach(frame => {
+        try {
+          frame.contentWindow?.XenAudio?.setActive(sectionIndex === index);
+        } catch (_) { /* Cross-origin embeds manage their own audio. */ }
+      });
+    });
     if (sections[index]?.dataset.sectionType === "animation") {
       resetAnimationSection();
     }
@@ -454,6 +461,7 @@
 
     locked = true;
     const previous = current;
+    stopAnimationPlayback();
     current = next;
 
     sections.forEach((section, sectionIndex) => {
@@ -590,6 +598,16 @@
     animationControls = null;
     animationProgress = 0;
     animationMuted = false;
+
+    sections.forEach((section, index) => {
+      section.querySelectorAll("iframe").forEach(frame => {
+        frame.addEventListener("load", () => {
+          try {
+            frame.contentWindow?.XenAudio?.setActive(index === current);
+          } catch (_) { /* Cross-origin embeds manage their own audio. */ }
+        });
+      });
+    });
 
     navDots.forEach((dot, index) => {
       dot.addEventListener("click", () => goTo(index));

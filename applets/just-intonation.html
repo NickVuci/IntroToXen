@@ -543,20 +543,25 @@
       return XenAudio.resume();
     }
 
+    let audioGeneration = 0;
     async function startDrone() {
+      const generation = audioGeneration;
       if (!(await resumeAudio())) return;
+      if (generation !== audioGeneration) return;
       await XenAudio.startDrone({
         id: "ji-root",
         frequency: baseFrequency(),
         gain: 0.12,
         voice: "drone"
       });
+      if (generation !== audioGeneration) return;
       await XenAudio.startDrone({
         id: "ji-upper",
         frequency: baseFrequency() * currentRatio(),
         gain: 0.1,
         voice: "drone"
       });
+      if (generation !== audioGeneration) return;
       playingDrone = true;
       audioButton.textContent = "Stop drone";
       audioButton.classList.add("playing");
@@ -757,7 +762,9 @@
     }
 
     async function playCell(cell) {
+      const generation = audioGeneration;
       if (!cell.events.length || !(await resumeAudio())) return;
+      if (generation !== audioGeneration) return;
       stopLoop(false);
       activeLoop = cell;
       scheduledLoopStart = XenAudio.currentTime() + 0.04;
@@ -1040,6 +1047,11 @@
       media.addEventListener("change", sync);
       sync();
     })();
+    window.addEventListener("lesson-audio-stop", () => {
+      audioGeneration += 1;
+      stopDrone();
+      stopLoop();
+    });
     // Inside a lesson, the lesson page may set the theme.
     window.addEventListener("message", event => {
       if (event.source !== window.parent) return;

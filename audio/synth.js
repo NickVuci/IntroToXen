@@ -4,6 +4,39 @@
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   const OfflineContextClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   const drones = new Map();
+  const scheduledVoices = new Set();
+  let active = true;
+  let playbackGeneration = 0;
+  try {
+    const section = window.frameElement?.closest(".sectionLayer");
+    if (section) active = section.classList.contains("active");
+  } catch (_) { /* Standalone and cross-origin embeds default to active. */ }
+
+  function setActive(value) {
+    active = Boolean(value);
+    if (active) return;
+    playbackGeneration += 1;
+    scheduledVoices.forEach(voice => {
+      releaseVoice(voice);
+    });
+    scheduledVoices.clear();
+    drones.forEach(drone => {
+      releaseVoice(drone);
+    });
+    drones.clear();
+    window.dispatchEvent(new Event("lesson-audio-stop"));
+  }
+
+  function releaseVoice(voice) {
+    const now = audioContext.currentTime;
+    // A separate gain preserves the note's envelope and the drone's current
+    // level while fading. Future notes are cancelled before they can start.
+    const end = voice.when > now ? now : now + 0.08;
+    voice.release.gain.setValueAtTime(1, now);
+    voice.release.gain.linearRampToValueAtTime(0, end);
+    voice.main.stop(end);
+    voice.color.stop(end);
+  }
 
   let audioContext = null;
   let masterGain = null;
@@ -132,10 +165,12 @@
   }
 
   async function resume() {
+    if (!active) return false;
+    const generation = playbackGeneration;
     const context = ensureAudio();
     if (!context) return false;
     if (context.state === "suspended") await context.resume();
-    return true;
+    return active && generation === playbackGeneration;
   }
 
   async function suspend() {
@@ -174,15 +209,16 @@
     const when = Math.max(context.currentTime, Number(options.when) || context.currentTime);
     const attack = Math.min(duration * 0.4, preset.attack);
     const decay = Math.min(duration * 0.4, preset.decay);
-    const release = Math.min(duration * 0.5, preset.release);
+    const releaseDuration = Math.min(duration * 0.5, preset.release);
     const sustainStart = when + attack + decay;
-    const releaseStart = Math.max(sustainStart, when + duration - release);
+    const releaseStart = Math.max(sustainStart, when + duration - releaseDuration);
 
     const main = context.createOscillator();
     const color = context.createOscillator();
     const mainGain = context.createGain();
     const colorGain = context.createGain();
     const envelope = context.createGain();
+    const release = context.createGain();
     const filter = context.createBiquadFilter();
 
     main.type = preset.waveform;
@@ -206,7 +242,18 @@
     mainGain.connect(filter);
     colorGain.connect(filter);
     filter.connect(envelope);
-    envelope.connect(destination);
+    envelope.connect(release);
+    release.connect(destination);
+
+    if (context === audioContext) {
+      const voice = { main, color, envelope, release, when };
+      scheduledVoices.add(voice);
+      main.onended = () => {
+        envelope.disconnect();
+        release.disconnect();
+        scheduledVoices.delete(voice);
+      };
+    }
 
     main.start(when);
     color.start(when);
@@ -215,7 +262,8 @@
   }
 
   async function playTone(options = {}) {
-    if (!(await resume())) return false;
+    const generation = playbackGeneration;
+    if (!(await resume()) || !active || generation !== playbackGeneration) return false;
     scheduleVoice(masterGain, {
       frequency: options.frequency,
       duration: options.duration,
@@ -237,7 +285,8 @@
   }
 
   async function startDrone(options = {}) {
-    if (!(await resume())) return false;
+    const generation = playbackGeneration;
+    if (!(await resume()) || !active || generation !== playbackGeneration) return false;
     const id = String(options.id || "drone");
     const preset = voicePreset(options.voice || "drone");
     if (drones.has(id)) {
@@ -255,6 +304,7 @@
     const gainAmount = Math.max(0, Number(options.gain) || preset.gain);
     const filter = audioContext.createBiquadFilter();
     const gain = audioContext.createGain();
+    const release = audioContext.createGain();
     const main = audioContext.createOscillator();
     const color = audioContext.createOscillator();
     const colorGain = audioContext.createGain();
@@ -273,11 +323,16 @@
     color.connect(colorGain);
     colorGain.connect(filter);
     filter.connect(gain);
-    gain.connect(masterGain);
+    gain.connect(release);
+    release.connect(masterGain);
+    main.onended = () => {
+      gain.disconnect();
+      release.disconnect();
+    };
     main.start(now);
     color.start(now);
     gain.gain.setTargetAtTime(gainAmount, now, Number(options.rampTime) || 0.045);
-    drones.set(id, { main, color, gain, colorGain, filter, voice: options.voice || "drone" });
+    drones.set(id, { main, color, gain, release, colorGain, filter, voice: options.voice || "drone" });
     return true;
   }
 
@@ -320,6 +375,7 @@
   function scheduleEvents(options = {}) {
     const destination = options.destination || masterGain;
     if (!destination) return false;
+    if (destination.context === audioContext && !active) return false;
     const bpm = Number(options.bpm) || 90;
     const secondsPerBeat = 60 / bpm;
     const startTime = Number.isFinite(options.startTime) ? options.startTime : destination.context.currentTime;
@@ -410,6 +466,7 @@
   }
 
   window.XenAudio = {
+    setActive,
     resume,
     suspend,
     isAvailable,
