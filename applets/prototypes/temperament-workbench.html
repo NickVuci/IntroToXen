@@ -1,0 +1,1877 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>Temperament Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e8edef; --panel:#f5f7f7; --panel2:#e1e8ea; --ink:#0f2230; --ink2:#52646e; --line:#c3cfd4; --paper:#f5f7f7;
+  --cS:#1f6fb2; --cM:#8a4fbf; --cL:#e0456f; --cEq:#6b7f8a; --on-k:#ffffff;
+  --display:"Bricolage Grotesque","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e161c; --panel:#16212a; --panel2:#1e2c37; --ink:#e9f0f3; --ink2:#93a7b2; --line:#2b3c48; --paper:#0e161c;
+    --cS:#5aa9ea; --cM:#b78af0; --cL:#ff7a9c; --cEq:#8aa0ac; --on-k:#0c1620;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e161c; --panel:#16212a; --panel2:#1e2c37; --ink:#e9f0f3; --ink2:#93a7b2; --line:#2b3c48; --paper:#0e161c;
+  --cS:#5aa9ea; --cM:#b78af0; --cL:#ff7a9c; --cEq:#8aa0ac; --on-k:#0c1620;
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:inherit}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);-webkit-text-size-adjust:100%;font-variant-numeric:tabular-nums}
+main{max-width:1040px;margin:0 auto;padding:12px 14px 56px}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.bar{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:4px 0 6px}
+.bar h1{font:700 18px/1.2 var(--display);margin:0;letter-spacing:-.01em}
+.about{font-size:13px;color:var(--ink2);max-width:60ch}
+.about summary{cursor:pointer;list-style:none;text-decoration:underline;text-underline-offset:3px}
+.about summary::-webkit-details-marker{display:none}
+.about p{margin:8px 0 0}
+.topbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end;background:var(--panel);border-radius:14px;padding:12px 16px;margin:0 0 12px}
+.topbar .sel{display:flex;flex-direction:column;gap:4px;flex:1 1 220px;min-width:0}
+.topbar label{font-size:12.5px;color:var(--ink2)}
+.topbar select{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:500 15px var(--body);min-height:42px}
+.topbar select:disabled{opacity:.55}
+.topbar .tsum{flex:2 1 260px;font-size:13px;color:var(--ink2);margin:0;align-self:center}
+.imat{margin-bottom:12px}
+.imat .tablewrap{max-height:520px}
+.imat table{width:auto;min-width:100%;border-collapse:separate;border-spacing:2px;font-variant-numeric:tabular-nums}
+.imat th{font-weight:500;font-size:12px;color:var(--ink2);background:var(--panel);position:sticky;top:0;z-index:2;padding:4px 6px;white-space:nowrap}
+.imat tbody th{position:sticky;left:0;top:auto;z-index:1;text-align:left}
+.imat thead th:first-child{left:0;z-index:3}
+.imat td{text-align:center;padding:6px 7px;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:12.5px;background:var(--panel2);min-width:54px;outline-offset:-2px}
+.imat td.s1{background:color-mix(in srgb,var(--cS) 30%,var(--panel2))}
+.imat td.s2{background:color-mix(in srgb,var(--cM) 30%,var(--panel2))}
+.imat td.s3{background:color-mix(in srgb,var(--cL) 30%,var(--panel2))}
+.imat td.sel{outline:2px solid var(--ink)}
+.imat td:hover{filter:brightness(1.12)}
+.imat td small{display:block;color:var(--ink2);font-size:10.5px}
+.imat .detail{margin:10px 0 0;font-size:13.5px;min-height:3.2em}
+.imat .detail b{font-weight:600}
+
+/* stage */
+.stage{margin:10px 0 26px}
+.pattern{font:800 80px/1 var(--display);letter-spacing:-.025em;word-break:break-all;margin:10px 0 8px}
+.pattern span{display:inline-block}
+.lede{margin:0 0 16px;max-width:62ch;color:var(--ink2);font-size:15px}
+.lede b{color:var(--ink);font-weight:600}
+
+.kbd{display:flex;gap:3px;overflow-x:auto;padding:2px 1px 8px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+.key{flex:1 1 0px;min-width:30px;height:190px;border:0;border-radius:3px 3px 12px 12px;background:var(--kc);color:var(--kt);display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:1px;padding:0 0 10px;cursor:pointer;position:relative;transition:transform .06s,filter .06s;-webkit-tap-highlight-color:transparent}
+.key .kd{font:700 17px/1 var(--display)}
+.key .kc{font-size:10.5px;opacity:.8}
+.key.pstart{margin-left:7px}
+.key.tonic::before{content:"";position:absolute;top:10px;width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.9}
+.key.on{transform:translateY(4px);filter:brightness(1.22) saturate(1.1)}
+
+.now{min-height:22px;margin:4px 0 12px;font-size:13px;color:var(--ink2)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.sound{display:grid;grid-template-columns:1fr;gap:10px;align-items:center}
+.hint{font-size:12.5px;color:var(--ink2);margin:10px 0 0;max-width:70ch}
+
+/* controls */
+.chip,.btn{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;line-height:1.3}
+.chip small{margin-left:5px;opacity:.7;font-size:11.5px;font-weight:400}
+.btn{padding:9px 16px;font-size:14px;font-weight:600;background:var(--panel2);border-color:transparent}
+.chip.on,.btn.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip:hover:not(.on),.btn:hover:not(.on){border-color:var(--ink2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+
+.bench{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px}
+.panel{background:var(--panel);border-radius:14px;padding:16px 16px 18px}
+.panel h2{font:700 19px/1.2 var(--display);margin:0 0 12px;letter-spacing:-.01em}
+.lbl{font-size:13px;color:var(--ink2);margin:16px 0 7px}
+.lbl:first-of-type{margin-top:0}
+.row{display:grid;grid-template-columns:78px 1fr 96px;gap:10px;align-items:center;margin:10px 0}
+.row.two{grid-template-columns:78px 1fr}
+.row label{font-size:14px;font-weight:500}
+.row output{font-size:13px;color:var(--ink2);text-align:right}
+input[type=range]{width:100%;accent-color:var(--ink);margin:0;min-height:28px}
+input[type=number]{width:100%;background:var(--panel2);border:1px solid transparent;border-radius:8px;padding:6px 8px;font-size:14px;text-align:right}
+.nudge{display:flex;gap:6px;justify-content:flex-end;margin:-2px 0 4px}
+.nudge .chip{padding:4px 10px;font-size:12.5px}
+
+.readout{display:none}
+
+.inspect{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
+#circ svg{width:100%;max-width:390px;display:block;margin:0 auto}
+.dot{cursor:pointer;stroke:var(--panel);stroke-width:2;transform-box:fill-box;transform-origin:center;transition:transform .08s}
+.dot.on{transform:scale(1.6)}
+.hit{fill:transparent;cursor:pointer}
+.tk{font:500 10.5px var(--body);fill:var(--ink2)}
+.cbig{font:800 54px var(--display);fill:var(--ink)}
+.csm{font:500 13px var(--body);fill:var(--ink2)}
+.tablewrap{max-height:430px;overflow:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{position:sticky;top:0;background:var(--panel);text-align:left;font-weight:600;color:var(--ink2);padding:6px 8px;font-size:12.5px}
+td{padding:6px 8px;border-top:1px solid var(--line);white-space:nowrap}
+tr.rw{cursor:pointer}
+tr.rw.on,tr.rw:hover{background:var(--panel2)}
+.sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+.err{color:var(--ink2);font-size:11.5px;margin-left:4px}
+.cap{margin:0 0 8px;font-size:13px;color:var(--ink2)}
+
+@media (min-width:860px){
+  .bench{grid-template-columns:1fr 1fr}
+  .inspect{grid-template-columns:minmax(300px,390px) 1fr}
+  .sound{grid-template-columns:auto 1fr 1fr;gap:22px}
+  .key{height:230px}
+}
+.hexpanel .grid2{display:grid;grid-template-columns:1fr;gap:20px;align-items:start}
+#hex svg{width:100%;max-width:380px;display:block;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.hx{stroke:var(--panel);stroke-width:1.6;cursor:pointer;transition:filter .06s}
+.hx.on{filter:brightness(1.35)}
+.hxt{font:600 8.5px var(--body);text-anchor:middle;pointer-events:none}
+.hc{fill:var(--line);stroke:var(--panel);stroke-width:1.6;opacity:.75}
+.ctr{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-dasharray:2 2;pointer-events:none}
+.field{display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:center;margin:10px 0}
+.field label{font-size:14px;font-weight:500}
+input[type=text]{width:100%;background:var(--panel2);border:1px solid transparent;border-radius:8px;padding:7px 10px;font-size:14px}
+pre.out{max-height:250px;overflow:auto;background:var(--panel2);border-radius:10px;padding:10px 12px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:10px 0 8px;white-space:pre-wrap;word-break:break-all}
+.status{font-size:13px;color:var(--ink2);min-height:20px;margin:6px 0 0}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+@media (min-width:860px){.hexpanel .grid2{grid-template-columns:minmax(300px,380px) 1fr}}
+[hidden]{display:none!important}
+.temper{margin-bottom:14px}
+.temper.off .tb{display:none}
+.temper .tgrid{display:grid;grid-template-columns:1fr;gap:6px 26px;align-items:start}
+.tstat{font-size:13.5px;margin:12px 0 0;max-width:62ch}
+.tstat.bad{color:var(--cL)}
+.tstat .chip{margin-left:6px}
+.mwrap{max-height:none}
+.mt td,.mt th{text-align:right;padding:5px 8px}
+.mt th:first-child{text-align:left}
+.mt tbody th{position:static;background:none;font-weight:600;color:var(--ink2);border-top:1px solid var(--line);white-space:nowrap}
+.crow{display:grid;grid-template-columns:minmax(90px,auto) 1fr auto auto;gap:4px 12px;align-items:baseline;padding:5px 0;border-top:1px solid var(--line);font-size:13px}
+.crow:first-child{border-top:0}
+.cr{font-weight:600}
+.cm{color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc3{white-space:nowrap}
+.ctag{font-size:11.5px;color:var(--ink2);min-width:46px;text-align:right}
+.desc{font-size:12.5px;color:var(--ink2);margin:8px 0 0;max-width:60ch}
+.sum{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:13.5px;margin:16px 0 0}
+.sum dt{color:var(--ink2)}
+.sum dd{margin:0}
+.chain{display:flex;gap:4px;overflow-x:auto;padding:2px 1px 8px;scrollbar-width:thin}
+.cc{flex:0 0 auto;min-width:62px;border:1px solid var(--line);background:transparent;border-radius:10px;padding:6px 6px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.cc.in{background:var(--panel2);border-color:transparent}
+.cc.t{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cc .co{font:700 14px/1 var(--display)}
+.cc .cl{font-size:12px;line-height:1.3;text-align:center;min-height:16px}
+.cc .cp{font-size:10.5px;opacity:.7}
+@media (min-width:860px){.temper .tgrid{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="nv-brand">
+/* Nick Vuci house style: Ivory (light) and Nocturne (dark, the original nickvuci.com palette).
+   The applet's own variables are mapped onto the design-system tokens below. */
+:root{--nv-ground-start:#f7f4ec;--nv-ground-end:#f7f4ec;--nv-surface:#f7f4ec;--nv-surface-raised:#fffdf8;--nv-surface-sunk:#ece7db;--nv-ink:#121933;--nv-ink-muted:#565c70;--nv-hairline:#dcd5c6;--nv-brand-blue:#1640c8;--nv-blue:#1640c8;--nv-on-blue:#fffdf8;--nv-blue-soft:#dde4f7;--nv-gold:#b8892b;--nv-gold-ink:#7a5a1c;--nv-gold-soft:#efe4cb;--nv-on-gold:#121933;--nv-alert:#b42a12;--nv-focus-ring:#1640c8;--nv-burgundy:#6b1d34;--nv-burgundy-ink:#6b1d34;--nv-burgundy-mid:#7a2c40;--nv-burgundy-soft:#f3e4e8;--nv-burgundy-wash:#faf2f3;--nv-band:#2e0f16;--nv-on-band:#f5ecee;--nv-on-band-muted:#d1b6bd;--nv-band-line:#4f2530;--nv-band-edge:#916a72;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#d1a246;--nv-prime-3:#3d5ba9;--nv-prime-5:#2f7d6b;--nv-prime-7:#a2562e;--nv-prime-11:#6b4f9e;--nv-prime-13:#963c8c;--nv-edge:#8F897C;--nv-grid:#e8e2d5;--nv-font-display:"Cormorant Garamond","EB Garamond",Garamond,"Times New Roman",serif;--nv-font-sans:"Montserrat","Helvetica Neue",Arial,system-ui,sans-serif;--nv-font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--panel2:var(--nv-surface-sunk);--paper:var(--nv-surface-raised);--ink:var(--nv-ink);--ink2:var(--nv-ink-muted);--line:var(--nv-hairline);--cS:var(--nv-blue);--cM:var(--nv-prime-11);--cL:var(--nv-burgundy-mid);--cEq:var(--nv-ink-muted);--on-k:var(--nv-on-blue);--display:var(--nv-font-display);--body:var(--nv-font-sans);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--panel2:var(--nv-surface-sunk);--paper:var(--nv-surface-raised);--ink:var(--nv-ink);--ink2:var(--nv-ink-muted);--line:var(--nv-hairline);--cS:var(--nv-blue);--cM:var(--nv-prime-11);--cL:var(--nv-burgundy-mid);--cEq:var(--nv-ink-muted);--on-k:var(--nv-on-blue);--display:var(--nv-font-display);--body:var(--nv-font-sans);color-scheme:dark}}
+:root[data-theme="dark"]{--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--panel2:var(--nv-surface-sunk);--paper:var(--nv-surface-raised);--ink:var(--nv-ink);--ink2:var(--nv-ink-muted);--line:var(--nv-hairline);--cS:var(--nv-blue);--cM:var(--nv-prime-11);--cL:var(--nv-burgundy-mid);--cEq:var(--nv-ink-muted);--on-k:var(--nv-on-blue);--display:var(--nv-font-display);--body:var(--nv-font-sans);color-scheme:dark}
+html body{background-color:var(--nv-surface);background-image:linear-gradient(135deg,var(--nv-ground-start),var(--nv-ground-end));background-attachment:fixed;color:var(--nv-ink)}
+.eyebrow{color:var(--nv-gold-ink)}
+h2,h3{color:var(--nv-burgundy-ink)}
+
+.nv-appbar{position:relative;z-index:30;background:var(--nv-surface-raised);border-bottom:1px solid var(--nv-burgundy-soft);
+  padding-top:env(safe-area-inset-top,0px);font-family:var(--nv-font-sans);color:var(--nv-ink)}
+.nv-appbar,.nv-appbar *{box-sizing:border-box}
+.nv-appbar{text-align:left;grid-column:1/-1;align-self:stretch}
+.nv-in{max-width:var(--nv-appbar-max,1200px);margin:0 auto;justify-content:flex-start;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:14px}
+.nv-lock{display:flex;align-items:center;gap:12px;flex:none;text-decoration:none;color:inherit}
+.nv-lock:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-mark{display:block;width:40px;height:auto}
+.nv-wm{font-weight:400;font-size:18px;letter-spacing:.18em;white-space:nowrap;line-height:1}
+.nv-wm .n{color:var(--nv-brand-blue)}.nv-wm .v{color:var(--nv-gold)}
+.nv-name{margin:0;padding-left:14px;border-left:1px solid var(--nv-burgundy-soft);font-family:var(--nv-font-sans);font-weight:400;font-size:18px;
+  line-height:1;letter-spacing:.18em;color:var(--nv-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:640px){.nv-wm{display:none}.nv-mark{width:34px}.nv-name{font-size:15px;letter-spacing:.1em;padding-left:12px}.nv-in{gap:12px;padding-top:10px;padding-bottom:10px}}
+
+.nv-theme{flex:none;display:grid;place-items:center;width:36px;height:36px;padding:0;margin-left:auto;cursor:pointer;
+  color:var(--nv-ink-muted);background:transparent;border:1px solid var(--nv-burgundy-soft);border-radius:2px;
+  transition:color .2s ease,border-color .2s ease,background-color .2s ease}
+.nv-theme:hover{color:var(--nv-gold);border-color:var(--nv-gold)}
+.nv-theme:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-ti{grid-area:1/1;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity .3s ease,transform .3s ease}
+.nv-ti-sun{opacity:0;transform:rotate(-45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-moon{opacity:0;transform:rotate(45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-sun{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.nv-ti,.nv-theme{transition:none}}
+
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nv-appbar{border-bottom-width:2px}
+  :root:not([data-theme="light"]) .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+  :root:not([data-theme="light"]) .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}}
+:root[data-theme="dark"] .nv-appbar{border-bottom-width:2px}
+:root[data-theme="dark"] .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+:root[data-theme="dark"] .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}
+
+</style>
+</head>
+<body>
+<div class="nv-appbar" role="banner"><div class="nv-in"><a class="nv-lock" href="https://nickvuci.com" target="_blank" rel="noopener" aria-label="Nick Vuci — nickvuci.com"><svg class="nv-mark" viewBox="-7.75 0 205.50 80" role="img" aria-label="Nick Vuci"><defs><clipPath id="nvc"><rect x="-9.75" y="0" width="209.50" height="80"/></clipPath><polyline id="nvz" points="-20.50,106.19 0.00,71.84 38.00,8.16 76.00,71.84 114.00,8.16 152.00,71.84 190.00,8.16 210.50,-26.19" fill="none" stroke-width="7.0" stroke-linejoin="miter" stroke-miterlimit="10"/><clipPath id="nvf0"><polygon points="114.00,16.31 106.69,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf1"><polygon points="114.00,16.31 107.90,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf2"><polygon points="114.00,16.31 109.12,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf3"><polygon points="114.00,16.31 110.34,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf4"><polygon points="114.00,16.31 111.56,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf5"><polygon points="114.00,16.31 112.78,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf6"><polygon points="114.00,16.31 114.00,-43.69 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf7"><polygon points="114.00,16.31 115.22,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf8"><polygon points="114.00,16.31 116.44,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf9"><polygon points="114.00,16.31 117.66,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf10"><polygon points="114.00,16.31 118.88,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf11"><polygon points="114.00,16.31 120.10,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf12"><polygon points="114.00,16.31 121.31,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath></defs><g clip-path="url(#nvc)"><use href="#nvz" style="stroke:var(--nv-brand-blue)"/><g clip-path="url(#nvf0)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 4.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf1)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 12.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf2)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 20.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf3)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 29.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf4)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 37.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf5)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 45.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf6)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 54.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf7)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 62.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf8)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 70.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf9)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 79.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf10)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 87.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf11)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 95.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf12)"><use href="#nvz" style="stroke:var(--nv-gold)"/></g></g></svg><span class="nv-wm"><span class="n">Nick</span> <span class="v">Vuci</span></span></a><h1 class="nv-name">Temperament Workbench</h1><button type="button" class="nv-theme" aria-label="Switch to dark theme" aria-pressed="false" title="Switch to dark theme"><svg class="nv-ti nv-ti-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M19.5 14.2A7.5 7.5 0 0 1 9.8 4.5a7.5 7.5 0 1 0 9.7 9.7Z"/></svg><svg class="nv-ti nv-ti-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button></div></div>
+<main>
+  <header class="bar">
+    <h2 class="nv-dup" aria-hidden="true" hidden>Temperament Workbench</h2>
+    <details class="about">
+      <summary>How this works</summary>
+      <p>A regular temperament maps just intervals onto a few generators by treating small intervals called commas as unisons. Temper out 81/80 and four fifths make a major third: that's meantone. A linear (rank&#8209;2) temperament has two generators, a period (usually the octave) and a generator, so its mapping says how many of each make every prime.</p>
+      <p>Define a temperament by its commas or by joining two equal temperaments, then choose how to tune the generator. Stack generators, fold them into the period, and you get scales. A scale with only two step sizes, large (L) and small (s), is a MOS.</p>
+    </details>
+  </header>
+
+  <div class="topbar" id="topbar">
+    <div class="sel"><label for="selT">Temperament</label><select id="selT"></select></div>
+    <div class="sel"><label for="selO">Tuning</label><select id="selO"></select></div>
+    <div class="sel"><label for="selM">Scale (MOS)</label><select id="selM"></select></div>
+    <p class="tsum" id="topSum"></p>
+  </div>
+
+  <section class="stage" aria-label="Play the scale">
+    <div class="pattern" id="pattern" aria-live="polite"></div>
+    <p class="lede" id="lede"></p>
+    <div class="kbd" id="kbd" role="group" aria-label="Scale keyboard"></div>
+    <div class="now" id="now">Tap or drag across the keys. Each key's width is the size of its step.</div>
+    <div class="actions">
+      <button class="btn" data-act="up">Scale up</button>
+      <button class="btn" data-act="down">Scale down</button>
+      <button class="btn" data-act="triad">Triad</button>
+      <button class="btn" data-act="seventh">Seventh chord</button>
+      <button class="btn" data-act="gen3">3 generators</button>
+      <button class="btn" data-act="gen4">4 generators</button>
+      <button class="btn" id="impBtn" data-act="improv">Improvise</button>
+    </div>
+    <div class="sound">
+      <div class="chips" id="waves">
+        <button class="chip" data-wave="organ">Organ</button>
+        <button class="chip" data-wave="sine">Sine</button>
+        <button class="chip" data-wave="triangle">Triangle</button>
+        <button class="chip" data-wave="saw">Saw</button>
+        <button class="chip" data-wave="pluck">Pluck</button>
+      </div>
+      <div class="row two" style="margin:0"><label for="fRng">Tonic</label><div style="display:flex;gap:10px;align-items:center"><input type="range" id="fRng" min="65" max="880" step="0.01"><output id="fOut" style="min-width:64px"></output></div></div>
+      <div class="row two" style="margin:0"><label for="vRng">Volume</label><input type="range" id="vRng" min="0" max="1" step="0.01"></div>
+    </div>
+    <div class="chips" style="margin-top:12px" id="rangeChips">
+      <button class="chip" data-range="1">One octave</button>
+      <button class="chip" data-range="2">Two octaves</button>
+    </div>
+    <p class="hint">On a computer keyboard: home row (A to ') plays degrees 0 to 10, the row above (Q to ]) continues upward, and the bottom row (Z to /) plays the notes below the tonic.</p>
+  </section>
+
+  <section class="panel imat" id="imat" aria-label="Interval matrix">
+    <h2>Interval matrix</h2>
+    <p class="cap">Every interval in the scale: each row starts on a degree, each column spans that many scale steps. Colors group the sizes within a column. Tap a cell to hear it.</p>
+    <div class="chips" id="mvChips">
+      <button class="chip" data-mv="cents">Cents</button>
+      <button class="chip" data-mv="just">Just ratio</button>
+      <button class="chip" data-mv="gens">Generators</button>
+    </div>
+    <div class="tablewrap" style="margin-top:10px"><table id="imtbl"></table></div>
+    <p class="detail" id="imDetail" aria-live="polite"></p>
+  </section>
+
+  <section class="panel temper" id="temper" aria-label="Temperament">
+    <h2>Temperament</h2>
+    <div class="chips scroll" id="tpresets"></div>
+    <div class="tgrid">
+      <div>
+        <div class="lbl">Define it by</div>
+        <div class="chips" id="tdefChips">
+          <button class="chip" data-tdef="commas">Commas</button>
+          <button class="chip" data-tdef="ets">Joining two ETs</button>
+          <button class="chip" data-tdef="free">Free generator</button>
+        </div>
+        <div class="field" id="fSub"><label for="tSub">Subgroup</label><input type="text" id="tSub" autocomplete="off" spellcheck="false" placeholder="2.3.5"></div>
+        <div class="field" id="fCommas"><label for="tCommas">Commas</label><input type="text" id="tCommas" autocomplete="off" spellcheck="false" placeholder="81/80, 126/125"></div>
+        <div class="field" id="fEts"><label for="tEts">Join</label><input type="text" id="tEts" autocomplete="off" spellcheck="false" placeholder="12 &amp; 19"></div>
+        <p class="tstat" id="tStatus" role="status"></p>
+        <div class="tb">
+          <div class="lbl">Mapping</div>
+          <div class="tablewrap mwrap"><table class="mt" id="mtbl"></table></div>
+          <p class="hint">Each column says how many periods and generators make that prime. Everything else follows from these two rows.</p>
+          <div class="lbl">Commas it tempers out</div>
+          <div id="clist"></div>
+        </div>
+      </div>
+      <div class="tb">
+        <div class="lbl">Tuning</div>
+        <div class="chips" id="optChips"></div>
+        <p class="desc" id="optDesc"></p>
+        <div class="lbl" id="limLbl">Target intervals (odd limit)</div>
+        <div class="chips" id="limChips"></div>
+        <div class="lbl">Make one interval pure</div>
+        <div class="chips" id="pureChips"></div>
+        <div id="etWrap">
+          <div class="lbl" id="etLbl">Equal tunings in this temperament</div>
+          <div class="chips" id="etChips"></div>
+        </div>
+        <div class="chips" style="margin-top:14px"><button class="chip" id="flipBtn" data-flip="1">Use the complement as generator</button></div>
+        <dl class="sum" id="tSum"></dl>
+      </div>
+    </div>
+    <div class="tb">
+      <div class="lbl">Generator chain</div>
+      <div class="chain" id="chain"></div>
+      <p class="hint">Each cell is a number of generators above the tonic, with the just intervals that land there. Shaded cells are in the current scale. Tap one to hear it.</p>
+      <div class="lbl">Target intervals</div>
+      <p class="cap" id="ttCap"></p>
+      <div class="tablewrap"><table id="ttbl"></table></div>
+    </div>
+  </section>
+
+  <div class="bench">
+    <section class="panel" id="tuning" aria-label="Period and generator">
+      <h2>Period and generator</h2>
+      <p class="hint" id="manualHint" style="margin:0 0 6px">Moving these switches the tuning to Custom, so you can hear the temperament detune.</p>
+      <div class="row"><label for="pRng">Period</label><input type="range" id="pRng" min="100" max="2400" step="0.01"><input type="number" id="pNum" step="0.001" inputmode="decimal" aria-label="Period in cents"></div>
+      <div class="row"><label for="gRng">Generator</label><input type="range" id="gRng" min="0.5" max="1199.5" step="0.01"><input type="number" id="gNum" step="0.001" inputmode="decimal" aria-label="Generator in cents"></div>
+      <div class="nudge">
+        <button class="chip" data-nudge="-1">&minus;1</button>
+        <button class="chip" data-nudge="-0.1">&minus;0.1</button>
+        <button class="chip" data-nudge="0.1">+0.1</button>
+        <button class="chip" data-nudge="1">+1</button>
+      </div>
+
+      <div id="freeTools">
+        <div class="lbl">Period</div>
+        <div class="chips" id="pChips"></div>
+        <div class="lbl">Set the generator to a just interval</div>
+        <div class="chips" id="pure"></div>
+        <div class="lbl" id="edoLbl">Snap to an equal tuning</div>
+        <div class="chips" id="edos"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="scalePanel" aria-label="Scale">
+      <h2>Scale</h2>
+      <div class="row"><label for="nRng">Notes</label><input type="range" id="nRng" min="2" max="48" step="1"><output id="nOut"></output></div>
+      <div class="lbl">Note counts with exactly two step sizes</div>
+      <div class="chips" id="mos"></div>
+      <div class="row"><label for="mRng">Mode</label><input type="range" id="mRng" min="0" max="6" step="1"><output id="mOut"></output></div>
+      <p class="hint" id="modeHint">The mode picks which note of the scale is the tonic. It rotates the step pattern without changing the notes.</p>
+    </section>
+  </div>
+
+  <section class="panel hexpanel" id="hexpanel" aria-label="HexBoard">
+    <h2>HexBoard</h2>
+    <div class="grid2">
+      <div>
+        <div id="hex"></div>
+        <p class="hint" id="hexNow" style="text-align:center">Tap the keys to hear this layout. The dark key is the tonic, colored keys are in the scale, light keys are the other notes of the tuning.</p>
+      </div>
+      <div>
+        <div class="lbl" style="margin-top:0">Tuning size (notes per period)</div>
+        <div class="chips" id="tsize"></div>
+        <p class="hint" id="tsizeNote" style="margin-top:8px"></p>
+
+        <div class="lbl">Layout</div>
+        <div class="chips" id="lprs"></div>
+        <div class="row"><label for="aRng">Across</label><input type="range" id="aRng" min="-24" max="24" step="1"><input type="number" id="aNum" step="1" inputmode="numeric" aria-label="Across steps"></div>
+        <div class="row"><label for="bRng">Up-right</label><input type="range" id="bRng" min="-24" max="24" step="1"><input type="number" id="bNum" step="1" inputmode="numeric" aria-label="Up-right steps"></div>
+        <div class="row"><label for="cRng">Center note</label><input type="range" id="cRng" min="-12" max="12" step="1"><input type="number" id="cNum" step="1" inputmode="numeric" aria-label="Degree under the center key"></div>
+        <p class="hint" id="neighbors" style="margin-top:4px"></p>
+
+        <div class="lbl">Export for HexBoard</div>
+        <div class="field"><label for="xName">Name</label><input type="text" id="xName" maxlength="19" placeholder="Automatic" autocomplete="off"></div>
+        <div class="chips" id="exChips">
+          <button class="chip" data-exp="bundle">Everything (JSON)</button>
+          <button class="chip" data-exp="tuning">Tuning (JSON)</button>
+          <button class="chip" data-exp="layout">Layout (JSON)</button>
+          <button class="chip" data-exp="scala">Scala tuning</button>
+        </div>
+        <pre class="out" id="exOut" tabindex="0" aria-label="Export preview"></pre>
+        <div class="actions" style="margin:0">
+          <button class="btn" id="hSave" data-hact="save">Save file</button>
+          <button class="btn" data-hact="copy">Copy</button>
+        </div>
+        <p class="status" id="exStatus" role="status"></p>
+        <details class="about">
+          <summary>Getting it onto the HexBoard</summary>
+          <p>HexBoard Sync imports Scala files, so the most direct route is: save the Scala tuning, rename it from .scl.txt to .scl, and import it on the Tunings &amp; Layouts page. Then enter the Across and Up-right numbers on the Layout step and include the scale degrees listed above on the Scale &amp; color step.</p>
+          <p>The JSON files hold the same values under the field names of the firmware's preset-sync object model. They are not Sync's own bundle file (hexboard.tuningBundle.v2), whose field layout I couldn't find documented, so Sync may not open them directly.</p>
+          <p>The key map follows the firmware source: 14 rows of 10 keys, odd rows shifted half a key to the right, button 0 at the top left, the center key is button 65, and buttons 0, 20, 40, 60, 80, 100 and 120 are the seven command buttons, so 133 keys play notes; the seven command buttons are left out of the picture. Pitches on the board come from the Across and Up-right numbers.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel inspect" aria-label="Inspect the scale">
+    <div>
+      <div id="circ"></div>
+      <p class="hint" style="text-align:center">The circle is one period. Lines follow the generator chain. Small ticks mark where just intervals sit.</p>
+    </div>
+    <div>
+      <p class="cap" id="tblCap">Tap a row to hear it.</p>
+      <div class="tablewrap"><table id="tbl"></table></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const mod=(a,m)=>((a%m)+m)%m;
+const log2=Math.log2;
+const EPS=1e-6, CTOL=1e-4;
+const fmt=(v,d=2)=>v.toFixed(d);
+const sgn=(v,d=1)=>(v<0?'\u2212':'+')+Math.abs(v).toFixed(d);
+
+/* ---------- state ---------- */
+const S={P:1200,g:696.578,N:7,mode:0,wave:'organ',base:261.63,vol:0.6,range:1,tuneSize:0,lay:'wh',a:2,b:7,cdeg:0,exp:'scala',xname:'',
+  tdef:'commas',sub:'2.3.5',commas:'81/80',ets:'12 & 19',opt:'cte',lim:5,flip:true};
+const KEY='tempwb.v2';
+try{
+  const s=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(s&&typeof s==='object'){
+    for(const k of ['P','g','N','mode','base','vol','range','tuneSize','a','b','cdeg']) if(typeof s[k]==='number'&&isFinite(s[k])) S[k]=s[k];
+    if(['organ','sine','triangle','saw','pluck'].includes(s.wave)) S.wave=s.wave;
+    if(['wh','step','gen','comp','custom'].includes(s.lay)) S.lay=s.lay;
+    if(['bundle','tuning','layout','scala'].includes(s.exp)) S.exp=s.exp;
+    if(typeof s.xname==='string') S.xname=s.xname;
+    if(['commas','ets','free'].includes(s.tdef)) S.tdef=s.tdef;
+    for(const k of ['sub','commas','ets','opt']) if(typeof s[k]==='string') S[k]=s[k];
+    if(typeof s.lim==='number'&&isFinite(s.lim)) S.lim=s.lim;
+    if(typeof s.flip==='boolean') S.flip=s.flip;
+  }
+}catch(e){}
+function normalize(){
+  S.P=clamp(S.P,50,4000);
+  S.g=clamp(S.g,0.5,2400);
+  S.N=Math.round(clamp(S.N,2,48));
+  S.mode=Math.max(0,Math.round(S.mode));
+  S.base=clamp(S.base,40,2000);
+  S.vol=clamp(S.vol,0,1);
+  S.range=S.range===2?2:1;
+  S.tuneSize=Math.round(clamp(S.tuneSize,0,48));
+  S.a=Math.round(clamp(S.a,-64,64));
+  S.b=Math.round(clamp(S.b,-64,64));
+  S.cdeg=Math.round(clamp(S.cdeg,-1024,1024));
+  S.xname=String(S.xname||'').slice(0,19);
+  S.lim=Math.round(clamp(S.lim,3,99));
+  for(const k of ['sub','commas','ets','opt'])S[k]=String(S[k]).slice(0,400);
+}
+normalize();
+const G=()=>clamp(S.g,0.5,S.P-0.5);
+let saveT=null;
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}},300);}
+
+/* ---------- just intonation reference ---------- */
+const odd=n=>{while(n%2===0)n/=2;return n;};
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const JI=[];
+for(let q=1;q<=32;q++)for(let p=q;p<=3*q;p++){
+  if(gcd(p,q)!==1)continue;
+  if(Math.max(odd(p),odd(q))>15)continue;
+  JI.push({p,q,c:1200*log2(p/q),h:log2(p*q)});
+}
+function jiMatch(c,tol=12){
+  let best=null,bs=1e9;
+  for(const r of JI){
+    const e=c-r.c; if(Math.abs(e)>tol)continue;
+    const s=r.h+Math.abs(e)/6;
+    if(s<bs){bs=s;best={r,e};}
+  }
+  return best;
+}
+const jiText=m=>m?`${m.r.p}/${m.r.q}<span class="err">${sgn(m.e)}</span>`:'<span class="err">&ndash;</span>';
+const TICKS=[[9,8],[7,6],[6,5],[5,4],[4,3],[3,2],[8,5],[5,3],[7,4]];
+
+/* ---------- regular temperament engine ---------- */
+const RT=(()=>{
+const PR=[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97];
+const cJ=p=>1200*Math.log2(p);
+const gcdN=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t;}return a;};
+const dot=(a,b)=>{let s=0;for(let i=0;i<a.length;i++)s+=a[i]*b[i];return s;};
+function factor(n){const o={};for(const p of PR){while(n%p===0){o[p]=(o[p]||0)+1;n/=p;}if(n===1)break;}return n===1?o:null;}
+function expsOf(n,primes){const f=factor(n);if(!f)return null;for(const p in f)if(!primes.includes(+p))return null;return primes.map(p=>f[p]||0);}
+function centsM(m,primes){let c=0;for(let i=0;i<m.length;i++)c+=m[i]*cJ(primes[i]);return c;}
+const monzoStr=m=>`[${m.join(' ')}⟩`;
+function ratioStr(m,primes){
+  let n=1n,d=1n;
+  m.forEach((e,i)=>{if(e>0)n*=BigInt(primes[i])**BigInt(e);else if(e<0)d*=BigInt(primes[i])**BigInt(-e);});
+  const s=`${n}/${d}`;return s.length>21?monzoStr(m):s;
+}
+const height=(m,primes)=>m.reduce((s,e,i)=>s+Math.abs(e)*Math.log2(primes[i]),0);
+const eqName=p=>p===2?'octave':p===3?'tritave':`${p}/1`;
+
+function parseSubgroup(txt){
+  const parts=String(txt).trim().split(/[.\s,]+/).filter(Boolean);
+  if(!parts.length)return {err:'Enter a subgroup of primes, like 2.3.5.'};
+  const nums=parts.map(Number);
+  for(let i=0;i<nums.length;i++)if(!PR.includes(nums[i]))return {err:`${parts[i]} isn’t a prime up to 97. List primes only, like 2.3.5.7.`};
+  if(new Set(nums).size!==nums.length)return {err:'A prime is listed twice in the subgroup.'};
+  if(nums.length<2)return {err:'A linear temperament needs at least two primes in the subgroup.'};
+  return {primes:[nums[0],...nums.slice(1).sort((a,b)=>a-b)]};
+}
+
+function parseCommas(txt,primes){
+  const items=[],outside=new Set();let s=String(txt);
+  const mre=/[\[⟨<]([^\]⟩>|]*)[\]⟩>|]/g;let m;
+  while((m=mre.exec(s))){
+    const v=m[1].trim().split(/[\s,]+/).filter(Boolean).map(Number);
+    if(!v.length||v.some(x=>!Number.isInteger(x)))return {err:`Couldn’t read ${m[0]}. A monzo lists whole-number exponents, like [-4 4 -1⟩.`};
+    if(v.length!==primes.length)return {err:`${m[0]} has ${v.length} exponents, but the ${primes.join('.')} subgroup needs ${primes.length}.`};
+    items.push({monzo:v,src:m[0]});
+  }
+  s=s.replace(mre,' ');
+  for(const tok of s.split(/[\s,;]+/).filter(Boolean)){
+    const r=tok.match(/^(\d+)[\/:](\d+)$/);
+    if(!r)return {err:`Couldn’t read “${tok}”. Write commas as ratios like 81/80, or as monzos like [-4 4 -1⟩.`};
+    const n=Number(r[1]),d=Number(r[2]);
+    if(!n||!d||n>Number.MAX_SAFE_INTEGER||d>Number.MAX_SAFE_INTEGER)return {err:`${tok} is out of range.`};
+    const fn=factor(n),fd=factor(d);
+    if(!fn||!fd)return {err:`${tok} has a prime factor above 97.`};
+    const all={};for(const p in fn)all[p]=(all[p]||0)+fn[p];for(const p in fd)all[p]=(all[p]||0)-fd[p];
+    for(const p in all)if(all[p]&&!primes.includes(+p))outside.add(+p);
+    items.push({monzo:primes.map(p=>all[p]||0),src:tok});
+  }
+  if(outside.size)return {outside:[...outside].sort((a,b)=>a-b)};
+  for(const it of items)if(it.monzo.every(x=>x===0))return {err:`${it.src} equals 1/1, so it isn’t a comma.`};
+  return {items};
+}
+
+function val(N,primes,warts){
+  const e=Math.log2(primes[0]);
+  return primes.map((p,i)=>{
+    const x=N*Math.log2(p)/e;let v=Math.round(x);
+    if(warts&&warts.includes(String.fromCharCode(97+i)))v+=(x>=v?1:-1);
+    return v;
+  });
+}
+function parseETs(txt,primes){
+  const toks=String(txt).split(/[&+,\s]+/).filter(Boolean),vals=[];
+  for(const t of toks){
+    const m=t.match(/^(\d+)([a-z]*)$/i);
+    if(!m)return {err:`Couldn’t read “${t}”. Write equal temperaments as step counts, like 12 & 19, with optional wart letters like 17c.`};
+    const N=+m[1];if(N<1||N>9999)return {err:`${t} is out of range.`};
+    const w=m[2].toLowerCase();
+    for(const ch of w)if(ch.charCodeAt(0)-97>=primes.length)return {err:`The wart “${ch}” in ${t} doesn’t match a prime in the subgroup.`};
+    vals.push(val(N,primes,w));
+  }
+  if(vals.length<2)return {err:'Enter two equal temperaments to join, like 12 & 19.'};
+  return {vals};
+}
+
+/* integer kernel {x : A x = 0}, saturated basis via unimodular column reduction */
+function kernel(rows,n){
+  const A=rows.map(r=>r.slice());
+  const U=[];for(let i=0;i<n;i++){const r=new Array(n).fill(0);r[i]=1;U.push(r);}
+  const swap=(i,j)=>{if(i===j)return;for(const r of A){const t=r[i];r[i]=r[j];r[j]=t;}for(const r of U){const t=r[i];r[i]=r[j];r[j]=t;}};
+  const addc=(j,k,f)=>{for(const r of A)r[j]+=f*r[k];for(const r of U)r[j]+=f*r[k];};
+  let col=0;
+  for(let r=0;r<A.length&&col<n;r++){
+    for(let guard=0;guard<1000;guard++){
+      let piv=-1,best=Infinity;
+      for(let j=col;j<n;j++){const v=Math.abs(A[r][j]);if(v&&v<best){best=v;piv=j;}}
+      if(piv<0)break;
+      swap(col,piv);
+      let done=true;
+      for(let j=col+1;j<n;j++)if(A[r][j]){const q=Math.round(A[r][j]/A[r][col]);addc(j,col,-q);if(A[r][j])done=false;}
+      if(done){col++;break;}
+    }
+  }
+  const out=[];for(let c=col;c<n;c++)out.push(U.map(row=>row[c]));
+  return out;
+}
+/* row Hermite normal form */
+function hnf(rows){
+  const R=rows.map(r=>r.slice()),n=R.length?R[0].length:0;let pr=0;
+  for(let c=0;c<n&&pr<R.length;c++){
+    let found=false;
+    for(let guard=0;guard<1000;guard++){
+      let piv=-1,best=Infinity;
+      for(let r=pr;r<R.length;r++){const v=Math.abs(R[r][c]);if(v&&v<best){best=v;piv=r;}}
+      if(piv<0)break;
+      found=true;
+      const t=R[pr];R[pr]=R[piv];R[piv]=t;
+      let done=true;
+      for(let r=pr+1;r<R.length;r++)if(R[r][c]){const q=Math.round(R[r][c]/R[pr][c]);for(let j=0;j<n;j++)R[r][j]-=q*R[pr][j];if(R[r][c])done=false;}
+      if(done)break;
+    }
+    if(!found)continue;
+    if(R[pr][c]<0)for(let j=0;j<n;j++)R[pr][j]=-R[pr][j];
+    for(let r=0;r<pr;r++){const q=Math.floor(R[r][c]/R[pr][c]);if(q)for(let j=0;j<n;j++)R[r][j]-=q*R[pr][j];}
+    pr++;
+  }
+  return R.filter(r=>r.some(x=>x));
+}
+
+function build(def){
+  const sg=parseSubgroup(def.sub);if(sg.err)return {err:sg.err};
+  const primes=sg.primes,n=primes.length,J=primes.map(cJ),eq=primes[0];
+  let commaItems=[],commas;
+  if(def.mode==='ets'){
+    const e=parseETs(def.ets,primes);if(e.err)return {err:e.err};
+    commas=kernel(e.vals,n);
+    const rk=n-commas.length;
+    if(rk<2)return {err:'Those equal temperaments map every prime the same way here, so joining them doesn’t give a linear temperament.'};
+    if(rk>2)return {err:`Joining those gives a rank-${rk} temperament. Join exactly two independent equal temperaments.`};
+  }else{
+    const c=parseCommas(def.commas,primes);
+    if(c.err)return {err:c.err};
+    if(c.outside)return {err:`That uses ${c.outside.join(' and ')}, which ${c.outside.length>1?'aren’t':'isn’t'} in the ${primes.join('.')} subgroup.`,addPrimes:c.outside};
+    commaItems=c.items;commas=c.items.map(x=>x.monzo);
+  }
+  const M=kernel(commas,n);
+  const need=n-2,have=n-M.length;
+  if(M.length>2)return {err:`That’s a rank-${M.length} temperament. A linear temperament on ${primes.join('.')} needs ${need} independent comma${need===1?'':'s'}, and ${have===0?'none are':have===1?'only 1 is':`only ${have} are`} entered.`};
+  if(M.length<2)return {err:`Those commas leave rank ${M.length}, which is too few. A linear temperament on ${primes.join('.')} needs exactly ${need} independent comma${need===1?'':'s'}.`};
+  const H=hnf(M);
+  if(H.length!==2||H[0][0]===0)return {err:`Those commas would temper out the ${eqName(eq)} itself.`};
+  const k=H[0][0],r1=H[0],r2=H[1],w=primes.map(p=>1/Math.log2(p));
+  // CTE in the Hermite basis, used only to orient the generator canonically
+  const P0=J[0]/k;let num=0,den=0;
+  for(let i=0;i<n;i++){const w2=w[i]*w[i];num+=w2*r2[i]*(J[i]-P0*r1[i]);den+=w2*r2[i]*r2[i];}
+  const G0=num/den,jj=Math.floor(G0/P0);
+  let a=r1.map((x,i)=>x+jj*r2[i]),b=r2.slice(),g0=G0-jj*P0;
+  if(g0>P0/2+1e-9){a=a.map((x,i)=>x+b[i]);b=b.map(x=>-x);g0=P0-g0;}
+  return {primes,n,J,w,k,a,b,g0,eq,commaItems,key:JSON.stringify([primes,a,b])};
+}
+
+/* tunings, all in the canonical basis: tuned prime i = P*a[i] + g*b[i] */
+function tTE(T){
+  let A11=0,A12=0,A22=0,b1=0,b2=0;
+  for(let i=0;i<T.n;i++){const w2=T.w[i]**2,a=T.a[i],b=T.b[i];A11+=w2*a*a;A12+=w2*a*b;A22+=w2*b*b;b1+=w2*a*T.J[i];b2+=w2*b*T.J[i];}
+  const det=A11*A22-A12*A12;
+  return {P:(b1*A22-A12*b2)/det,g:(A11*b2-A12*b1)/det};
+}
+function tPOTE(T){const r=tTE(T),s=T.J[0]/(T.k*r.P);return {P:r.P*s,g:r.g*s};}
+function tCTE(T){
+  const P=T.J[0]/T.k;let num=0,den=0;
+  for(let i=0;i<T.n;i++){const w2=T.w[i]**2;num+=w2*T.b[i]*(T.J[i]-P*T.a[i]);den+=w2*T.b[i]**2;}
+  return {P,g:num/den};
+}
+function solve3(M,v){
+  const d=m=>m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+  const D=d(M);if(Math.abs(D)<1e-12)return null;
+  return [0,1,2].map(c=>d(M.map((r,i)=>r.map((x,j)=>j===c?v[i]:x)))/D);
+}
+function tTOP(T){
+  const C=[];
+  for(let i=0;i<T.n;i++)for(const s of [1,-1])C.push([s*T.w[i]*T.a[i],s*T.w[i]*T.b[i],s*T.w[i]*T.J[i]]);
+  const score=(P,g)=>{let m=0,ss=0;for(let i=0;i<T.n;i++){const e=Math.abs(T.w[i]*(P*T.a[i]+g*T.b[i]-T.J[i]));if(e>m)m=e;ss+=e*e;}return [m,ss];};
+  let best=null;
+  for(let i=0;i<C.length;i++)for(let j=i+1;j<C.length;j++)for(let l=j+1;l<C.length;l++){
+    // three active constraints: ca*P + cb*g - e = cJ
+    const sol=solve3([[C[i][0],C[i][1],-1],[C[j][0],C[j][1],-1],[C[l][0],C[l][1],-1]],[C[i][2],C[j][2],C[l][2]]);
+    if(!sol)continue;
+    const P=sol[0],g=sol[1];
+    if(!(P>0))continue;
+    const [m,ss]=score(P,g);
+    if(!best||m<best.m-1e-9||(Math.abs(m-best.m)<=1e-9&&ss<best.ss))best={P,g,m,ss};
+  }
+  return best?{P:best.P,g:best.g}:tCTE(T);
+}
+function tMinimax(T,tg){
+  const P=T.J[0]/T.k,L=tg.map(q=>({c:P*q.A-q.J,B:q.B}));
+  const f=g=>{let m=0,ss=0;for(const q of L){const e=Math.abs(q.c+g*q.B);if(e>m)m=e;ss+=e*e;}return [m,ss];};
+  const cand=[];
+  for(const q of L)if(q.B)cand.push(-q.c/q.B);
+  for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){
+    const p=L[i],q=L[j];
+    for(const s of [1,-1]){const den=p.B-s*q.B;if(den)cand.push((s*q.c-p.c)/den);}
+  }
+  let best=null;
+  for(const g of cand){const [m,ss]=f(g);if(!best||m<best.m-1e-9||(Math.abs(m-best.m)<=1e-9&&ss<best.ss))best={g,m,ss};}
+  return {P,g:best?best.g:T.g0};
+}
+function tLS(T,tg){
+  const P=T.J[0]/T.k;let num=0,den=0;
+  for(const q of tg){num-=(P*q.A-q.J)*q.B;den+=q.B*q.B;}
+  return {P,g:den?num/den:T.g0};
+}
+function tPure(T,q){const P=T.J[0]/T.k;return {P,g:(q.J-P*q.A)/q.B};}
+function tET(T,N,beta){const P=T.J[0]/T.k;return {P,g:beta*T.J[0]/N};}
+
+/* odd-limit (or equave-free limit) target intervals, reduced into one equave */
+function targets(T,L){
+  const pr=T.primes,U=[];
+  for(let u=1;u<=L;u++){if(u%T.eq===0)continue;const e=expsOf(u,pr);if(e)U.push({u,e});}
+  const seen=new Map();
+  for(const x of U)for(const y of U){
+    if(x.u===y.u||gcdN(x.u,y.u)!==1)continue;
+    const m=x.e.map((v,i)=>v-y.e[i]);
+    let c=centsM(m,pr);const s=Math.floor(c/T.J[0]+1e-12);m[0]-=s;c-=s*T.J[0];
+    if(c<1e-9)continue;
+    const key=m.join(',');if(seen.has(key))continue;
+    seen.set(key,{monzo:m,J:c,A:dot(T.a,m),B:dot(T.b,m),label:ratioStr(m,pr),h:height(m,pr)});
+  }
+  return [...seen.values()].sort((p,q)=>p.J-q.J);
+}
+function limitOptions(T){
+  const out=[];let prev='';
+  for(let L=3;L<=31;L+=(T.eq===2?2:1)){
+    const t=targets(T,L);if(!t.length)continue;
+    const sig=t.map(q=>q.label).join(',');if(sig===prev)continue;
+    prev=sig;out.push(L);if(t.length>90)break;
+  }
+  return out;
+}
+function defaultLimit(T,opts){
+  const mx=Math.max(...T.primes.slice(1));
+  let want=T.eq===2&&mx===7?9:mx;
+  let best=opts[0];for(const L of opts)if(L<=want)best=L;
+  return best;
+}
+
+/* simplest commas the mapping tempers out */
+function smoothList(primes,B){
+  let L=[{v:1,e:primes.map(()=>0)}];
+  primes.forEach((p,i)=>{
+    const add=[];
+    for(const x of L){let v=x.v*p,k=1;while(v<=B){const e=x.e.slice();e[i]+=k;add.push({v,e});v*=p;k++;}}
+    L=L.concat(add);
+  });
+  return L.sort((x,y)=>x.v-y.v);
+}
+function findCommas(T,maxC=120,limit=10){
+  let B=1e5,L;
+  for(;;){L=smoothList(T.primes,B);if(L.length>=3000||B>=1e14)break;B*=10;}
+  if(L.length>12000)L=L.slice(0,12000);
+  const r=Math.pow(2,maxC/1200),out=[];
+  for(let i=0;i<L.length;i++){
+    const x=L[i];
+    for(let j=i+1;j<L.length&&L[j].v<x.v*r;j++){
+      const y=L[j];
+      if(gcdN(x.v,y.v)!==1)continue;
+      const m=y.e.map((v,k)=>v-x.e[k]);
+      if(dot(T.a,m)||dot(T.b,m))continue;
+      if(m.reduce((g,v)=>gcdN(g,v),0)!==1)continue;
+      out.push({monzo:m,cents:centsM(m,T.primes),h:Math.log2(x.v)+Math.log2(y.v)});
+    }
+  }
+  out.sort((p,q)=>p.h-q.h);
+  return out.slice(0,limit).map(c=>Object.assign(c,{label:ratioStr(c.monzo,T.primes),mz:monzoStr(c.monzo)}));
+}
+/* equal temperaments whose patent val lies in the temperament */
+function supportingETs(T,maxN=200,max=16){
+  const out=[];
+  for(let N=T.k;N<=maxN&&out.length<max;N+=T.k){
+    const pv=val(N,T.primes),br=Math.round(T.g0*N/T.J[0]);
+    for(const beta of [br,br-1,br+1]){
+      if(beta<1||2*beta*T.k>N)continue;
+      const v=T.a.map((x,i)=>x*(N/T.k)+beta*T.b[i]);
+      if(v.every((x,i)=>x===pv[i])){if(v.reduce((g,x)=>gcdN(g,x),0)===1)out.push({N,beta});break;}
+    }
+  }
+  return out;
+}
+/* pick a short set of commas (or a pair of ETs) that defines the same temperament */
+function commaBasis(T,found){
+  const need=T.n-2;
+  if(need===0)return [];
+  const idx=[];
+  const rec=(start)=>{
+    if(idx.length===need){
+      const ms=idx.map(i=>found[i].monzo),M=kernel(ms,T.n);
+      if(M.length===2){const H=hnf(M);if(H.length===2){const t=build({mode:'commas',sub:T.primes.join('.'),commas:ms.map(m=>monzoStr(m)).join(', ')});if(t.key===T.key)return true;}}
+      return false;
+    }
+    for(let i=start;i<found.length;i++){idx.push(i);if(rec(i+1))return true;idx.pop();}
+    return false;
+  };
+  return rec(0)?idx.map(i=>found[i]):null;
+}
+function etPair(T,ets,tg){
+  // prefer equal temperaments that are accurate relative to their own step size
+  const rel=e=>{const r=tET(T,e.N,e.beta);let m=0;for(const q of tg)m=Math.max(m,Math.abs(r.P*q.A+r.g*q.B-q.J));return m/(T.J[0]/e.N);};
+  const scored=ets.map(e=>({e,r:rel(e)}));
+  for(const cut of [0.2,0.3,0.45,Infinity]){
+    const L=scored.filter(x=>x.r<=cut).map(x=>x.e);
+    for(let s=1;s<L.length*2;s++)for(let i=0;i<L.length;i++){const j=s-i;if(j<=i||j>=L.length)continue;
+      const txt=`${L[i].N} & ${L[j].N}`,t=build({mode:'ets',sub:T.primes.join('.'),ets:txt});
+      if(!t.err&&t.key===T.key)return txt;
+    }
+  }
+  return null;
+}
+
+return {PR,cJ,build,tTE,tPOTE,tCTE,tTOP,tMinimax,tLS,tPure,tET,targets,limitOptions,defaultLimit,findCommas,supportingETs,commaBasis,etPair,ratioStr,monzoStr,eqName,val,dot};
+})();
+
+/* ---------- scale maths ---------- */
+function build(P,g,n){
+  const raw=[];
+  for(let i=0;i<n;i++){let pc=mod(i*g,P); if(P-pc<EPS)pc=0; raw.push({i,pc});}
+  raw.sort((a,b)=>a.pc-b.pc||a.i-b.i);
+  const notes=[];
+  for(const r of raw){ if(notes.length&&r.pc-notes[notes.length-1].pc<EPS)continue; notes.push(r); }
+  const cnt=notes.length;
+  const steps=notes.map((nn,k)=>(k<cnt-1?notes[k+1].pc:P)-nn.pc);
+  return {notes,cnt,steps};
+}
+function classify(steps){
+  const vals=[...steps].sort((a,b)=>a-b), reps=[];
+  for(const v of vals){ if(!reps.length||v-reps[reps.length-1]>CTOL)reps.push(v); }
+  const idx=steps.map(s=>{let b=0,bd=1e9;reps.forEach((r,k)=>{const d=Math.abs(s-r);if(d<bd){bd=d;b=k;}});return b;});
+  return {k:reps.length,reps,idx};
+}
+function isMOS(P,g,n){const b=build(P,g,n);return b.cnt===n&&classify(b.steps).k<=2;}
+function mosSizes(P,g){const out=[];for(let n=2;n<=48;n++)if(isMOS(P,g,n))out.push(n);return out;}
+function nearestMOS(P,g,w){for(let n=w;n<=48;n++)if(isMOS(P,g,n))return n;return w;}
+const classNames=k=>k===1?['x']:k===2?['s','L']:k===3?['s','M','L']:'abcdefghijklmnopqrstuvwxyz'.split('');
+function clsColor(c,k){
+  if(k===1)return 'var(--cEq)';
+  if(k===2)return c?'var(--cL)':'var(--cS)';
+  if(k===3)return ['var(--cS)','var(--cM)','var(--cL)'][c];
+  return `hsl(${Math.round(205+(c/(k-1))*140)} 62% 47%)`;
+}
+
+let SC=null;
+function scaleModel(){
+  const P=S.P,g=G(),n=S.N;
+  const b=build(P,g,n), cl=classify(b.steps), cnt=Math.max(1,b.cnt);
+  S.mode=clamp(S.mode,0,cnt-1);
+  const r=S.mode, t=b.notes[r], degs=[];
+  for(let d=0;d<cnt;d++){
+    const idx=(r+d)%cnt, nn=b.notes[idx];
+    degs.push({d,cents:mod(nn.pc-t.pc,P),pc:nn.pc,chain:nn.i-t.i,i:nn.i,cls:cl.idx[idx],size:b.steps[idx]});
+  }
+  const counts=new Array(cl.k).fill(0);
+  degs.forEach(x=>counts[x.cls]++);
+  return {P,g,n,cnt,k:cl.k,reps:cl.reps,degs,counts,mos:(cnt===n&&cl.k<=2),names:classNames(cl.k)};
+}
+const centsOf=D=>{const c=SC.cnt,j=Math.floor(D/c),d=D-j*c;return j*SC.P+SC.degs[d].cents;};
+const freqOf=D=>S.base*Math.pow(2,centsOf(D)/1200);
+
+/* ---------- audio ---------- */
+let ctx=null,master=null,organ=null;
+function ensureAudio(){
+  if(!ctx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    ctx=new AC();
+    const comp=ctx.createDynamicsCompressor();
+    master=ctx.createGain(); master.gain.value=S.vol*0.9;
+    master.connect(comp); comp.connect(ctx.destination);
+    const amps=[0,1,0.45,0.3,0.16,0.09,0.05,0.03];
+    organ=ctx.createPeriodicWave(new Float32Array(amps.length),Float32Array.from(amps));
+  }
+  if(ctx.state==='suspended')ctx.resume();
+  return ctx;
+}
+function startVoice(freq,o={}){
+  const {when=0,dur=null,gain=0.22}=o;
+  if(!(freq>16&&freq<18000))return {release(){}};
+  ensureAudio();
+  const t0=ctx.currentTime+when+0.005;
+  const osc=ctx.createOscillator();
+  if(S.wave==='organ')osc.setPeriodicWave(organ);
+  else osc.type=S.wave==='pluck'?'triangle':S.wave==='saw'?'sawtooth':S.wave;
+  osc.frequency.setValueAtTime(freq,t0);
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.Q.value=0.7;
+  const amp=ctx.createGain();
+  osc.connect(lp); lp.connect(amp); amp.connect(master);
+  amp.gain.setValueAtTime(0.0001,t0);
+  amp.gain.exponentialRampToValueAtTime(gain,t0+0.015);
+  if(S.wave==='pluck'){
+    lp.frequency.setValueAtTime(Math.min(freq*12,12000),t0);
+    lp.frequency.setTargetAtTime(Math.max(freq*2,300),t0,0.25);
+    amp.gain.setTargetAtTime(gain*0.03,t0+0.02,0.4);
+  }else{
+    lp.frequency.value=S.wave==='saw'?Math.min(freq*6,9000):14000;
+  }
+  let done=false;
+  const release=at=>{
+    if(done)return; done=true;
+    const tr=Math.max(at===undefined?ctx.currentTime:at,t0+0.02);
+    amp.gain.setTargetAtTime(0.0001,tr,0.06);
+    try{osc.stop(tr+0.6);}catch(e){}
+  };
+  osc.onended=()=>{try{amp.disconnect();lp.disconnect();}catch(e){}};
+  osc.start(t0);
+  if(dur!==null)release(t0+dur);
+  return {release:()=>release()};
+}
+
+/* ---------- element registries ---------- */
+let keyEls=[],dotEls=[],rowEls=[],kbdTotal=0;
+function setOn(D,on){
+  const d=mod(D,SC.cnt);
+  const k=keyEls[D]; if(k)k.classList.toggle('on',on);
+  const dt=dotEls[d]; if(dt)dt.classList.toggle('on',on);
+  const tr=rowEls[d]; if(tr)tr.classList.toggle('on',on);
+}
+function flash(D,ms){setOn(D,true);setTimeout(()=>setOn(D,false),ms);}
+function showNote(D){
+  const c=centsOf(D), d=mod(D,SC.cnt);
+  if(TV){
+    const r=d===0?[]:repsFor(SC.degs[d].chain).slice(0,2);
+    const pd=Math.floor(D/SC.cnt);
+    $('#now').textContent=`Degree ${d}${pd?` (period ${pd>0?'+':''}${pd})`:''}: ${fmt(c,1)} \u00A2, ${fmt(freqOf(D),1)} Hz`+(d===0?'':r.length?`, stands for ${r.map(q=>`${q.label} (${sgn(q.e)} \u00A2)`).join(' and ')}`:', no target interval in the chosen limit');
+    return;
+  }
+  const m=jiMatch(c);
+  $('#now').innerHTML=`Degree ${d}${Math.floor(D/SC.cnt)?` (period ${Math.floor(D/SC.cnt)>0?'+':''}${Math.floor(D/SC.cnt)})`:''}: ${fmt(c,1)} \u00A2, ${fmt(freqOf(D),1)} Hz`+(m?`, close to ${m.r.p}/${m.r.q} (${sgn(m.e)} \u00A2)`:'');
+}
+
+/* ---------- playing ---------- */
+let seqTimers=[];
+function stopSeq(){seqTimers.forEach(clearTimeout);seqTimers=[];}
+function playD(D,dur=0.5){
+  startVoice(freqOf(D),{dur});
+  flash(D,dur*1000); showNote(D);
+}
+function playSeq(list,gap=0.2,dur=0.32){
+  stopSeq(); ensureAudio();
+  list.forEach((D,i)=>{
+    startVoice(freqOf(D),{when:i*gap,dur});
+    seqTimers.push(setTimeout(()=>{flash(D,dur*1000);showNote(D);},i*gap*1000));
+  });
+}
+function playChordCents(list,label){
+  stopSeq(); ensureAudio();
+  list.forEach(c=>startVoice(S.base*Math.pow(2,c/1200),{dur:1.8,gain:0.13}));
+  list.forEach(c=>{const d=SC.degs.findIndex(x=>Math.abs(x.cents-c)<1e-3);if(d>=0)flash(d,1800);});
+  $('#now').textContent=`${label}: ${list.map(c=>fmt(c,1)).join(', ')} \u00A2 above the tonic`;
+}
+let imp=false,impD=0,impT=null;
+function stopImprov(){imp=false;clearTimeout(impT);const b=$('#impBtn');b.textContent='Improvise';b.classList.remove('on');}
+function startImprov(){
+  ensureAudio(); imp=true; impD=Math.floor(kbdTotal/3);
+  const b=$('#impBtn'); b.textContent='Stop'; b.classList.add('on');
+  const tick=()=>{
+    if(!imp)return;
+    const r=Math.random();
+    if(r>0.12){
+      const hi=Math.max(1,kbdTotal-1);
+      const dlt=r<0.2?0:r<0.55?1:r<0.9?-1:(Math.random()<.5?2:-2);
+      impD=clamp(impD+dlt,0,hi);
+      if(impD===0&&Math.random()<.5)impD=1;
+      playD(impD,0.34);
+    }
+    impT=setTimeout(tick,170+Math.random()*150);
+  };
+  tick();
+}
+
+/* ---------- pointer + keyboard input ---------- */
+const kbd=$('#kbd');
+const held=new Map();
+function press(id,D){
+  const v=startVoice(freqOf(D),{});
+  setOn(D,true); showNote(D);
+  held.set(id,{D,v});
+}
+function lift(id){
+  const h=held.get(id); if(!h)return;
+  h.v.release(); setOn(h.D,false); held.delete(id);
+}
+kbd.addEventListener('pointerdown',e=>{
+  const k=e.target.closest('.key'); if(!k)return;
+  e.preventDefault(); ensureAudio();
+  press(e.pointerId,+k.dataset.D);
+});
+kbd.addEventListener('pointermove',e=>{
+  const h=held.get(e.pointerId); if(!h)return;
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const k=el&&el.closest?el.closest('.key'):null;
+  if(k&&+k.dataset.D!==h.D){lift(e.pointerId);press(e.pointerId,+k.dataset.D);}
+});
+['pointerup','pointercancel'].forEach(t=>window.addEventListener(t,e=>{lift(e.pointerId);hexLift(e.pointerId);}));
+function liftAll(){[...held.keys()].forEach(lift);[...heldHex.keys()].forEach(hexLift);keyHeld.forEach((h,k)=>{h.v.release();setOn(h.D,false);});keyHeld.clear();}
+window.addEventListener('blur',liftAll);
+
+const KEYMAP={};
+"asdfghjkl;'".split('').forEach((c,i)=>KEYMAP[c]=i);
+"qwertyuiop[]".split('').forEach((c,i)=>KEYMAP[c]=11+i);
+"zxcvbnm,./".split('').forEach((c,i)=>KEYMAP[c]=-10+i);
+const keyHeld=new Map();
+window.addEventListener('keydown',e=>{
+  if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;
+  const t=e.target; if(t&&(t.tagName==='INPUT'&&t.type!=='range'||t.tagName==='SELECT'||t.tagName==='TEXTAREA'))return;
+  const k=e.key.toLowerCase();
+  if(!(k in KEYMAP)||keyHeld.has(k))return;
+  e.preventDefault();
+  const D=KEYMAP[k];
+  keyHeld.set(k,{D,v:startVoice(freqOf(D),{})});
+  setOn(D,true); showNote(D);
+});
+window.addEventListener('keyup',e=>{
+  const k=e.key.toLowerCase(), h=keyHeld.get(k); if(!h)return;
+  h.v.release(); setOn(h.D,false); keyHeld.delete(k);
+});
+
+/* ---------- rendering ---------- */
+
+/* ---------- temperaments: presets, state, resolution ---------- */
+const TPRESETS=[
+  {n:'Meantone',sub:'2.3.5',c:'81/80',flip:1,w:7},
+  {n:'Septimal meantone',sub:'2.3.5.7',c:'81/80, 126/125',flip:1,w:7},
+  {n:'Pythagorean',sub:'2.3',c:'',flip:1,w:7},
+  {n:'Superpyth',sub:'2.3.5.7',c:'64/63, 245/243',flip:1,w:7},
+  {n:'Mavila',sub:'2.3.5',c:'135/128',flip:1,w:7},
+  {n:'Porcupine',sub:'2.3.5',c:'250/243',w:7},
+  {n:'Magic',sub:'2.3.5',c:'3125/3072',w:7},
+  {n:'Miracle',sub:'2.3.5.7',c:'225/224, 1029/1024',w:10},
+  {n:'Orwell',sub:'2.3.5.7',c:'225/224, 1728/1715',w:9},
+  {n:'Hanson',sub:'2.3.5',c:'15625/15552',w:7},
+  {n:'Würschmidt',sub:'2.3.5',c:'393216/390625',w:7},
+  {n:'Sensi',sub:'2.3.5.7',c:'126/125, 245/243',w:8},
+  {n:'Negri',sub:'2.3.5',c:'16875/16384',w:9},
+  {n:'Tetracot',sub:'2.3.5',c:'20000/19683',w:7},
+  {n:'Dicot',sub:'2.3.5',c:'25/24',w:7},
+  {n:'Slendric',sub:'2.3.7',c:'1029/1024',w:5},
+  {n:'Rastmic',sub:'2.3.11',c:'243/242',w:7},
+  {n:'Augmented',sub:'2.3.5',c:'128/125',w:6},
+  {n:'Diaschismic',sub:'2.3.5',c:'2048/2025',w:10},
+  {n:'Pajara',sub:'2.3.5.7',c:'50/49, 64/63',w:10},
+  {n:'Blackwood',sub:'2.3.5',c:'256/243',w:10},
+  {n:'Bohlen–Pierce',sub:'3.5.7',c:'245/243',w:9}
+];
+const OPTS=[['cte','CTE'],['pote','POTE'],['te','TE'],['top','TOP'],['minimax','Minimax'],['ls','Least squares'],['custom','Custom']];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sgn0=(v,d=2)=>Math.abs(v)<0.5*Math.pow(10,-d)?(0).toFixed(d):sgn(v,d);
+const neg=s=>s<0?'−'+(-s):(s>0?'+'+s:'0');
+
+let PKEY=null;
+function presetIndex(T){
+  if(!T||T.err)return -1;
+  if(!PKEY)PKEY=TPRESETS.map(p=>{const t=RT.build({mode:'commas',sub:p.sub,commas:p.c});return t.err?null:t.key;});
+  return PKEY.indexOf(T.key);
+}
+let TMC={key:null,T:null,x:{}};
+function currentT(){
+  if(S.tdef==='free')return null;
+  const key=[S.tdef,S.sub,S.tdef==='ets'?S.ets:S.commas].join('|');
+  if(TMC.key!==key)TMC={key,T:RT.build({mode:S.tdef,sub:S.sub,commas:S.commas,ets:S.ets}),x:{}};
+  return TMC.T;
+}
+const memo=(name,f)=>{if(!(name in TMC.x))TMC.x[name]=f();return TMC.x[name];};
+
+let TV=null;
+function resolveTemperament(){
+  TV=null;
+  const T=currentT(); if(!T||T.err)return;
+  const lims=memo('lims',()=>RT.limitOptions(T));
+  if(lims.length&&!lims.includes(S.lim))S.lim=RT.defaultLimit(T,lims);
+  const tg=lims.length?memo('tg'+S.lim,()=>RT.targets(T,S.lim)):[];
+  const ets=memo('ets',()=>T.n>2?RT.supportingETs(T):[]);
+  let r=null,opt=S.opt;
+  if(opt.startsWith('pure:')){const q=tg.find(x=>x.label===opt.slice(5)&&x.B);if(q)r=RT.tPure(T,q);else opt='cte';}
+  else if(opt.startsWith('et:')){const e=ets.find(x=>x.N===+opt.slice(3));if(e)r=RT.tET(T,e.N,e.beta);else opt='cte';}
+  if(!r&&opt!=='custom'){
+    switch(opt){
+      case 'pote':r=RT.tPOTE(T);break;
+      case 'te':r=RT.tTE(T);break;
+      case 'top':r=memo('top',()=>RT.tTOP(T));break;
+      case 'minimax':r=tg.length?memo('mm'+S.lim,()=>RT.tMinimax(T,tg)):RT.tCTE(T);break;
+      case 'ls':r=tg.length?RT.tLS(T,tg):RT.tCTE(T);break;
+      default:opt='cte';r=RT.tCTE(T);
+    }
+  }
+  S.opt=opt;
+  if(r){S.P=clamp(r.P,50,4000);S.g=S.flip?r.P-r.g:r.g;}
+  const P=S.P,g=G(),gc=S.flip?P-g:g;
+  const a=S.flip?T.a.map((x,i)=>x+T.b[i]):T.a.slice(),b=S.flip?T.b.map(x=>-x):T.b.slice();
+  const tuned=T.a.map((x,i)=>P*x+gc*T.b[i]);
+  const perr=tuned.map((t,i)=>t-T.J[i]);
+  const tgo=tg.map(q=>{const t=P*q.A+gc*q.B;return Object.assign({},q,{Ao:S.flip?q.A+q.B:q.A,Bo:S.flip?-q.B:q.B,T:t,e:t-q.J});});
+  TV={T,tg:tgo,ets,lims,a,b,P,g,tuned,perr};
+}
+const byH=(x,y)=>x.h-y.h;
+function allTargets(V){
+  const T=V.T,big=memo('tgBig',()=>RT.targets(T,T.eq===2?27:25));
+  return V.tg.concat(big.map(q=>({label:q.label,h:q.h,Ao:S.flip?q.A+q.B:q.A,Bo:S.flip?-q.B:q.B})));
+}
+function genName(V){
+  const all=allTargets(V),ex=all.filter(q=>q.Bo===1&&q.Ao===0).sort(byH)[0];
+  if(ex)return ex.label;
+  const any=all.filter(q=>q.Bo===1).sort(byH)[0];if(!any)return null;
+  const n=Math.abs(any.Ao),per=n===1?'a period':`${n} periods`;
+  return any.Ao>0?`${any.label} minus ${per}`:`${any.label} plus ${per}`;
+}
+function perName(V){if(V.T.k===1)return null;const c=allTargets(V).filter(q=>q.Bo===0&&q.Ao===1).sort(byH)[0];return c?c.label:null;}
+function repsFor(chain){return TV?TV.tg.filter(q=>q.Bo===chain).sort(byH):[];}
+function tName(){
+  const T=currentT();
+  if(S.tdef==='free'||!T||T.err)return 'Free tuning';
+  const i=presetIndex(T);return i>=0?TPRESETS[i].n:'Custom temperament';
+}
+function optShort(o){
+  if(o.startsWith('pure:'))return `pure ${o.slice(5)}`;
+  if(o.startsWith('et:'))return `${o.slice(3)}-ET`;
+  return {cte:'CTE',pote:'POTE',te:'TE',top:'TOP',minimax:'minimax',ls:'least squares',custom:'custom tuning'}[o]||o;
+}
+function optDesc(V){
+  const T=V.T,eq=RT.eqName(T.eq),o=S.opt,eqs=T.eq===2?'octaves':T.eq===3?'tritaves':`${eq} equaves`;
+  if(o==='cte')return `Pure ${eqs}. The other primes land as close to just as possible, with small primes counting more (constrained Tenney–Euclidean).`;
+  if(o==='pote')return `The TE tuning, scaled so the ${eq} is pure.`;
+  if(o==='te')return `A least-squares fit of every prime, the ${eq} included, weighted by 1/log₂ p. The ${eq} can come out slightly off.`;
+  if(o==='top')return `The smallest possible worst-case prime error, weighted by 1/log₂ p (Tenney-optimal). The ${eq} can come out slightly off.`;
+  if(o==='minimax')return `Pure ${eqs}. The largest error among the target intervals is as small as it can be.`;
+  if(o==='ls')return `Pure ${eqs}. The sum of squared errors over the target intervals is as small as it can be.`;
+  if(o.startsWith('pure:'))return `Pure ${eqs}, with ${o.slice(5)} tuned exactly just. Everything else follows from the mapping.`;
+  if(o.startsWith('et:')){const N=+o.slice(3),e=V.ets.find(x=>x.N===N);const st=e?(S.flip?N/T.k-e.beta:e.beta):0;return `${N} equal steps per ${eq}. The generator is ${st} step${st===1?'':'s'} and the period is ${N/T.k}.`;}
+  return 'Your own period and generator, from the sliders under Period and generator. Drag them to hear the temperament detune.';
+}
+
+/* ---------- temperament rendering ---------- */
+function renderTemperament(){
+  const T=currentT(),sec=$('#temper'),pi=presetIndex(T);
+  $('#tpresets').innerHTML=TPRESETS.map((p,i)=>`<button class="chip${i===pi?' on':''}" data-tp="${i}">${p.n}</button>`).join('');
+  document.querySelectorAll('#tdefChips .chip').forEach(b=>b.classList.toggle('on',b.dataset.tdef===S.tdef));
+  $('#fSub').hidden=S.tdef==='free';$('#fCommas').hidden=S.tdef!=='commas';$('#fEts').hidden=S.tdef!=='ets';
+  sync($('#tSub'),S.sub);sync($('#tCommas'),S.commas);sync($('#tEts'),S.ets);
+  const st=$('#tStatus');
+  $('#freeTools').hidden=S.tdef!=='free';
+  $('#manualHint').hidden=S.tdef==='free';
+  if(S.tdef==='free'){
+    st.className='tstat';
+    st.textContent='Set the period and generator yourself under Period and generator. Pick a preset, or define a temperament by its commas, to map just intervals onto the generator chain.';
+    sec.classList.add('off');return;
+  }
+  if(!T||T.err){
+    st.className='tstat bad';
+    st.innerHTML=esc(T.err)+(T.addPrimes?` <button class="chip" data-addp="${T.addPrimes.join('.')}">Add ${T.addPrimes.join(' and ')} to the subgroup</button>`:'');
+    sec.classList.add('off');return;
+  }
+  sec.classList.remove('off');
+  const V=TV,eq=RT.eqName(T.eq),gn=genName(V),pn=perName(V);
+  st.className='tstat';
+  st.textContent=`Rank 2 on ${T.primes.join('.')}. The period is ${T.k===1?`the ${eq}`:`1/${T.k} ${eq}${pn?`, standing for ${pn}`:''}`}${gn?`, and the generator stands for ${gn}`:''}.`;
+  renderMapping(V);renderCommas(V);renderTuningOpts(V);renderSummary(V);renderChain(V);renderTargets(V);
+}
+function renderMapping(V){
+  const T=V.T,td=v=>`<td>${v}</td>`;
+  $('#mtbl').innerHTML=`<thead><tr><th>Prime</th>${T.primes.map(p=>`<th>${p}</th>`).join('')}</tr></thead><tbody>`+
+    `<tr><th>Periods</th>${V.a.map(td).join('')}</tr>`+
+    `<tr><th>Generators</th>${V.b.map(td).join('')}</tr>`+
+    `<tr><th>Just ¢</th>${T.J.map(v=>td(fmt(v,1))).join('')}</tr>`+
+    `<tr><th>Tempered ¢</th>${V.tuned.map(v=>td(fmt(v,1))).join('')}</tr>`+
+    `<tr><th>Error ¢</th>${V.perr.map(v=>td(sgn0(v,2))).join('')}</tr></tbody>`;
+}
+function renderCommas(V){
+  const T=V.T;
+  if(T.n===2){$('#clist').innerHTML='<p class="hint" style="margin:0">None. With only two primes nothing has to be tempered, so this is just intonation on that subgroup.</p>';return;}
+  const found=memo('fc',()=>RT.findCommas(T,120,10));
+  const cents=m=>m.reduce((s,e,i)=>s+e*T.J[i],0);
+  const norm=m=>cents(m)<0?m.map(x=>-x):m;
+  const entered=S.tdef==='commas'?T.commaItems.map(c=>norm(c.monzo)):[];
+  const ek=new Set(entered.map(m=>m.join(',')));
+  const row=(m,tag)=>`<div class="crow"><span class="cr">${RT.ratioStr(m,T.primes)}</span><span class="cm">${RT.monzoStr(m)}</span><span class="cc3">${fmt(cents(m),2)} ¢</span><span class="ctag">${tag}</span></div>`;
+  let h=entered.map(m=>row(m,'entered')).join('');
+  h+=found.filter(c=>!ek.has(c.monzo.join(','))).slice(0,8).map(c=>row(c.monzo,'')).join('');
+  $('#clist').innerHTML=h;
+}
+function renderTuningOpts(V){
+  const T=V.T,eq=RT.eqName(T.eq);
+  $('#optChips').innerHTML=OPTS.map(([k,l])=>`<button class="chip${S.opt===k?' on':''}" data-opt="${k}">${l}</button>`).join('');
+  $('#optDesc').textContent=optDesc(V);
+  $('#limLbl').textContent=T.eq===2?'Target intervals (odd limit)':'Target intervals (limit, no factors of the equave)';
+  $('#limChips').innerHTML=V.lims.map(L=>`<button class="chip${S.lim===L?' on':''}" data-lim="${L}">${L}</button>`).join('');
+  const pures=V.tg.filter(q=>q.B!==0).sort(byH).slice(0,10);
+  $('#pureChips').innerHTML=pures.map(q=>`<button class="chip${S.opt==='pure:'+q.label?' on':''}" data-opt="pure:${q.label}">${q.label}</button>`).join('');
+  $('#etWrap').hidden=!V.ets.length;
+  const unit=T.eq===2?'EDO':T.eq===3?'EDT':`steps per ${eq}`;
+  $('#etLbl').textContent=`Equal tunings in this temperament (${unit}, generator steps shown small)`;
+  $('#etChips').innerHTML=V.ets.map(e=>{const st=S.flip?e.N/T.k-e.beta:e.beta;return `<button class="chip${S.opt==='et:'+e.N?' on':''}" data-opt="et:${e.N}">${e.N}<small>${st}\\${e.N}</small></button>`;}).join('');
+  $('#flipBtn').classList.toggle('on',!!S.flip);
+}
+function renderSummary(V){
+  const T=V.T,eq=RT.eqName(T.eq),gn=genName(V),pn=perName(V),rows=[];
+  rows.push(['Period',`${fmt(V.P,3)} ¢${T.k>1?` (1/${T.k} ${eq})`:''}${pn?`, stands for ${pn}`:''}`]);
+  rows.push(['Generator',`${fmt(V.g,3)} ¢${gn?`, stands for ${gn}`:''}`]);
+  const ee=V.perr[0];
+  rows.push([eq[0].toUpperCase()+eq.slice(1),Math.abs(ee)<5e-4?'pure':`${ee>0?'stretched':'compressed'} by ${fmt(Math.abs(ee),3)} ¢`]);
+  if(V.tg.length){
+    const w=V.tg.reduce((m,q)=>Math.abs(q.e)>Math.abs(m.e)?q:m,V.tg[0]);
+    const rms=Math.sqrt(V.tg.reduce((s,q)=>s+q.e*q.e,0)/V.tg.length);
+    rows.push(['Worst target error',`${fmt(Math.abs(w.e),2)} ¢, on ${w.label}`]);
+    rows.push(['RMS target error',`${fmt(rms,2)} ¢ over ${V.tg.length} intervals`]);
+    const Bs=V.tg.map(q=>q.Bo);
+    rows.push(['Generator span',`${Math.max(...Bs)-Math.min(...Bs)} generators reach every target`]);
+  }
+  let wp=0;V.perr.forEach((e,i)=>{if(Math.abs(e)>Math.abs(V.perr[wp]))wp=i;});
+  rows.push(['Worst prime error',`${fmt(Math.abs(V.perr[wp]),2)} ¢, on ${T.primes[wp]}`]);
+  $('#tSum').innerHTML=rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
+}
+function renderChain(V){
+  const chains=SC.degs.map(x=>x.chain);
+  const R=clamp(Math.max(4,...V.tg.map(q=>Math.abs(q.Bo)),...chains.map(Math.abs)),4,16);
+  const inS=new Set(chains);
+  let h='';
+  for(let s=-R;s<=R;s++){
+    const labs=repsFor(s).slice(0,3).map(q=>q.label);
+    if(s===0)labs.unshift('1/1');
+    const pc=mod(s*V.g,V.P);
+    h+=`<button class="cc${s===0?' t':inS.has(s)?' in':''}" data-chain="${s}"><span class="co">${neg(s)}</span><span class="cl">${labs.join('<br>')||'&nbsp;'}</span><span class="cp">${fmt(pc,0)}¢</span></button>`;
+  }
+  const el=$('#chain');el.innerHTML=h;
+  const z=el.querySelector('.cc.t');if(z)el.scrollLeft=Math.max(0,z.offsetLeft-el.offsetLeft-(el.clientWidth-z.offsetWidth)/2);
+}
+function renderTargets(V){
+  const T=V.T;
+  let h='<thead><tr><th>Interval</th><th>Just ¢</th><th>Tempered ¢</th><th>Error</th><th>Generators</th><th>Periods</th></tr></thead><tbody>';
+  V.tg.forEach((q,i)=>{h+=`<tr class="rw" data-tq="${i}"><td>${q.label}</td><td>${fmt(q.J,2)}</td><td>${fmt(q.T,2)}</td><td>${sgn0(q.e,2)}</td><td>${neg(q.Bo)}</td><td>${q.Ao}</td></tr>`;});
+  $('#ttbl').innerHTML=h+'</tbody>';
+  $('#ttCap').textContent=V.tg.length?`The ${S.lim}-${T.eq===2?'odd-':''}limit intervals, folded into one ${RT.eqName(T.eq)}. Tap a row to hear it against the tonic.`:'No target intervals at this limit.';
+}
+const PERIODS=[[1200,'1200 (octave)'],[600,'600'],[400,'400'],[300,'300'],[1901.955,'1902 (tritave)']];
+const PURE=[[3,2],[4,3],[5,4],[6,5],[7,6],[8,7],[9,8],[10,9],[5,3]];
+
+function sync(el,v){if(document.activeElement!==el)el.value=v;}
+function edoUnit(){
+  const m=1200/S.P;
+  if(Math.abs(m-Math.round(m))<1e-3&&Math.round(m)>=1)return {mult:Math.round(m),name:'EDO'};
+  if(Math.abs(S.P-1901.955)<0.01)return {mult:1,name:'EDT'};
+  return {mult:1,name:'steps per period'};
+}
+function edoCandidates(){
+  const out=[];let best=Infinity;const g=G();
+  for(let n=2;n<=120;n++){
+    const step=S.P/n,k=clamp(Math.round(g/step),1,n-1),val=k*step,err=val-g;
+    if(Math.abs(err)<best-1e-9){best=Math.abs(err);if(Math.abs(err)<=15)out.push({n,val,err});}
+  }
+  return out.slice(0,12);
+}
+
+function renderControls(){
+  const g=G();
+  const prg=$('#pRng'); prg.max=Math.max(2400,Math.ceil(S.P)); prg.value=S.P; sync($('#pNum'),fmt(S.P,3));
+  const gr=$('#gRng'); gr.max=S.P-0.5; gr.value=g; sync($('#gNum'),fmt(g,3));
+  $('#nRng').value=S.N; $('#nOut').textContent=S.N;
+  const mr=$('#mRng'); mr.max=Math.max(0,SC.cnt-1); mr.value=S.mode; $('#mOut').textContent=`${S.mode+1} of ${SC.cnt}`;
+  $('#fRng').value=S.base; $('#fOut').textContent=`${fmt(S.base,1)} Hz`;
+  $('#vRng').value=S.vol;
+  document.querySelectorAll('#waves .chip').forEach(b=>b.classList.toggle('on',b.dataset.wave===S.wave));
+  document.querySelectorAll('#rangeChips .chip').forEach(b=>b.classList.toggle('on',+b.dataset.range===S.range));
+  if(master)master.gain.value=S.vol*0.9;
+}
+function renderChips(){
+  $('#pChips').innerHTML=PERIODS.map(([v,l])=>`<button class="chip${Math.abs(S.P-v)<0.01?' on':''}" data-per="${v}">${l}</button>`).join('');
+  const g=G();
+  $('#pure').innerHTML=PURE.map(([p,q])=>{
+    const c=1200*log2(p/q); if(c>=S.P-0.5)return '';
+    return `<button class="chip${Math.abs(g-c)<0.0005?' on':''}" data-pure="${c}">${p}/${q}<small>${fmt(c,1)}</small></button>`;
+  }).join('');
+  const u=edoUnit();
+  $('#edoLbl').textContent=`Snap to an equal tuning (${u.name})`;
+  const cands=edoCandidates();
+  $('#edos').innerHTML=cands.length?cands.map(c=>`<button class="chip${Math.abs(g-c.val)<0.0005?' on':''}" data-edo="${c.val}">${c.n*u.mult}<small>${sgn(c.err)}</small></button>`).join(''):'<span class="hint" style="margin:0">No close equal tuning below 120 steps.</span>';
+  const mos=mosSizes(S.P,g);
+  $('#mos').innerHTML=mos.length?mos.map(n=>`<button class="chip${n===S.N?' on':''}" data-n="${n}">${n}</button>`).join(''):'<span class="hint" style="margin:0">None up to 48 notes.</span>';
+}
+
+function renderPattern(){
+  const m=SC, el=$('#pattern');
+  let html,len;
+  if(m.k===1){html=`<span style="color:var(--cEq)">${m.cnt} equal</span>`;len=String(m.cnt).length+6;}
+  else{html=m.degs.map(x=>`<span style="color:${clsColor(x.cls,m.k)}">${m.names[x.cls]}</span>`).join('');len=m.cnt;}
+  const W=el.clientWidth||340;
+  el.style.fontSize=clamp(W/(len*0.66),26,112)+'px';
+  el.innerHTML=html;
+  const who=esc(tName())+(TV?` (${esc(optShort(S.opt))})`:'');
+  let t=`<b>${who}</b>, ${m.cnt} notes per period. `;
+  if(m.cnt<m.n)t=`<b>${who}</b>. The chain closes up after ${m.cnt} notes, so you get ${m.cnt} instead of ${m.n}. `;
+  if(m.k===1)t+=`All ${m.cnt} steps are ${fmt(m.reps[0],2)} \u00A2.`;
+  else if(m.k===2){
+    const nS=m.counts[0],nL=m.counts[1];
+    t+=`${nL} large ${nL===1?'step':'steps'} of ${fmt(m.reps[1],2)} \u00A2 and ${nS} small ${nS===1?'step':'steps'} of ${fmt(m.reps[0],2)} \u00A2: a MOS scale, ${nL}L ${nS}s.`;
+  }else{
+    const sizes=mosSizes(S.P,G()), lo=[...sizes].reverse().find(n=>n<m.n), hi=sizes.find(n=>n>m.n);
+    const tips=[lo,hi].filter(Boolean);
+    t+=`${m.k} different step sizes, so this isn't a MOS scale.`+(tips.length?` Try ${tips.join(' or ')} notes.`:'');
+  }
+  $('#lede').innerHTML=t;
+}
+
+function renderKeyboard(){
+  const m=SC;
+  let periods=Math.max(1,Math.ceil(1200*S.range/S.P-1e-9));
+  while(m.cnt*periods+1>120&&periods>1)periods--;
+  kbdTotal=m.cnt*periods+1;
+  kbd.innerHTML=''; keyEls=[];
+  for(let D=0;D<kbdTotal;D++){
+    const d=D%m.cnt, deg=m.degs[d], el=document.createElement('button');
+    el.className='key'+(d===0?' tonic':'')+(d===0&&D>0?' pstart':'');
+    el.tabIndex=-1; el.dataset.D=D;
+    el.style.flex=`${deg.size} 1 0px`;
+    el.style.setProperty('--kc',clsColor(deg.cls,m.k));
+    el.style.setProperty('--kt',m.k===3&&deg.cls===1?'#fff':'var(--on-k)');
+    el.setAttribute('aria-label',`Degree ${d}, ${fmt(centsOf(D),1)} cents`);
+    el.innerHTML=`<span class="kd">${d}</span><span class="kc">${Math.round(centsOf(D))}</span>`;
+    kbd.appendChild(el); keyEls[D]=el;
+  }
+  fitTouch();
+}
+function fitTouch(){kbd.style.touchAction=kbd.scrollWidth>kbd.clientWidth+1?'pan-x':'none';}
+
+function renderCircle(){
+  const m=SC,P=m.P,g=m.g,cx=195,cy=195,R=118;
+  const pt=(pc,r)=>{const a=2*Math.PI*pc/P-Math.PI/2;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+  let s=`<svg viewBox="0 0 390 390" role="img" aria-label="Pitch classes around one period">`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--line)" stroke-width="1.5"/>`;
+  TICKS.forEach(([p,q])=>{
+    const c=1200*log2(p/q); if(c>=P-1)return;
+    const [x1,y1]=pt(c,R+3),[x2,y2]=pt(c,R+10),[tx,ty]=pt(c,R+25);
+    s+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--ink2)" stroke-width="1.5"/>`;
+    s+=`<text class="tk" x="${tx.toFixed(1)}" y="${(ty+3.5).toFixed(1)}" text-anchor="middle">${p}/${q}</text>`;
+  });
+  const n=S.N;
+  for(let i=0;i<n-1;i++){
+    const [x1,y1]=pt(mod(i*g,P),R),[x2,y2]=pt(mod((i+1)*g,P),R);
+    const h=Math.round(205+(i/Math.max(1,n-2))*140);
+    s+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="hsla(${h},62%,52%,.45)" stroke-width="1.4"/>`;
+  }
+  const rad=m.cnt>24?4:6.5;
+  m.degs.forEach(x=>{
+    const [px,py]=pt(x.pc,R);
+    s+=`<circle class="dot" data-d="${x.d}" cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${rad}" fill="${clsColor(x.cls,m.k)}"/>`;
+  });
+  const [tx,ty]=pt(m.degs[0].pc,R);
+  s+=`<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="${rad+5}" fill="none" stroke="var(--ink)" stroke-width="1.8" pointer-events="none"/>`;
+  m.degs.forEach(x=>{
+    const [px,py]=pt(x.pc,R);
+    s+=`<circle class="hit" data-d="${x.d}" cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="14"/>`;
+  });
+  const verdict=m.k===1?'equal':m.k===2?`${m.counts[1]}L ${m.counts[0]}s`:'not a MOS';
+  s+=`<text class="cbig" x="${cx}" y="${cy+12}" text-anchor="middle">${m.cnt}</text>`;
+  s+=`<text class="csm" x="${cx}" y="${cy+38}" text-anchor="middle">${verdict}</text></svg>`;
+  $('#circ').innerHTML=s;
+  dotEls=[];
+  document.querySelectorAll('#circ .dot').forEach(e=>dotEls[+e.dataset.d]=e);
+}
+
+function renderTable(){
+  const m=SC;
+  const stands=x=>{
+    const r=repsFor(x.chain).slice(0,2).map(q=>`${q.label}<span class="err">${sgn(q.e)}</span>`);
+    if(x.d===0)r.unshift('1/1');
+    return r.join(' ')||'<span class="err">&ndash;</span>';
+  };
+  let h=`<thead><tr><th>Degree</th><th>Cents</th><th>Step</th><th>Generators</th><th>${TV?'Stands for':'Nearest just ratio'}</th></tr></thead><tbody>`;
+  m.degs.forEach(x=>{
+    h+=`<tr class="rw" data-d="${x.d}"><td>${x.d}</td><td>${fmt(x.cents,2)}</td><td><span class="sw" style="background:${clsColor(x.cls,m.k)}"></span>${m.k===1?'':m.names[x.cls]+' '}${fmt(x.size,1)}</td><td>${x.chain>0?'+':''}${x.chain}</td><td>${TV?stands(x):jiText(jiMatch(x.cents))}</td></tr>`;
+  });
+  const perLab=TV?(TV.T.k===1?`${TV.T.eq}/1`:(perName(TV)||'&ndash;')):jiText(jiMatch(m.P));
+  h+=`<tr class="rw" data-d="${m.cnt}"><td>${m.cnt}</td><td>${fmt(m.P,2)}</td><td>period</td><td></td><td>${perLab}</td></tr></tbody>`;
+  $('#tbl').innerHTML=h;
+  rowEls=[];
+  document.querySelectorAll('#tbl tr.rw').forEach(e=>rowEls[+e.dataset.d]=e);
+  const mo=1200/m.P;
+  $('#tblCap').textContent=`Tap a row to hear it.`+(Math.abs(mo-Math.round(mo))<1e-6&&Math.round(mo)>1?` With this period, one octave holds ${m.cnt*Math.round(mo)} notes, and each row also stands for the intervals a period higher.`:'')+(TV?' Errors are in cents against just.':'');
+}
+
+
+/* ---------- top selectors ---------- */
+function renderTopbar(){
+  const T=currentT(),pi=presetIndex(T),free=S.tdef==='free'||!T;
+  let h=`<optgroup label="Presets">`+TPRESETS.map((p,i)=>`<option value="p:${i}">${esc(p.n)} (${esc(p.sub)})</option>`).join('')+`</optgroup><optgroup label="Your own">`;
+  let cur;
+  if(free)cur='free'; else if(pi>=0)cur='p:'+pi; else cur='custom';
+  h+=`<option value="custom">${cur==='custom'&&T&&!T.err?'Custom: '+esc(S.tdef==='ets'?S.ets:S.commas):'Define by commas or ETs…'}</option><option value="free">Free generator</option></optgroup>`;
+  const st=$('#selT'); st.innerHTML=h; st.value=cur;
+  const so=$('#selO');
+  if(!TV){so.innerHTML='<option>Custom (sliders)</option>';so.disabled=true;}
+  else{
+    so.disabled=false;
+    const V=TV,T2=V.T;
+    let o=`<optgroup label="Optimized">`+OPTS.filter(x=>x[0]!=='custom').map(([k,l])=>`<option value="${k}">${l}</option>`).join('')+`</optgroup>`;
+    const pures=V.tg.filter(q=>q.B!==0).sort(byH).slice(0,10);
+    if(S.opt.startsWith('pure:')&&!pures.some(q=>'pure:'+q.label===S.opt)){const q=V.tg.find(x=>'pure:'+x.label===S.opt);if(q)pures.push(q);}
+    if(pures.length)o+=`<optgroup label="Make pure">`+pures.map(q=>`<option value="pure:${esc(q.label)}">${esc(q.label)} pure</option>`).join('')+`</optgroup>`;
+    if(V.ets.length){const u=T2.eq===2?'-EDO':'-ET';o+=`<optgroup label="Equal tuning">`+V.ets.map(e=>`<option value="et:${e.N}">${e.N}${u}</option>`).join('')+`</optgroup>`;}
+    o+=`<optgroup label="Manual"><option value="custom">Custom (sliders)</option></optgroup>`;
+    so.innerHTML=o; so.value=S.opt;
+    if(so.value!==S.opt)so.value='custom';
+  }
+  const sm=$('#selM'),mos=mosSizes(S.P,G());
+  const lab=n=>{const b=build(S.P,G(),n),cl=classify(b.steps);
+    if(cl.k===1)return `${n} notes, equal`;
+    const c=new Array(cl.k).fill(0);cl.idx.forEach(x=>c[x]++);
+    return cl.k===2?`${n} notes: ${c[1]}L ${c[0]}s`:`${n} notes`;};
+  let mo=mos.map(n=>`<option value="${n}">${lab(n)}</option>`).join('');
+  if(!mos.includes(S.N))mo=`<option value="${S.N}">${S.N} notes (not a MOS)</option>`+mo;
+  sm.innerHTML=mo||'<option>No MOS up to 48</option>';sm.value=String(S.N);sm.disabled=!mo;
+  const ts=$('#topSum');
+  ts.textContent=TV?`${tName()}, ${optShort(S.opt)}: period ${fmt(S.P,2)} ¢, generator ${fmt(G(),2)} ¢.`:`Period ${fmt(S.P,2)} ¢, generator ${fmt(G(),2)} ¢.`;
+}
+$('#selT').addEventListener('change',e=>{
+  const v=e.target.value;
+  if(v.startsWith('p:'))selectPreset(+v.slice(2));
+  else if(v==='free')switchDef('free');
+  else{
+    const t=currentT();
+    if(!t||S.tdef==='free'){switchDef('commas');}
+    const el=$('#temper');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+    setTimeout(()=>{const f=$(S.tdef==='ets'?'#tEts':'#tCommas');if(f)f.focus({preventScroll:true});},350);
+    schedule();
+  }
+});
+$('#selM').addEventListener('change',e=>setState({N:+e.target.value,mode:0}));
+$('#selO').addEventListener('change',e=>{const v=e.target.value;if(v==='custom'){manual({});}else setState({opt:v});});
+
+/* ---------- interval matrix ---------- */
+let MVIEW='cents',MSEL=null;
+const chainOf=D=>{const c=SC.cnt;return SC.degs[((D%c)+c)%c].chain;};
+const ratioCents=l=>{const m=/^(\d+)\/(\d+)$/.exec(l);return m?1200*Math.log2(+m[1]/+m[2]):NaN;};
+function ivInfo(i,k){
+  const c=centsOf(i+k)-centsOf(i),B=chainOf(i+k)-chainOf(i),A=Math.round((c-B*G())/SC.P);
+  let ji=[];
+  if(TV){
+    const seen=new Set();
+    ji=allTargets(TV).filter(q=>q.Ao===A&&q.Bo===B&&!seen.has(q.label)&&seen.add(q.label)).sort(byH).slice(0,4)
+      .map(q=>{const j=ratioCents(q.label);return {t:q.label,e:isFinite(j)?c-j:null};});
+  }else{
+    const m=jiMatch(c);if(m)ji=[{t:m.r.p+'/'+m.r.q,e:m.e}];
+  }
+  return {c,A,B,ji};
+}
+const genText=(A,B)=>{
+  const bits=[];
+  if(B!==0||A===0)bits.push(`${neg(B)} gen`);
+  if(A!==0)bits.push(`${neg(A)} per`);
+  return bits.join(' ');
+};
+function matrixDetail(){
+  const el=$('#imDetail');
+  if(!MSEL||MSEL.i>=SC.cnt||MSEL.k>=SC.cnt){el.textContent='Select a cell to see its cents, just ratios and generator counts.';return;}
+  const {i,k}=MSEL,I=ivInfo(i,k);
+  const ji=I.ji.length?I.ji.map(q=>`<b>${q.t}</b>${q.e!=null?' ('+sgn0(q.e,1)+' ¢)':''}`).join(', '):'no just interval in the target set';
+  const gen=`${Math.abs(I.B)} generator${Math.abs(I.B)===1?'':'s'}${I.B<0?' down':I.B>0?' up':''}`+(I.A!==0?`, ${Math.abs(I.A)} period${Math.abs(I.A)===1?'':'s'}${I.A<0?' down':' up'}`:'');
+  el.innerHTML=`Degree ${i} up ${k} step${k===1?'':'s'}: <b>${fmt(I.c,2)} ¢</b>. Stands for ${ji}. Made of ${gen}.`;
+}
+function renderMatrix(){
+  $('#mvChips').querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',b.dataset.mv===MVIEW));
+  const n=SC.cnt,t=$('#imtbl');
+  if(n<2){t.innerHTML='';$('#imDetail').textContent='Add notes to the scale to see intervals.';return;}
+  if(MSEL&&(MSEL.i>=n||MSEL.k>=n))MSEL=null;
+  const info=[];
+  for(let i=0;i<n;i++){info.push([]);for(let k=1;k<n;k++)info[i][k]=ivInfo(i,k);}
+  const cls=[];
+  for(let k=1;k<n;k++){
+    const vals=[...new Set(info.map(r=>Math.round(r[k].c*100)))].sort((a,b)=>a-b);
+    cls[k]=r=>{const q=Math.round(r*100);return vals.length<2?0:q===vals[0]?1:q===vals[vals.length-1]?3:2;};
+  }
+  let h='<thead><tr><th>From \\ steps</th>';
+  for(let k=1;k<n;k++)h+=`<th>${k}</th>`;
+  h+='</tr></thead><tbody>';
+  for(let i=0;i<n;i++){
+    h+=`<tr><th scope="row">${i}<small style="font-weight:400"> ${fmt(SC.degs[i].cents,1)}</small></th>`;
+    for(let k=1;k<n;k++){
+      const I=info[i][k];let txt;
+      if(MVIEW==='cents')txt=fmt(I.c,1);
+      else if(MVIEW==='just')txt=I.ji.length?I.ji[0].t:'–';
+      else txt=genText(I.A,I.B);
+      const c=cls[k](I.c);
+      h+=`<td tabindex="0" data-i="${i}" data-k="${k}" class="${c?'s'+c:''}${MSEL&&MSEL.i===i&&MSEL.k===k?' sel':''}" title="${fmt(I.c,2)} ¢">${txt}${MVIEW==='just'&&I.ji.length&&I.ji[0].e!=null?`<small>${sgn0(I.ji[0].e,1)}</small>`:''}</td>`;
+    }
+    h+='</tr>';
+  }
+  t.innerHTML=h+'</tbody>';
+  matrixDetail();
+}
+function pickCell(td){
+  if(!td||!td.dataset.i)return;
+  const i=+td.dataset.i,k=+td.dataset.k;
+  MSEL={i,k};
+  document.querySelectorAll('#imtbl td.sel').forEach(x=>x.classList.remove('sel'));
+  td.classList.add('sel');
+  matrixDetail();
+  playChordCents([centsOf(i),centsOf(i+k)],`Degree ${i} to ${i+k}`);
+}
+$('#imtbl').addEventListener('click',e=>pickCell(e.target.closest('td')));
+$('#imtbl').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const td=e.target.closest('td');if(td){e.preventDefault();pickCell(td);}}});
+
+
+/* ---------- HexBoard mapping and export ---------- */
+const HEX_COLS=10, HEX_ROWS=14, HEX_N=140, HEX_CENTER=65;
+// From the firmware (HardwareConfig.h, GridState.cpp): row = i/10, doubled column = 2*(i%10)+(row&1),
+// so odd rows sit half a key to the right. Buttons 0,20,...,120 are the 7 command buttons.
+const HEX_CMD=[0,20,40,60,80,100,120];
+const CMD_LABEL={0:'V+',20:'V\u00B7',40:'V\u2212',60:'M/P',80:'+',100:'\u00B7',120:'\u2212'};
+let HM=null, hexEls=[], EX=null;
+const heldHex=new Map();
+const LAYOUTS=[['wh','Large step + generator'],['step','Step + generator'],['gen','Generator + step'],['comp','Generator + complement'],['custom','Custom']];
+const LAYNAME={wh:'Large step + gen',step:'Step + gen',gen:'Gen + step',comp:'Gen + complement',custom:'Custom'};
+const ascii=s=>String(s).replace(/[^\x20-\x7E]/g,'-');
+const sg=v=>(v>0?'+':v<0?'\u2212':'')+Math.abs(v);
+
+function hexModel(){
+  const P=S.P,g=G(),m=SC,cnt=m.cnt;
+  const options=[cnt,...mosSizes(P,g).filter(n=>n>cnt).slice(0,5)];
+  const T=options.includes(S.tuneSize)?S.tuneSize:(options[1]||options[0]);
+  const tpc=mod(m.degs[0].i*g,P);
+  const items=[];
+  for(let i=0;i<T;i++){let c=mod(i*g-tpc,P);if(P-c<EPS)c=0;items.push({i,c});}
+  items.sort((x,y)=>x.c-y.c||x.i-y.i);
+  const degOf=new Map();items.forEach((x,k)=>degOf.set(x.i,k));
+  const cents=items.map(x=>x.c);
+  const info=items.map(x=>{
+    if(x.i>=m.n)return {in:false};
+    const sd=m.degs.find(y=>y.i===x.i);
+    return {in:true,d:sd?sd.d:0,cls:sd?sd.cls:0};
+  });
+  const Gs=T>1?mod(degOf.get(1)-degOf.get(0),T):1;
+  const wd=degOf.get(T-1);
+  const wolf=T>1?mod(cents[(wd+Gs)%T]-cents[wd],P):g;
+  const ins=[];info.forEach((x,k)=>{if(x.in)ins.push(k);});
+  const gaps={};
+  ins.forEach((k,j)=>{
+    const gap=mod(ins[(j+1)%ins.length]-k,T)||T;
+    const cls=m.degs[info[k].d].cls;
+    if(m.k===1||cls===m.k-1)gaps[gap]=(gaps[gap]||0)+1;
+  });
+  let Lgap=1,bc=0;for(const k in gaps){if(gaps[k]>bc){bc=gaps[k];Lgap=+k;}}
+  const prs={wh:[Lgap,Gs],step:[1,Gs],gen:[Gs,1],comp:[Gs,mod(T-Gs,T)||T]};
+  const vec=S.lay==='custom'?[S.a,S.b]:(prs[S.lay]||prs.wh);
+  const [a,b]=vec;
+  const hc=D=>{const j=Math.floor(D/T);return j*P+cents[D-j*T];};
+  const row0=Math.floor(HEX_CENTER/HEX_COLS),col0=HEX_CENTER%HEX_COLS,q0=col0-(row0-(row0&1))/2;
+  const btn=[];
+  for(let i=0;i<HEX_N;i++){
+    const row=Math.floor(i/HEX_COLS),col=i%HEX_COLS,q=col-(row-(row&1))/2;
+    btn.push(HEX_CMD.includes(i)?null:a*((q-q0)+(row-row0))+b*(-(row-row0))+S.cdeg);
+  }
+  return {T,options,cents,info,inScale:info.map(x=>x.in),G:Gs,wolf,wd,Lgap,vec,hc,btn,P,g};
+}
+
+function renderHex(){
+  HM=hexModel();
+  const H=HM,m=SC,T=H.T;
+  const s=16,w=Math.sqrt(3)*s,mx=12,my=14;
+  const W=10.5*w+2*mx,Ht=13*1.5*s+2*s+2*my;
+  let o=`<svg viewBox="0 0 ${W.toFixed(0)} ${Ht.toFixed(0)}" role="group" aria-label="HexBoard key map">`;
+  let cx=0,cy=0;
+  for(let i=0;i<HEX_N;i++){
+    const row=Math.floor(i/HEX_COLS),col=i%HEX_COLS;
+    const x=mx+w/2+(col+((row&1)?0.5:0))*w,y=my+s+row*1.5*s;
+    if(i===HEX_CENTER){cx=x;cy=y;}
+    let pts='';
+    for(let k=0;k<6;k++){const an=(60*k-30)*Math.PI/180;pts+=(x+s*Math.cos(an)).toFixed(1)+','+(y+s*Math.sin(an)).toFixed(1)+' ';}
+    if(H.btn[i]===null)continue;
+    const deg=mod(H.btn[i],T);
+    let fill,tc;
+    if(deg===0){fill='var(--ink)';tc='var(--paper)';}
+    else if(H.inScale[deg]){fill=clsColor(H.info[deg].cls,m.k);tc='var(--on-k)';}
+    else{fill='var(--panel2)';tc='var(--ink2)';}
+    o+=`<polygon class="hx" data-i="${i}" points="${pts}" style="fill:${fill}"/><text class="hxt" x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" style="fill:${tc}">${deg}</text>`;
+  }
+  o+=`<circle class="ctr" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(s-1).toFixed(1)}"/></svg>`;
+  $('#hex').innerHTML=o;
+  hexEls=[];
+  document.querySelectorAll('#hex .hx').forEach(e=>hexEls[+e.dataset.i]=e);
+  renderHexControls();
+  renderExport();
+}
+
+function renderHexControls(){
+  const H=HM,m=SC;
+  $('#tsize').innerHTML=H.options.map((n,k)=>`<button class="chip${n===H.T?' on':''}" data-ts="${n}">${n}${k===0?'<small>scale only</small>':''}</button>`).join('');
+  const inC=H.inScale.filter(Boolean).length;
+  $('#tsizeNote').textContent=H.T===m.cnt?'The tuning is just the scale, so every key is in the scale.':`The tuning has ${H.T} notes per period and ${inC} of them are in the scale. The rest are filled in from the generator chain.`;
+  $('#lprs').innerHTML=LAYOUTS.map(([k,l])=>`<button class="chip${S.lay===k?' on':''}" data-lay="${k}">${l}</button>`).join('');
+  const [a,b]=H.vec;
+  $('#aRng').value=clamp(a,-24,24);sync($('#aNum'),a);
+  $('#bRng').value=clamp(b,-24,24);sync($('#bNum'),b);
+  const cr=$('#cRng');cr.min=-H.T;cr.max=H.T;cr.value=clamp(S.cdeg,-H.T,H.T);sync($('#cNum'),S.cdeg);
+  const degs=H.inScale.map((x,k)=>x?k:-1).filter(k=>k>=0);
+  let t=`Neighbors: across ${sg(a)}, up-right ${sg(b)}, up-left ${sg(b-a)} degrees. `;
+  t+=Math.abs(H.wolf-H.g)<0.01?`Every generator step is exactly ${fmt(H.g,2)} \u00A2. `:`A generator step is ${fmt(H.g,2)} \u00A2 everywhere except up from degree ${H.wd}, where it is a ${fmt(H.wolf,2)} \u00A2 wolf. `;
+  t+=`Scale degrees: ${degs.join(', ')}.`;
+  $('#neighbors').textContent=t;
+  sync($('#xName'),S.xname);
+  document.querySelectorAll('#exChips .chip').forEach(b=>b.classList.toggle('on',b.dataset.exp===S.exp));
+}
+
+/* press / drag on the hex map */
+function hexPress(id,i){
+  const D=HM.btn[i],c=HM.hc(D),f=S.base*Math.pow(2,c/1200);
+  const v=startVoice(f,{});
+  const el=hexEls[i];if(el)el.classList.add('on');
+  heldHex.set(id,{i,v});
+  $('#hexNow').textContent=`Button ${i}: degree ${mod(D,HM.T)}, ${fmt(c,1)} \u00A2, ${fmt(f,1)} Hz`;
+}
+function hexLift(id){
+  const h=heldHex.get(id);if(!h)return;
+  h.v.release();
+  const el=hexEls[h.i];if(el)el.classList.remove('on');
+  heldHex.delete(id);
+}
+
+/* ---------- export ---------- */
+function cyrb128(str){let h1=1779033703,h2=3144134277,h3=1013904242,h4=2773480762;for(let i=0,k;i<str.length;i++){k=str.charCodeAt(i);h1=h2^Math.imul(h1^k,597399067);h2=h3^Math.imul(h2^k,2869860233);h3=h4^Math.imul(h3^k,951274213);h4=h1^Math.imul(h4^k,2716044179);}h1=Math.imul(h3^(h1>>>18),597399067);h2=Math.imul(h4^(h2>>>22),2869860233);h3=Math.imul(h1^(h3>>>17),951274213);h4=Math.imul(h2^(h4>>>19),2716044179);h1^=(h2^h3^h4);h2^=h1;h3^=h1;h4^=h1;return [h1>>>0,h2>>>0,h3>>>0,h4>>>0];}
+const oid=s=>cyrb128(s).map(x=>x.toString(16).padStart(8,'0')).join('');
+const f32=x=>+Math.fround(x).toPrecision(9);
+const pretty=o=>JSON.stringify(o,null,2).replace(/\[\s+([-\d.,\s]+?)\s+\]/g,(mm,inner)=>'['+inner.replace(/\s+/g,' ')+']');
+
+function exportName(){
+  const auto=tName().replace('Custom temperament','Custom').replace('Free tuning','Custom')+' '+HM.T;
+  return ascii((S.xname.trim()||auto)).slice(0,19);
+}
+function hueFor(cls,k){
+  if(k===1)return 2000;
+  if(k===2)return cls?3450:2050;
+  if(k===3)return [2050,2700,3450][cls];
+  return Math.round(2050+(cls/(k-1))*1400);
+}
+function buildExport(){
+  const H=HM,m=SC,P=S.P,g=G(),T=H.T;
+  const nm=exportName(),folder='Temperaments';
+  const seed=`${nm}|${P}|${g.toFixed(4)}|${T}`;
+  const steps=H.cents.map((c,k)=>(k<T-1?H.cents[k+1]:P)-c);
+  const edo=classify(steps).k===1;
+  const tuning={ObjectType:'UserTuning',Schema:{major:2,minor:0},ObjectId:oid(seed+'|tuning'),Name:nm,FolderPath:folder,Source:'temperament-workbench',
+    Comment:`Period ${fmt(P,4)} cents, generator ${fmt(g,4)} cents, ${T} notes per period.`,
+    TuningKind:edo?1:2,EdoDivisions:T,ReferenceDegree:0,DefaultKeyDegree:0,ReferenceMidiNote:60,ReferenceHzFloat32:f32(S.base)};
+  if(edo)tuning.PeriodCentsFloat32=f32(P);
+  else tuning.CentsTableFloat32=H.cents.slice(1).concat([P]).map(f32);
+  const tref={ObjectType:'UserTuning',ObjectId:tuning.ObjectId};
+  const [a,b]=H.vec;
+  const layout={ObjectType:'UserLayout',Schema:{major:2,minor:0},ObjectId:oid(seed+'|layout|'+a+'|'+b+'|'+S.cdeg),Name:LAYNAME[S.lay],FolderPath:folder,
+    TuningRef:tref,LayoutKind:1,CenterButton:HEX_CENTER,AcrossSteps:a,UpRightSteps:b,DownLeftSteps:-b,
+    DeviceRotation:0,LayoutRotation:0,MirrorFlags:0,CenterStepsFromC:S.cdeg};
+  const inDegs=H.inScale.map((x,k)=>x?k:-1).filter(k=>k>=0);
+  const scName=(m.cnt+'-note'+(S.mode?' mode '+(S.mode+1):'')).slice(0,19);
+  const scale={ObjectType:'UserScale',Schema:{major:2,minor:0},ObjectId:oid(seed+'|scale|'+S.mode+'|'+m.n),Name:scName,FolderPath:folder,
+    TuningRef:tref,CycleLength:T,RootDegree:0,IncludedDegrees:inDegs};
+  const colors={ObjectType:'ScaleColorMap',Schema:{major:2,minor:0},ObjectId:oid(seed+'|colors'),Name:'Custom',FolderPath:folder,
+    TuningRef:tref,CycleLength:T,DefaultColorMode:1,
+    DegreeColors:H.cents.map((c,k)=>k===0?{degree:0,hue:0,sat:0,val:255}:H.inScale[k]?{degree:k,hue:hueFor(H.info[k].cls,m.k),sat:200,val:255}:{degree:k,hue:2200,sat:60,val:110})};
+  const names=m.names;
+  const temperament={periodCents:+P.toFixed(6),generatorCents:+g.toFixed(6),notesInScale:m.cnt,mode:S.mode+1,
+    isMOS:m.mos,stepPattern:m.degs.map(x=>m.k===1?'x':names[x.cls]).join(''),
+    stepSizesCents:m.reps.map(v=>+v.toFixed(6)),tuningNotesPerPeriod:T,generatorStepsInTuning:H.G};
+  if(TV){
+    const TT=TV.T;
+    const cm=S.tdef==='commas'?TT.commaItems.map(c=>RT.ratioStr(c.monzo,TT.primes)):(memo('basis',()=>RT.commaBasis(TT,memo('fc',()=>RT.findCommas(TT,120,10))))||[]).map(c=>c.label);
+    temperament.regularTemperament={name:tName(),subgroup:TT.primes.join('.'),commas:cm,
+      join:S.tdef==='ets'?S.ets:undefined,
+      mapping:{primes:TT.primes,periods:TV.a,generators:TV.b},
+      tuningMethod:optShort(S.opt),targetLimit:S.lim};
+  }
+  const fmtTag='temperament-workbench.hexboard.v1';
+  const note='Field names follow the HexBoard preset-sync object model (geometry object schema 2). This is not a HexBoard Sync hexboard.tuningBundle.v2 file.';
+  const preview={assumes:'Firmware geometry: row = index div 10, odd rows shifted right half a key, center key = button 65. Command buttons (value null) do not play notes.',
+    degreeFromTonicByButtonIndex:H.btn};
+  const slug=nm.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'temperament';
+  const scl=[`! ${slug}.scl`,'!',`${nm}: period ${fmt(P,3)} cents, generator ${fmt(g,3)} cents`,` ${T}`,'!',
+    ...H.cents.slice(1).concat([P]).map(c=>' '+c.toFixed(6))].join('\n')+'\n';
+  return {
+    bundle:{name:`${slug}-hexboard.json`,text:pretty({format:fmtTag,note,temperament,tuning,layouts:[layout],scales:[scale],scaleColorMap:colors,previewButtonMap:preview})},
+    tuning:{name:`${slug}-tuning.json`,text:pretty({format:fmtTag+'.tuning',note,temperament,tuning})},
+    layout:{name:`${slug}-layout.json`,text:pretty({format:fmtTag+'.layout',note,layouts:[layout],scales:[scale],scaleColorMap:colors})},
+    scala:{name:`${slug}.scl.txt`,text:scl}
+  };
+}
+function renderExport(){
+  EX=buildExport();
+  $('#exOut').textContent=EX[S.exp].text;
+}
+function setStatus(t){$('#exStatus').textContent=t;}
+let dlApi,dlChecked=false;
+if(window.claude&&typeof window.claude.use==='function'){
+  window.claude.use('downloads').then(d=>{
+    dlApi=d;dlChecked=true;
+    if(!d){const b=$('#hSave');if(b){b.disabled=true;b.title='Saving files is not available here';}setStatus('Saving files isn\u2019t available in this view. Use Copy instead.');}
+  }).catch(()=>{dlChecked=true;});
+}
+async function saveExport(){
+  const f=EX[S.exp];
+  if(!dlApi){setStatus('Saving files isn\u2019t available in this view. Use Copy instead.');return;}
+  try{
+    await dlApi.save({filename:f.name,data:f.text});
+    setStatus(S.exp==='scala'?`Saved ${f.name}. Rename it to end in .scl before importing.`:`Saved ${f.name}.`);
+  }catch(e){
+    const c=e&&e.code;
+    setStatus(c==='declined'?'Save cancelled.':'Couldn\u2019t save the file ('+(c||'error')+'). Use Copy instead.');
+  }
+}
+async function copyExport(){
+  const f=EX[S.exp];
+  try{
+    await navigator.clipboard.writeText(f.text);
+    setStatus('Copied to the clipboard.');
+  }catch(e){
+    const pre=$('#exOut'),r=document.createRange();
+    r.selectNodeContents(pre);
+    const sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);
+    let ok=false;try{ok=document.execCommand('copy');}catch(e2){}
+    setStatus(ok?'Copied to the clipboard.':'Text selected. Press and hold to copy it.');
+  }
+}
+
+function render(){
+  resolveTemperament();
+  SC=scaleModel();
+  renderControls(); renderChips(); renderTemperament(); renderTopbar(); renderPattern(); renderKeyboard(); renderCircle(); renderTable(); renderMatrix(); renderHex();
+}
+let raf=0;
+function schedule(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;render();});}
+function setState(p){Object.assign(S,p);normalize();schedule();save();}
+
+/* ---------- controls wiring ---------- */
+const manual=p=>setState(S.tdef==='free'?p:Object.assign(p,{opt:'custom'}));
+$('#pRng').addEventListener('input',e=>manual({P:+e.target.value}));
+$('#pNum').addEventListener('change',e=>{const v=parseFloat(e.target.value);if(isFinite(v)&&v>=50)manual({P:v});else schedule();});
+$('#gRng').addEventListener('input',e=>manual({g:+e.target.value}));
+$('#gNum').addEventListener('input',e=>{const v=parseFloat(e.target.value);if(isFinite(v)&&v>0)manual({g:v});});
+$('#tSub').addEventListener('input',e=>setState({sub:e.target.value}));
+$('#tCommas').addEventListener('input',e=>setState({commas:e.target.value}));
+$('#tEts').addEventListener('input',e=>setState({ets:e.target.value}));
+$('#gNum').addEventListener('change',()=>schedule());
+$('#nRng').addEventListener('input',e=>setState({N:+e.target.value}));
+$('#mRng').addEventListener('input',e=>setState({mode:+e.target.value}));
+$('#fRng').addEventListener('input',e=>setState({base:+e.target.value}));
+$('#vRng').addEventListener('input',e=>setState({vol:+e.target.value}));
+document.querySelectorAll('input[type=range]').forEach(r=>r.addEventListener('pointerup',()=>r.blur()));
+
+function selectPreset(i){
+    const p=TPRESETS[i];
+    if(imp)stopImprov();
+    Object.assign(S,{tdef:'commas',sub:p.sub,commas:p.c,flip:!!p.flip});
+    if(S.opt==='custom'||S.opt.startsWith('pure:')||S.opt.startsWith('et:'))S.opt='cte';
+    const T=currentT();
+    if(T&&!T.err){const L=memo('lims',()=>RT.limitOptions(T));if(L.length)S.lim=RT.defaultLimit(T,L);}
+    normalize(); resolveTemperament();
+    if(TV){const pr=memo('pair',()=>RT.etPair(TV.T,TV.ets,TV.tg));if(pr)S.ets=pr;}
+    S.N=nearestMOS(S.P,G(),p.w); S.mode=0;
+    schedule(); save();
+}
+function switchDef(to){
+    const T=currentT(),ok=T&&!T.err;
+    if(to==='ets'&&S.tdef==='commas'&&ok&&TV){const pr=memo('pair',()=>RT.etPair(TV.T,TV.ets,TV.tg));if(pr)S.ets=pr;}
+    if(to==='commas'&&S.tdef==='ets'&&ok){const bs=memo('basis',()=>RT.commaBasis(T,memo('fc',()=>RT.findCommas(T,120,10))));if(bs)S.commas=bs.map(c=>c.label).join(', ');}
+    setState({tdef:to});
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  const d=b.dataset;
+  if(d.tp!==undefined){
+    selectPreset(+d.tp);
+  }else if(d.tdef!==undefined){
+    switchDef(d.tdef);
+  }else if(d.mv!==undefined){MVIEW=d.mv;renderMatrix();
+  }else if(d.opt!==undefined)setState({opt:d.opt});
+  else if(d.lim!==undefined)setState({lim:+d.lim});
+  else if(d.flip!==undefined){
+    if(S.opt==='custom')S.g=S.P-G();
+    setState({flip:!S.flip});
+  }else if(d.addp!==undefined){
+    const cur=S.sub.split(/[.\s,]+/).filter(Boolean).map(Number),add=d.addp.split('.').map(Number);
+    const all=[...new Set([...cur,...add])];
+    setState({sub:[all[0],...all.slice(1).sort((x,y)=>x-y)].join('.')});
+  }else if(d.per!==undefined)setState({P:+d.per,mode:0});
+  else if(d.pure!==undefined||d.edo!==undefined)setState({g:+(d.pure!==undefined?d.pure:d.edo),mode:0});
+  else if(d.nudge!==undefined)manual({g:clamp(G()+ +d.nudge,0.5,S.P-0.5)});
+  else if(d.n!==undefined)setState({N:+d.n,mode:0});
+  else if(d.wave!==undefined)setState({wave:d.wave});
+  else if(d.range!==undefined){setState({range:+d.range});}
+  else if(d.ts!==undefined)setState({tuneSize:+d.ts});
+  else if(d.lay!==undefined)setState({lay:d.lay});
+  else if(d.exp!==undefined){setState({exp:d.exp});setStatus('');}
+  else if(d.hact==='save')saveExport();
+  else if(d.hact==='copy')copyExport();
+  else if(d.act!==undefined){
+    const c=SC.cnt;
+    const rng=n=>Array.from({length:n},(_,i)=>i);
+    if(d.act!=='improv'&&imp)stopImprov();
+    switch(d.act){
+      case 'up':playSeq(rng(c+1));break;
+      case 'down':playSeq(rng(c+1).reverse());break;
+      case 'triad':playChordCents([0,2,4].map(centsOf),'Triad');break;
+      case 'seventh':playChordCents([0,2,4,6].map(centsOf),'Seventh chord');break;
+      case 'gen3':case 'gen4':{
+        const k=d.act==='gen3'?3:4, g=SC.g;
+        playChordCents(Array.from({length:k},(_,i)=>mod(i*g,SC.P)).sort((a,b)=>a-b),`${k} generators stacked`);break;
+      }
+      case 'improv':imp?stopImprov():startImprov();break;
+    }
+  }
+});
+document.addEventListener('pointerdown',e=>{
+  const t=e.target;
+  const dot=t.closest&&t.closest('#circ [data-d]');
+  if(dot){ensureAudio();playD(+dot.dataset.d,0.7);return;}
+  const row=t.closest&&t.closest('#tbl tr.rw');
+  if(row){ensureAudio();playD(+row.dataset.d,0.7);return;}
+  const cc=t.closest&&t.closest('#chain [data-chain]');
+  if(cc){
+    ensureAudio();if(imp)stopImprov();
+    const st=+cc.dataset.chain,pc=mod(st*G(),S.P),r=repsFor(st);
+    playChordCents(st===0?[0]:[0,pc],st===0?'Tonic':`${neg(st)} generators${r.length?` (${r[0].label})`:''}`);
+    return;
+  }
+  const tq=t.closest&&t.closest('#ttbl tr.rw');
+  if(tq&&TV){
+    ensureAudio();if(imp)stopImprov();
+    const q=TV.tg[+tq.dataset.tq];
+    if(q)playChordCents([0,q.T],`${q.label}, tempered by ${sgn(q.e)} \u00A2`);
+  }
+});
+
+const setVec=(a,b)=>setState({lay:'custom',a,b});
+$('#aRng').addEventListener('input',e=>setVec(+e.target.value,HM.vec[1]));
+$('#bRng').addEventListener('input',e=>setVec(HM.vec[0],+e.target.value));
+$('#aNum').addEventListener('input',e=>{const v=parseInt(e.target.value,10);if(isFinite(v))setVec(v,HM.vec[1]);});
+$('#bNum').addEventListener('input',e=>{const v=parseInt(e.target.value,10);if(isFinite(v))setVec(HM.vec[0],v);});
+$('#cRng').addEventListener('input',e=>setState({cdeg:+e.target.value}));
+$('#cNum').addEventListener('input',e=>{const v=parseInt(e.target.value,10);if(isFinite(v))setState({cdeg:v});});
+$('#xName').addEventListener('input',e=>setState({xname:e.target.value}));
+
+const hexEl=$('#hex');
+hexEl.addEventListener('pointerdown',e=>{
+  const k=e.target.closest('.hx');if(!k)return;
+  e.preventDefault();ensureAudio();
+  hexPress(e.pointerId,+k.dataset.i);
+});
+hexEl.addEventListener('pointermove',e=>{
+  const h=heldHex.get(e.pointerId);if(!h)return;
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  const k=el&&el.closest?el.closest('.hx'):null;
+  if(k&&+k.dataset.i!==h.i){hexLift(e.pointerId);hexPress(e.pointerId,+k.dataset.i);}
+});
+
+window.addEventListener('resize',()=>{if(SC){renderPattern();fitTouch();}});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(SC)renderPattern();});
+
+render();
+})();
+</script>
+<script>
+/* Nick Vuci light/dark toggle: follows the device until the viewer picks; the choice is kept and set as data-theme on <html>. */
+(function(){
+  var root=document.documentElement, sys=window.matchMedia('(prefers-color-scheme: dark)');
+  var btns=[].slice.call(document.querySelectorAll('.nv-theme'));
+  function cur(){var c=root.dataset.theme;return c==='light'||c==='dark'?c:(sys.matches?'dark':'light')}
+  function sync(){var d=cur()==='dark',l=d?'Switch to light theme':'Switch to dark theme';
+    btns.forEach(function(b){b.classList.toggle('is-dark',d);b.setAttribute('aria-label',l);b.title=l;b.setAttribute('aria-pressed',String(d))});
+    document.dispatchEvent(new CustomEvent('nv-theme',{detail:cur()}))}
+  btns.forEach(function(b){b.addEventListener('click',function(){var t=cur()==='dark'?'light':'dark';root.dataset.theme=t;
+    try{localStorage.setItem('theme',t)}catch(e){}sync()})});
+  if(sys.addEventListener)sys.addEventListener('change',sync);
+  /* the app bar spans the full window, edge to edge, whatever margins the page sets on its container */
+  var bar=document.querySelector('.nv-appbar');
+  function bleed(){if(!bar)return;bar.style.marginLeft=bar.style.marginTop=bar.style.width='';
+    var r=bar.getBoundingClientRect(),w=document.documentElement.clientWidth;
+    bar.style.marginLeft=(-r.left)+'px';bar.style.width=w+'px';bar.style.marginTop=(-(r.top+window.scrollY))+'px';
+    var r2=bar.getBoundingClientRect();if(Math.abs(r2.left)>1){bar.style.marginLeft=(-r.left-r2.left)+'px'}}
+  bleed();addEventListener('resize',bleed);addEventListener('load',bleed);
+  sync();
+})();
+</script>
+</body>
+</html>
+
+</body></html>

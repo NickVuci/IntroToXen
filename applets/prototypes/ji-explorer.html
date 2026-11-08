@@ -1,0 +1,1356 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>JI Explorer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Nick Vuci house style — JI Explorer.
+   Layout: a Tyrian app bar (monogram, wordmark, app name; then pitch, timbre, volume) → the work on ivory or nocturne ground → a Tyrian control bar (drone · play chord · arpeggiate).
+   Colours, type, spacing and radius from the Nick Vuci design system (tokens.json); ivory is the default, nocturne follows the device. */
+:root{
+  --surface:#f7f4ec;--surface-raised:#fffdf8;--surface-sunk:#ece7db;--ink:#121933;--ink-muted:#565c70;--hairline:#dcd5c6;--grid:#e8e2d5;
+  --blue:#1640c8;--on-blue:#fffdf8;--blue-soft:#dde4f7;--gold:#b8892b;--gold-ink:#7a5a1c;--gold-soft:#efe4cb;--on-gold:#121933;--alert:#9b2335;
+  --tyrian:#5e1a52;--tyrian-mid:#8a3a7c;--tyrian-soft:#efe2ec;--tyrian-wash:#f8f1f5;
+  --band:#2a0f2b;--on-band:#f3eaf0;--on-band-muted:#c9b4c6;--band-line:#4a2648;--band-edge:#8e6a8a;--band-blue:#7393ff;--on-band-blue:#0c1230;--band-gold:#d1a246;
+  --prime-3:#3d5ba9;--prime-5:#2f7d6b;--prime-7:#a2562e;--prime-11:#6b4f9e;--prime-13:#a23e6b;--edge:#8F897C;
+  --bg:var(--surface);--panel:var(--surface-raised);--well:var(--surface-sunk);--mute:var(--ink-muted);--line:var(--hairline);
+  --p3:var(--prime-3);--p5:var(--prime-5);--p7:var(--prime-7);--p11:var(--prime-11);--p13:var(--prime-13);
+  --sel:var(--blue);--sel-ink:var(--on-blue);--oto:var(--gold);--uto:var(--tyrian-mid);
+  --f-display:"Cormorant Garamond","EB Garamond",Garamond,"Times New Roman",serif;
+  --f-body:"Montserrat","Helvetica Neue",Arial,system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --surface:#0c1230;--surface-raised:#141b3d;--surface-sunk:#080c22;--ink:#efeae0;--ink-muted:#a7abbe;--hairline:#283055;--grid:#1d2447;
+  --blue:#7393ff;--on-blue:#0c1230;--blue-soft:#1c2758;--gold:#d1a246;--gold-ink:#ddb867;--gold-soft:#81693c;--on-gold:#0c1230;--alert:#e57a88;
+  --tyrian:#a85b9c;--tyrian-mid:#a65a98;--tyrian-soft:#2c1736;--tyrian-wash:#170f2c;
+  --band:#2b1138;--on-band:#efeae0;--on-band-muted:#bba8bd;--band-line:#45265a;--band-edge:#7d5c82;--band-blue:#7393ff;--on-band-blue:#0c1230;--band-gold:#d1a246;
+  --prime-3:#8aa2f0;--prime-5:#6cc0a8;--prime-7:#e0976a;--prime-11:#b49be6;--prime-13:#e58ab3;--edge:#616A99; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --surface:#0c1230;--surface-raised:#141b3d;--surface-sunk:#080c22;--ink:#efeae0;--ink-muted:#a7abbe;--hairline:#283055;--grid:#1d2447;
+  --blue:#7393ff;--on-blue:#0c1230;--blue-soft:#1c2758;--gold:#d1a246;--gold-ink:#ddb867;--gold-soft:#81693c;--on-gold:#0c1230;--alert:#e57a88;
+  --tyrian:#a85b9c;--tyrian-mid:#a65a98;--tyrian-soft:#2c1736;--tyrian-wash:#170f2c;
+  --band:#2b1138;--on-band:#efeae0;--on-band-muted:#bba8bd;--band-line:#45265a;--band-edge:#7d5c82;--band-blue:#7393ff;--on-band-blue:#0c1230;--band-gold:#d1a246;
+  --prime-3:#8aa2f0;--prime-5:#6cc0a8;--prime-7:#e0976a;--prime-11:#b49be6;--prime-13:#e58ab3;--edge:#616A99; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 32px}
+.app{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(26px,4vw,38px);font-weight:700;line-height:1}
+h2{font-size:17px;font-weight:700}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.brand{display:flex;flex-direction:column;gap:6px;min-width:0}
+.brand p{margin:0;color:var(--mute);max-width:60ch}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label.ctl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+input,select,button{font:inherit;color:var(--ink)}
+input[type=number],input[type=text],select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:14px}
+input[type=number]{width:86px;font-family:var(--f-mono)}
+input[type=range]{width:90px;accent-color:var(--blue)}
+button{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font-size:14px;cursor:pointer;line-height:1.1}
+button:hover{border-color:var(--mute)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--sel);color:var(--sel-ink);border-color:var(--sel)}
+button.primary{background:var(--sel);color:var(--sel-ink);border-color:var(--sel)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:6px 10px;font-size:13px}
+.seg button+button{border-left:1px solid var(--line)}
+
+.hero{display:grid;grid-template-columns:minmax(0,1fr)}
+.hero-left{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.hero-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hero-head h2{font-size:20px;margin-top:3px}
+.hint{margin:0;color:var(--mute);font-size:13px}
+.drone{white-space:nowrap;display:inline-flex;align-items:center;gap:8px;padding:9px 14px;font-weight:700;border-radius:999px}
+.drone .dot{width:9px;height:9px;border-radius:50%;background:var(--mute)}
+.drone[aria-pressed="true"] .dot{background:var(--sel-ink);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25;transform:scale(.7)}}
+.hero-ctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;flex:1 1 340px;justify-content:flex-end}
+.range2{display:flex;align-items:center;gap:10px;flex:1 1 220px;max-width:420px}
+.rv{font-family:var(--f-mono);font-size:13px;min-width:22px;text-align:center;font-variant-numeric:tabular-nums}
+.rtrack{position:relative;flex:1;height:30px;min-width:0}
+.rtrack::before{content:"";position:absolute;left:11px;right:11px;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:var(--line)}
+.rfill{position:absolute;top:50%;height:4px;margin-top:-2px;background:var(--sel);border-radius:2px}
+.rtrack input{position:absolute;left:0;top:0;width:100%;height:30px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.rtrack input:focus-visible{outline:none}
+.rtrack input::-webkit-slider-runnable-track{background:none;height:30px;border:0}
+.rtrack input::-moz-range-track{background:none;border:0}
+.rtrack input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:22px;height:22px;margin-top:4px;border-radius:50%;background:var(--panel);border:2px solid var(--ink);cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.rtrack input::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:var(--panel);border:2px solid var(--ink);cursor:grab}
+.rtrack input:focus-visible::-webkit-slider-thumb{outline:2px solid var(--blue);outline-offset:2px}
+.hs{display:flex;flex-direction:column;touch-action:none;user-select:none;-webkit-user-select:none;border-top:1px solid var(--grid)}
+.hrow{display:grid;grid-template-columns:30px minmax(0,1fr) 128px;align-items:center;gap:10px;padding:0 6px;height:var(--rh,30px);grid-template-rows:var(--rh,30px);overflow:hidden;position:relative;border:0;border-bottom:1px solid var(--grid);border-radius:0;background:transparent;text-align:left;cursor:pointer}
+.hrow:hover{background:color-mix(in srgb,var(--c) 8%,transparent)}
+.hrow[aria-pressed="true"],.hrow[aria-current="true"]{background:color-mix(in srgb,var(--c) 16%,transparent)}
+.hrow .hn{font-family:var(--f-display);font-weight:700;font-size:15px;text-align:right;color:var(--c)}
+.hrow canvas{width:100%;height:var(--rh,30px);display:block;min-width:0}
+.hrow .hr{display:flex;align-items:baseline;gap:6px;font-family:var(--f-mono);white-space:nowrap;overflow:hidden}
+.hrow .hr b{font-weight:500;font-size:13px;min-width:40px}
+.hrow .hr small{font-size:11px;color:var(--mute)}
+.hero-right{position:relative;min-height:300px;background:var(--well);border-radius:0 10px 10px 0;overflow:hidden}
+canvas#wave{position:absolute;inset:0;width:100%;height:100%}
+.wave-cap{position:absolute;left:14px;right:14px;top:12px;font-size:13px;color:var(--mute);pointer-events:none}
+.wave-cap b{font-family:var(--f-display);font-size:18px;color:var(--ink);margin-right:6px}
+@media (max-width:900px){.hero{grid-template-columns:minmax(0,1fr)}.hero-left{border-right:0;border-bottom:1px solid var(--line)}.hero-right{border-radius:0 0 10px 10px;min-height:260px}}
+.bench{display:grid;grid-template-columns:minmax(0,1fr) 350px;grid-template-areas:"lat rail" "cross cross";gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.lattice{grid-area:lat;display:flex;flex-direction:column;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.controls .grp{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+.controls select{padding:4px 6px;font-size:13px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.stepper button{border:0;border-radius:0;padding:4px 9px}
+.stepper output{font-family:var(--f-mono);font-size:13px;min-width:30px;text-align:center;color:var(--ink)}
+.canvas-wrap{position:relative;flex:1;min-height:440px;background:var(--well);border-radius:0 0 10px 10px;overflow:hidden}
+canvas#lat{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+.zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:4px}
+.zoom button{width:34px;height:34px;padding:0;font-size:17px}
+.legend{position:absolute;left:12px;bottom:10px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--mute);background:color-mix(in srgb,var(--panel) 85%,transparent);padding:6px 10px;border-radius:6px;border:1px solid var(--line);max-width:calc(100% - 24px)}
+.sw{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.tri-sw{display:inline-block;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;vertical-align:middle;margin-right:5px}
+
+.rail{grid-area:rail;display:flex;flex-direction:column;gap:16px;min-width:0}
+.pad{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.insp-top{display:flex;align-items:center;gap:18px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1;min-width:64px}
+.frac .bar{display:block;align-self:stretch;height:3px;background:var(--sel);margin:5px 0;border-radius:2px}
+.cents{font-family:var(--f-mono);font-size:22px;font-weight:500}
+.hz{font-family:var(--f-mono);font-size:13px;color:var(--mute)}
+dl.facts{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin:0;font-size:13px}
+dl.facts dt{color:var(--mute)}
+dl.facts dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;min-width:0;overflow-wrap:anywhere}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px}
+.btnrow button{font-size:13px;padding:6px 10px}
+.entry{display:flex;gap:6px}
+.entry input{flex:1;min-width:0;font-family:var(--f-mono)}
+.err{color:var(--p13);font-size:12px;min-height:1em;margin:-6px 0 0}
+
+.chord-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chord-head select{font-size:13px;padding:4px 6px;max-width:58%}
+.tray{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 4px 4px 11px;border:1px solid color-mix(in srgb,var(--c) 50%,var(--line));border-radius:999px;font-family:var(--f-mono);font-size:13px;background:color-mix(in srgb,var(--c) 16%,var(--panel))}
+.chip .lim{width:8px;height:8px;border-radius:50%}
+.chip button{border:0;background:none;padding:2px 6px;font-size:13px;color:var(--mute)}
+.chip .nm{cursor:pointer}
+.empty{color:var(--mute);font-size:13px}
+.ivwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table.iv{border-collapse:collapse;font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums;width:100%}
+table.iv th,table.iv td{padding:5px 7px;text-align:center;border-bottom:1px solid var(--grid);border-right:1px solid var(--grid);white-space:nowrap}
+table.iv th{color:var(--mute);font-weight:500;background:var(--well)}
+table.iv td small{display:block;color:var(--mute);font-size:10.5px}
+
+.series{grid-area:series}
+.cross{grid-area:cross}
+.x-head{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between}
+.x-head .left{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 320px}
+.x-head .left p{margin:2px 0 0;color:var(--mute);font-size:13px;max-width:70ch}
+.x-head .right{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.x-head select{font-size:13px;padding:5px 6px;max-width:100%}
+.x-sets{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.xset{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute);flex:1 1 220px;min-width:0}
+.xset span{font-family:var(--f-display);font-weight:700;color:var(--ink);font-size:15px;white-space:nowrap}
+.xset input{flex:1;min-width:0;font-family:var(--f-mono)}
+.xset input:disabled{opacity:.55}
+.xsame{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+.xsame input{accent-color:var(--blue);width:16px;height:16px}
+.x-bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.x-stats{font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.x-stats b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.x-view{overflow-x:auto;padding-block:6px;min-height:80px}
+.dia{position:relative;margin:0 auto}
+.dia button{position:absolute;width:calc(var(--h)*2);height:calc(var(--h)*2);padding:0;border:0;border-radius:0;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);display:flex;align-items:center;justify-content:center}
+.dia button span{display:block;max-width:72%;font-family:var(--f-mono);font-size:clamp(9px,calc(var(--h)*.34),12.5px);line-height:1.1;text-align:center;overflow-wrap:anywhere;pointer-events:none}
+.xc.dc{background:color-mix(in srgb,var(--c) 17%,var(--panel))}
+.xc.dc:hover{background:color-mix(in srgb,var(--c) 32%,var(--panel))}
+.xc.uni{background:var(--grid)!important;font-weight:600}
+.xc.rep span{opacity:.55}
+.xc.on{background:var(--sel)!important;color:var(--sel-ink)}
+.xc.on span{opacity:1}
+.dia .xh{background:transparent;color:var(--mute)}
+.dia .xh span{font-family:var(--f-display);font-weight:700;font-size:clamp(11px,calc(var(--h)*.42),16px);color:var(--ink)}
+.dia .xh.col{background:color-mix(in srgb,var(--oto) 22%,transparent)}
+.dia .xh.row{background:color-mix(in srgb,var(--uto) 22%,transparent)}
+.dia .xh:hover{filter:brightness(1.08)}
+.dia button:focus-visible{outline:none;background:var(--sel);color:var(--sel-ink)}
+.dia button:focus-visible span{color:var(--sel-ink)}
+.xgrid-wrap{overflow-x:auto}
+table.xgrid{border-collapse:separate;border-spacing:4px;margin:0 auto}
+table.xgrid th{font-weight:400}
+table.xgrid .corner{font-family:var(--f-display);font-size:18px;color:var(--mute)}
+table.xgrid .xh{font-family:var(--f-display);font-weight:700;font-size:15px;min-width:44px;padding:6px 8px}
+table.xgrid .xh.col{border-top:3px solid var(--oto)}
+table.xgrid .xh.row{border-left:3px solid var(--uto)}
+.gc{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:58px;padding:6px 6px;border:1px solid color-mix(in srgb,var(--c) 50%,var(--line));border-radius:6px;background:color-mix(in srgb,var(--c) 16%,var(--panel))}
+.gc:hover{border-color:var(--c);background:color-mix(in srgb,var(--c) 26%,var(--panel))}
+.gc b{font-family:var(--f-mono);font-weight:500;font-size:13px}
+.gc small{font-family:var(--f-mono);font-size:10.5px;color:color-mix(in srgb,var(--c) 55%,var(--ink))}
+.gc.on small{color:var(--sel-ink);opacity:.75}
+.gc.uni{background:var(--grid)}
+
+.series-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.series-head .left{display:flex;flex-direction:column;gap:2px;min-width:0}
+.series-head p{margin:0;color:var(--mute);font-size:13px}
+.series-head .right{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ruler{position:relative;height:46px;border-bottom:1px solid var(--line);margin:4px 6px 0}
+.tick{position:absolute;bottom:0;width:2px;margin-left:-1px;border-radius:1px 1px 0 0}
+.oct{position:absolute;bottom:-18px;font-family:var(--f-mono);font-size:10.5px;color:var(--mute);transform:translateX(-50%)}
+.ladder{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;margin-top:22px}
+.rung{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 9px 8px;text-align:left;border-top:3px solid var(--line);background:var(--well)}
+.rung .n{font-family:var(--f-display);font-weight:700;font-size:19px;line-height:1.05}
+.rung .r{font-family:var(--f-mono);font-size:12px}
+.rung .c{font-family:var(--f-mono);font-size:11px;color:var(--mute)}
+.rung.in{background:var(--sel);color:var(--sel-ink);border-color:var(--sel)}
+.rung.in .c{color:var(--sel-ink);opacity:.75}
+
+[hidden]{display:none!important}
+.lattice{overflow:hidden}
+.lattice .canvas-wrap{border-radius:0}
+.controls.ctx{padding-block:10px}
+.primes{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.pr{display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.pr b{font-family:var(--f-display);font-size:17px;color:var(--c);min-width:1.4ch;text-align:right}
+.pr.off b{color:var(--mute);opacity:.6}
+.pr output{min-width:34px}
+.stepper button:disabled{opacity:.35;cursor:default}
+.scalectl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.scalectl select{max-width:100%;font-size:13px;padding:5px 6px}
+.scalectl button{font-size:13px;padding:6px 10px}
+.edges{margin-left:auto}
+#edgesIn{width:130px;font-family:var(--f-mono);font-size:13px;padding:4px 7px}
+.scale-editor{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px;background:var(--well)}
+.scale-editor textarea{width:100%;min-height:130px;font-family:var(--f-mono);font-size:13px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical}
+.custom-row{gap:8px 18px}
+.cp{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
+.cp b{color:var(--c);font-family:var(--f-display);font-size:16px;min-width:1.4ch}
+.cp label{display:inline-flex;align-items:center;gap:4px}
+.cp input[type=range]{width:78px}
+.lat-note{margin:0;padding:8px 14px;font-size:12.5px;color:var(--mute);border-bottom:1px solid var(--line);max-width:none}
+.sw.dash{background:repeating-linear-gradient(90deg,var(--mute) 0 4px,transparent 4px 7px)}
+.scale-strip{display:flex;gap:6px;overflow-x:auto;padding:10px 14px;border-top:1px solid var(--line)}
+.sn{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 9px;flex:0 0 auto;border:1px solid color-mix(in srgb,var(--c) 50%,var(--line));border-radius:6px;background:color-mix(in srgb,var(--c) 16%,var(--panel))}
+.sn:hover{border-color:var(--c);background:color-mix(in srgb,var(--c) 26%,var(--panel))}
+.sn b{font-family:var(--f-mono);font-weight:500;font-size:13px}
+.sn small{font-family:var(--f-mono);font-size:11px;color:color-mix(in srgb,var(--c) 55%,var(--ink))}
+.sn.on,.gc.on{background:var(--sel);color:var(--sel-ink);border-color:var(--sel)}
+.sn.on small{color:var(--sel-ink);opacity:.75}
+@media (max-width:640px){.edges{margin-left:0}}
+
+@media (max-width:900px){
+  .bench{grid-template-columns:minmax(0,1fr);grid-template-areas:"lat" "rail" "cross"}
+  .canvas-wrap{min-height:380px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- house style layer ---- */
+html{height:100%;background:var(--surface)}
+body{background:var(--surface);font-family:var(--f-body);font-size:14.5px;line-height:1.55;padding:0;height:100%;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--surface-raised)}
+.main{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.app{gap:20px}
+.intro{margin:0;color:var(--mute);max-width:72ch;padding-bottom:14px;border-bottom:1px solid var(--tyrian-soft)}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:0;color:var(--tyrian)}
+h2{font-size:24px;line-height:1.2}
+.hero-head h2{font-size:28px;margin-top:2px}
+.eyebrow{font-family:var(--f-body);font-weight:600;font-size:11px;letter-spacing:.18em;color:var(--gold-ink)}
+.card{border-radius:2px;border-color:var(--tyrian-soft);background:var(--surface-raised)}
+.canvas-wrap,.lattice .canvas-wrap{border-radius:0;background:var(--surface-sunk)}
+.hero-right{border-radius:0}
+button,input,select,textarea,.seg,.stepper,.chip,.legend,.ivwrap,.zoom button{border-radius:2px}
+button{background:transparent;border-color:var(--edge);font-weight:500;font-size:13.5px}
+button:hover{background:var(--surface-sunk);border-color:var(--edge)}
+button[aria-pressed="true"],button.primary{background:var(--blue);color:var(--on-blue);border-color:var(--blue)}
+button.primary:hover{filter:brightness(1.08);background:var(--blue)}
+input[type=number],input[type=text],select,textarea{background:var(--surface-raised);border-color:var(--hairline)}
+.seg{background:var(--tyrian-wash);border:1px solid var(--tyrian-soft);padding:2px;gap:2px}
+.seg button,.seg button+button{border:0;border-radius:1px}
+.seg button:hover{background:var(--surface-raised)}
+.seg button[aria-pressed="true"]{background:var(--blue);color:var(--on-blue)}
+.stepper{border-color:var(--tyrian-soft);background:var(--tyrian-wash)}
+.controls,.lat-note,.scale-strip,.scale-editor{border-color:var(--tyrian-soft)}
+.controls .grp,label.ctl{font-size:12.5px}
+.frac{font-family:var(--f-mono);font-weight:500;font-size:36px}
+.frac .bar{background:var(--gold);height:2px}
+.cents{color:var(--ink)}
+.hrow .hn,.pr b,.cp b,.xset span,table.xgrid .corner,.dia .xh span,table.xgrid .xh,.rung .n{font-family:var(--f-mono);font-weight:500}
+.chord-head h2{font-size:24px}
+.legend{background:color-mix(in srgb,var(--surface-raised) 88%,transparent);border-color:var(--tyrian-soft)}
+.hint,.x-head .left p{color:var(--mute)}
+.err{color:var(--alert)}
+dl.facts dt{color:var(--tyrian-mid);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;align-self:center}
+table.iv th{background:var(--tyrian-wash);color:var(--tyrian-mid)}
+.rfill{background:var(--blue)}
+.rtrack input::-webkit-slider-thumb{border-color:var(--blue);background:var(--surface-raised);box-shadow:none}
+.rtrack input::-moz-range-thumb{border-color:var(--blue);background:var(--surface-raised)}
+.dia .xh.col{background:color-mix(in srgb,var(--gold) 22%,transparent)}
+.dia .xh.row{background:color-mix(in srgb,var(--tyrian-mid) 18%,transparent)}
+table.xgrid .xh.col{border-top-color:var(--gold)}
+table.xgrid .xh.row{border-left-color:var(--tyrian-mid)}
+
+/* app bar and control bar: light bands, Tyrian as accent only */
+.appbar,.ctrlbar{flex:none;background:var(--surface-raised);color:var(--ink);z-index:20}
+.appbar{border-bottom:1px solid var(--tyrian-soft)}
+.ab-in,.cb-in{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ab-top{border-bottom:1px solid var(--tyrian-soft)}
+.ab-top .ab-in{display:flex;align-items:center;gap:16px;padding-block:14px 12px}
+.hudlock{display:flex;align-items:center;gap:12px;flex:none;text-decoration:none;color:inherit}
+.hudlock:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.hudmark{display:block;width:40px;height:auto;flex:none}
+.hudlock .wm{font-family:var(--f-body);font-weight:400;font-size:18px;letter-spacing:.18em;white-space:nowrap;line-height:1}
+.hudlock .wm .n{color:var(--nv-brand-blue)} .hudlock .wm .v{color:var(--gold)}
+.appname{margin:0;padding-left:16px;border-left:1px solid var(--tyrian-soft);font-family:var(--f-body);font-weight:400;font-size:18px;letter-spacing:.18em;line-height:1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ab-row .ab-in{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between;padding-block:8px 9px}
+.ab-row .sub{font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink)}
+.appbar label.ctl{color:var(--tyrian-mid);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+.appbar input[type=number],.appbar select{background:var(--surface);color:var(--ink);border-color:var(--hairline);font-size:13px;padding:4px 7px;text-transform:none;letter-spacing:0}
+.appbar input[type=range]{accent-color:var(--gold)}
+.ctrlbar{border-top:1px solid var(--tyrian-soft)}
+.cb-in{display:grid;grid-template-columns:1fr minmax(0,1.7fr) 1fr;gap:10px;padding-block:10px;max-width:760px}
+.cb-in > *{height:50px;width:100%;min-width:0;justify-content:center;font-size:13px}
+.ctrlbar .drone{border-radius:2px;font-weight:600}
+.ctrlbar #cPlay{font-weight:600;letter-spacing:.06em;font-size:14px}
+.ctrlbar #cArp{font-weight:500}
+@media (max-width:640px){.hudlock .wm{display:none}.hudmark{width:34px}.appname{font-size:15px;letter-spacing:.1em;padding-left:12px}.ab-top .ab-in{gap:12px;padding-block:10px 9px}.ab-row .sub{display:none}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="nv-brand">
+/* Nick Vuci house style: Ivory (light) and Nocturne (dark, the original nickvuci.com palette).
+   The applet's own variables are mapped onto the design-system tokens below. */
+:root{--nv-ground-start:#f7f4ec;--nv-ground-end:#f7f4ec;--nv-surface:#f7f4ec;--nv-surface-raised:#fffdf8;--nv-surface-sunk:#ece7db;--nv-ink:#121933;--nv-ink-muted:#565c70;--nv-hairline:#dcd5c6;--nv-brand-blue:#1640c8;--nv-blue:#1640c8;--nv-on-blue:#fffdf8;--nv-blue-soft:#dde4f7;--nv-gold:#b8892b;--nv-gold-ink:#7a5a1c;--nv-gold-soft:#efe4cb;--nv-on-gold:#121933;--nv-alert:#b42a12;--nv-focus-ring:#1640c8;--nv-burgundy:#6b1d34;--nv-burgundy-ink:#6b1d34;--nv-burgundy-mid:#7a2c40;--nv-burgundy-soft:#f3e4e8;--nv-burgundy-wash:#faf2f3;--nv-band:#2e0f16;--nv-on-band:#f5ecee;--nv-on-band-muted:#d1b6bd;--nv-band-line:#4f2530;--nv-band-edge:#916a72;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#d1a246;--nv-prime-3:#3d5ba9;--nv-prime-5:#2f7d6b;--nv-prime-7:#a2562e;--nv-prime-11:#6b4f9e;--nv-prime-13:#963c8c;--nv-edge:#8F897C;--nv-grid:#e8e2d5;--nv-font-display:"Cormorant Garamond","EB Garamond",Garamond,"Times New Roman",serif;--nv-font-sans:"Montserrat","Helvetica Neue",Arial,system-ui,sans-serif;--nv-font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--surface:var(--nv-surface);--surface-raised:var(--nv-surface-raised);--surface-sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--ink-muted:var(--nv-ink-muted);--hairline:var(--nv-hairline);--grid:var(--nv-grid);--blue:var(--nv-blue);--on-blue:var(--nv-on-blue);--blue-soft:var(--nv-blue-soft);--gold:var(--nv-gold);--gold-ink:var(--nv-gold-ink);--gold-soft:var(--nv-gold-soft);--on-gold:var(--nv-on-gold);--alert:var(--nv-alert);--burgundy:var(--nv-burgundy);--burgundy-ink:var(--nv-burgundy-ink);--burgundy-mid:var(--nv-burgundy-mid);--burgundy-soft:var(--nv-burgundy-soft);--burgundy-wash:var(--nv-burgundy-wash);--band:var(--nv-band);--on-band:var(--nv-on-band);--on-band-muted:var(--nv-on-band-muted);--band-line:var(--nv-band-line);--band-edge:var(--nv-band-edge);--band-blue:var(--nv-band-blue);--on-band-blue:var(--nv-on-band-blue);--band-gold:var(--nv-band-gold);--prime-3:var(--nv-prime-3);--prime-5:var(--nv-prime-5);--prime-7:var(--nv-prime-7);--prime-11:var(--nv-prime-11);--prime-13:var(--nv-prime-13);--edge:var(--nv-edge);--tyrian:var(--nv-burgundy);--tyrian-mid:var(--nv-burgundy-mid);--tyrian-soft:var(--nv-burgundy-soft);--tyrian-wash:var(--nv-burgundy-wash);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--surface:var(--nv-surface);--surface-raised:var(--nv-surface-raised);--surface-sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--ink-muted:var(--nv-ink-muted);--hairline:var(--nv-hairline);--grid:var(--nv-grid);--blue:var(--nv-blue);--on-blue:var(--nv-on-blue);--blue-soft:var(--nv-blue-soft);--gold:var(--nv-gold);--gold-ink:var(--nv-gold-ink);--gold-soft:var(--nv-gold-soft);--on-gold:var(--nv-on-gold);--alert:var(--nv-alert);--burgundy:var(--nv-burgundy);--burgundy-ink:var(--nv-burgundy-ink);--burgundy-mid:var(--nv-burgundy-mid);--burgundy-soft:var(--nv-burgundy-soft);--burgundy-wash:var(--nv-burgundy-wash);--band:var(--nv-band);--on-band:var(--nv-on-band);--on-band-muted:var(--nv-on-band-muted);--band-line:var(--nv-band-line);--band-edge:var(--nv-band-edge);--band-blue:var(--nv-band-blue);--on-band-blue:var(--nv-on-band-blue);--band-gold:var(--nv-band-gold);--prime-3:var(--nv-prime-3);--prime-5:var(--nv-prime-5);--prime-7:var(--nv-prime-7);--prime-11:var(--nv-prime-11);--prime-13:var(--nv-prime-13);--edge:var(--nv-edge);--tyrian:var(--nv-burgundy);--tyrian-mid:var(--nv-burgundy-mid);--tyrian-soft:var(--nv-burgundy-soft);--tyrian-wash:var(--nv-burgundy-wash);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:dark}}
+:root[data-theme="dark"]{--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--surface:var(--nv-surface);--surface-raised:var(--nv-surface-raised);--surface-sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--ink-muted:var(--nv-ink-muted);--hairline:var(--nv-hairline);--grid:var(--nv-grid);--blue:var(--nv-blue);--on-blue:var(--nv-on-blue);--blue-soft:var(--nv-blue-soft);--gold:var(--nv-gold);--gold-ink:var(--nv-gold-ink);--gold-soft:var(--nv-gold-soft);--on-gold:var(--nv-on-gold);--alert:var(--nv-alert);--burgundy:var(--nv-burgundy);--burgundy-ink:var(--nv-burgundy-ink);--burgundy-mid:var(--nv-burgundy-mid);--burgundy-soft:var(--nv-burgundy-soft);--burgundy-wash:var(--nv-burgundy-wash);--band:var(--nv-band);--on-band:var(--nv-on-band);--on-band-muted:var(--nv-on-band-muted);--band-line:var(--nv-band-line);--band-edge:var(--nv-band-edge);--band-blue:var(--nv-band-blue);--on-band-blue:var(--nv-on-band-blue);--band-gold:var(--nv-band-gold);--prime-3:var(--nv-prime-3);--prime-5:var(--nv-prime-5);--prime-7:var(--nv-prime-7);--prime-11:var(--nv-prime-11);--prime-13:var(--nv-prime-13);--edge:var(--nv-edge);--tyrian:var(--nv-burgundy);--tyrian-mid:var(--nv-burgundy-mid);--tyrian-soft:var(--nv-burgundy-soft);--tyrian-wash:var(--nv-burgundy-wash);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:dark}
+html body{background-color:var(--nv-surface);background-image:linear-gradient(135deg,var(--nv-ground-start),var(--nv-ground-end));background-attachment:fixed;color:var(--nv-ink)}
+.eyebrow{color:var(--nv-gold-ink)}
+h2,h3{color:var(--nv-burgundy-ink)}
+
+.nv-appbar{position:relative;z-index:30;background:var(--nv-surface-raised);border-bottom:1px solid var(--nv-burgundy-soft);
+  padding-top:env(safe-area-inset-top,0px);font-family:var(--nv-font-sans);color:var(--nv-ink)}
+.nv-appbar,.nv-appbar *{box-sizing:border-box}
+.nv-appbar{text-align:left;grid-column:1/-1;align-self:stretch}
+.nv-in{max-width:var(--nv-appbar-max,1200px);margin:0 auto;justify-content:flex-start;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:14px}
+.nv-lock{display:flex;align-items:center;gap:12px;flex:none;text-decoration:none;color:inherit}
+.nv-lock:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-mark{display:block;width:40px;height:auto}
+.nv-wm{font-weight:400;font-size:18px;letter-spacing:.18em;white-space:nowrap;line-height:1}
+.nv-wm .n{color:var(--nv-brand-blue)}.nv-wm .v{color:var(--nv-gold)}
+.nv-name{margin:0;padding-left:14px;border-left:1px solid var(--nv-burgundy-soft);font-family:var(--nv-font-sans);font-weight:400;font-size:18px;
+  line-height:1;letter-spacing:.18em;color:var(--nv-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:640px){.nv-wm{display:none}.nv-mark{width:34px}.nv-name{font-size:15px;letter-spacing:.1em;padding-left:12px}.nv-in{gap:12px;padding-top:10px;padding-bottom:10px}}
+
+.nv-theme{flex:none;display:grid;place-items:center;width:36px;height:36px;padding:0;margin-left:auto;cursor:pointer;
+  color:var(--nv-ink-muted);background:transparent;border:1px solid var(--nv-burgundy-soft);border-radius:2px;
+  transition:color .2s ease,border-color .2s ease,background-color .2s ease}
+.nv-theme:hover{color:var(--nv-gold);border-color:var(--nv-gold)}
+.nv-theme:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-ti{grid-area:1/1;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity .3s ease,transform .3s ease}
+.nv-ti-sun{opacity:0;transform:rotate(-45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-moon{opacity:0;transform:rotate(45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-sun{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.nv-ti,.nv-theme{transition:none}}
+
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nv-appbar{border-bottom-width:2px}
+  :root:not([data-theme="light"]) .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+  :root:not([data-theme="light"]) .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}}
+:root[data-theme="dark"] .nv-appbar{border-bottom-width:2px}
+:root[data-theme="dark"] .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+:root[data-theme="dark"] .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}
+.ab-top .ab-in .nv-theme{margin-left:auto}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .appbar,:root:not([data-theme="light"]) .ctrlbar{border-width:2px}}
+:root[data-theme="dark"] .appbar,:root[data-theme="dark"] .ctrlbar{border-width:2px}
+</style>
+
+<header class="appbar">
+  <div class="ab-top"><div class="ab-in"><a class="hudlock" href="https://nickvuci.com" target="_blank" rel="noopener" aria-label="Nick Vuci — nickvuci.com"><svg class="hudmark" viewBox="-7.75 0 205.50 80" role="img" aria-label="Nick Vuci"><defs><clipPath id="nvhc"><rect x="-9.75" y="0" width="209.50" height="80"/></clipPath><polyline id="nvhz" points="-20.50,106.19 0.00,71.84 38.00,8.16 76.00,71.84 114.00,8.16 152.00,71.84 190.00,8.16 210.50,-26.19" fill="none" stroke-width="7.0" stroke-linejoin="miter" stroke-miterlimit="10"/><clipPath id="nvhf0"><polygon points="114.00,16.31 106.69,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf1"><polygon points="114.00,16.31 107.90,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf2"><polygon points="114.00,16.31 109.12,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf3"><polygon points="114.00,16.31 110.34,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf4"><polygon points="114.00,16.31 111.56,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf5"><polygon points="114.00,16.31 112.78,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf6"><polygon points="114.00,16.31 114.00,-43.69 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf7"><polygon points="114.00,16.31 115.22,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf8"><polygon points="114.00,16.31 116.44,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf9"><polygon points="114.00,16.31 117.66,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf10"><polygon points="114.00,16.31 118.88,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf11"><polygon points="114.00,16.31 120.10,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvhf12"><polygon points="114.00,16.31 121.31,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath></defs><g clip-path="url(#nvhc)"><use href="#nvhz" style="stroke:var(--nv-brand-blue)"/><g clip-path="url(#nvhf0)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 4.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf1)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 12.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf2)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 20.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf3)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 29.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf4)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 37.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf5)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 45.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf6)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 54.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf7)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 62.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf8)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 70.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf9)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 79.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf10)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 87.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf11)"><use href="#nvhz" style="stroke:color-mix(in srgb,var(--gold) 95.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvhf12)"><use href="#nvhz" style="stroke:var(--gold)"/></g></g></svg><span class="wm"><span class="n">Nick</span> <span class="v">Vuci</span></span></a><h1 class="appname">JI Explorer</h1><button type="button" class="nv-theme" aria-label="Switch to dark theme" aria-pressed="false" title="Switch to dark theme"><svg class="nv-ti nv-ti-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M19.5 14.2A7.5 7.5 0 0 1 9.8 4.5a7.5 7.5 0 1 0 9.7 9.7Z"/></svg><svg class="nv-ti nv-ti-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button></div></div>
+  <div class="ab-row"><div class="ab-in"><span class="sub">Just intonation · 13-limit</span>
+    <div class="toolbar">
+      <label class="ctl" for="base">1/1 <input id="base" type="number" value="261.63" min="20" max="2000" step="0.01"> Hz</label>
+      <label class="ctl" for="timbre">Timbre
+        <select id="timbre"><option value="reed">Reed</option><option value="glass">Glass</option><option value="sine">Sine</option></select>
+      </label>
+      <label class="ctl" for="vol">Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.6"></label>
+    </div></div></div>
+</header>
+<main class="main" id="main">
+<div class="app">
+  <p class="intro">Tap ratios on the lattice or the harmonic series to hear them. Build chords and see their otonal and utonal forms.</p>
+
+  <section class="card hero" aria-label="Interval bench">
+    <div class="hero-left">
+      <div class="hero-head">
+        <div><span class="eyebrow" id="hsEyebrow">Overtones of 1/1</span><h2 id="hsTitle">The harmonic series</h2></div>
+        <div class="hero-ctl">
+          <span class="seg" id="modeSeg" aria-label="Series"><button data-v="o">Harmonics</button><button data-v="u">Subharmonics</button></span>
+          <button id="sPlay">Play series</button>
+          <div class="range2" role="group" aria-label="Range of partials">
+            <span class="rv" id="hsLoV">1</span>
+            <div class="rtrack"><div class="rfill" id="rfill"></div>
+              <input type="range" id="hsLo" min="0" max="64" step="1" value="1" aria-label="Lowest partial">
+              <input type="range" id="hsHi" min="0" max="64" step="1" value="16" aria-label="Highest partial">
+            </div>
+            <span class="rv" id="hsHiV">16</span>
+          </div>
+        </div>
+      </div>
+      <p class="hint" id="hsHint"></p>
+      <div class="hs" id="hs"></div>
+    </div>
+  </section>
+
+  <div class="bench">
+    <section class="card lattice" aria-label="Ratio lattice">
+      <div class="controls">
+        <span class="seg" id="viewSeg" aria-label="What the lattice shows"><button data-v="region">Region</button><button data-v="scale">Scale</button></span>
+        <span class="grp"><label for="proj">Projection</label><select id="proj">
+          <option value="wilson">Erv Wilson</option>
+          <option value="grady">Kraig Grady</option>
+          <option value="tri">Triangular</option>
+          <option value="rose">Pitch-class rose</option>
+          <option value="3d">3D</option>
+          <option value="custom">Custom</option>
+        </select></span>
+        <span class="grp">Style <span class="seg" id="styleSeg"><button data-v="dots">Dots</button><button data-v="bubble">Bubbles</button></span></span>
+        <span class="grp">Labels <span class="seg" id="labelSeg"><button data-v="ratio">Ratio</button><button data-v="cents">Cents</button><button data-v="note">Note</button></span></span>
+        <span class="grp">Tap <span class="seg" id="tapSeg"><button data-v="build">Build chord</button><button data-v="play">Just play</button></span></span>
+      </div>
+      <div class="controls ctx">
+        <div class="primes" id="regionCtl" role="group" aria-label="How far each prime reaches from 1/1"></div>
+        <div class="scalectl" id="scaleCtl" hidden>
+          <select id="scalePick" aria-label="Scale"></select>
+          <button id="scaleEditBtn">Paste scale…</button>
+          <button id="scalePlay">Play scale</button>
+          <button id="scaleChord">Use as chord</button>
+          <span class="seg" id="swapSeg" aria-label="Which neighbours to connect"><button data-v="0">Prime steps</button><button data-v="1">+ Swaps</button></span>
+        </div>
+        <label class="grp edges" for="edgesIn">Extra edges <input id="edgesIn" type="text" placeholder="e.g. 9/8, 6/5" autocomplete="off" spellcheck="false"></label>
+      </div>
+      <div class="scale-editor" id="scaleEditor" hidden>
+        <label for="scaleText" class="eyebrow">Paste a Scala .scl file, or ratios separated by spaces or commas</label>
+        <textarea id="scaleText" rows="7" spellcheck="false" placeholder="! example.scl&#10;Ptolemy's intense diatonic&#10; 7&#10;!&#10; 9/8&#10; 5/4&#10; 4/3&#10; 3/2&#10; 5/3&#10; 15/8&#10; 2/1"></textarea>
+        <div class="btnrow"><button id="scaleApply" class="primary">Show on lattice</button><button id="scaleCancel">Cancel</button></div>
+        <p class="err" id="scaleErr"></p>
+      </div>
+      <div class="controls ctx custom-row" id="customCtl" hidden></div>
+      <p class="lat-note" id="latNote"></p>
+      <div class="canvas-wrap" id="wrap">
+        <canvas id="lat" aria-label="Lattice of just ratios. Tap a node to play it; drag to move or rotate."></canvas>
+        <div class="zoom">
+          <button id="zin" aria-label="Zoom in">+</button>
+          <button id="zout" aria-label="Zoom out">−</button>
+          <button id="zreset" aria-label="Reset view">⟲</button>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="scale-strip" id="scaleStrip" hidden></div>
+    </section>
+
+    <aside class="rail">
+      <section class="card pad" aria-label="Ratio inspector">
+        <span class="eyebrow">Inspector</span>
+        <div class="insp-top">
+          <span class="frac"><span id="iNum">5</span><span class="bar"></span><span id="iDen">4</span></span>
+          <div><div class="cents" id="iCents"></div><div class="hz" id="iHz"></div></div>
+        </div>
+        <dl class="facts">
+          <dt>Monzo</dt><dd id="iMonzo"></dd>
+          <dt>Prime limit</dt><dd id="iLim"></dd>
+          <dt>Odd limit</dt><dd id="iOdd"></dd>
+          <dt>Tenney height</dt><dd id="iTen"></dd>
+          <dt>Nearest 12-EDO</dt><dd id="iEdo"></dd>
+          <dt>Octave inverse</dt><dd id="iInv"></dd>
+        </dl>
+        <div class="btnrow">
+          <button id="iPlay">Play</button>
+          <button id="iDyad">Play over 1/1</button>
+          <button id="iToggle">Add to chord</button>
+        </div>
+        <form class="entry" id="entryForm">
+          <input id="ratioIn" type="text" placeholder="Type a ratio, e.g. 11/8" aria-label="Ratio to inspect" autocomplete="off">
+          <button type="submit">Go</button>
+        </form>
+        <p class="err" id="err"></p>
+      </section>
+
+      <section class="card pad" aria-label="Chord">
+        <div class="chord-head"><h2>Chord</h2><select id="preset" aria-label="Load a chord"></select></div>
+        <div class="tray" id="tray"></div>
+        <div class="btnrow">
+          <button id="cClear">Clear</button>
+        </div>
+        <dl class="facts">
+          <dt>Otonal</dt><dd id="cOt"></dd>
+          <dt>Utonal</dt><dd id="cUt"></dd>
+          <dt>Prime limit</dt><dd id="cLim"></dd>
+          <dt>Odd limit</dt><dd id="cOdd"></dd>
+        </dl>
+        <div class="ivwrap"><table class="iv" id="ivt"></table></div>
+      </section>
+    </aside>
+
+
+    <section class="card pad cross" aria-label="Cross sets and tonality diamonds">
+      <div class="x-head">
+        <div class="left"><span class="eyebrow">Wilson cross sets · Partch tonality diamonds</span><h2>Cross sets</h2>
+          <p>Every member of set A is multiplied or divided by every member of set B. Divide a set of odd numbers by itself and you get a tonality diamond.</p></div>
+        <div class="right">
+          <select id="xPreset" aria-label="Cross-set preset"></select>
+          <span class="seg" id="xOp" aria-label="Operation"><button data-v="div">A ÷ B</button><button data-v="mul">A × B</button></span>
+          <span class="seg" id="xViewSeg" aria-label="Layout"><button data-v="diamond">Diamond</button><button data-v="grid">Grid</button></span>
+        </div>
+      </div>
+      <div class="x-sets">
+        <label class="xset" for="xA"><span>Set A</span><input id="xA" type="text" autocomplete="off" spellcheck="false" placeholder="1 3 5 7"></label>
+        <label class="xset" for="xB"><span>Set B</span><input id="xB" type="text" autocomplete="off" spellcheck="false" placeholder="1 3 5 7"></label>
+        <label class="xsame" for="xSame"><input id="xSame" type="checkbox"> B is the same as A</label>
+      </div>
+      <p class="err" id="xErr"></p>
+      <div class="x-bar"><span class="x-stats" id="xStats"></span><span class="btnrow"><button id="xPlay">Play all</button><button id="xLattice" class="primary">Show on lattice</button></span></div>
+      <div class="x-view" id="xView"></div>
+      <p class="hint" id="xCap"></p>
+    </section>
+  </div>
+</div>
+</main>
+<nav class="ctrlbar" aria-label="Controls"><div class="cb-in">
+  <button id="drone" class="drone" aria-pressed="false"><span class="dot"></span><span id="droneTxt">Start 1/1 drone</span></button>
+  <button id="cPlay" class="primary">Play chord</button>
+  <button id="cArp">Arpeggiate</button>
+</div></nav>
+
+<script>
+(()=>{
+/* ---------- core math ---------- */
+const PRIMES=[2,3,5,7,11,13];
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const lcm=(a,b)=>a/gcd(a,b)*b;
+function factor(n){const m={};for(const p of PRIMES){while(n%p===0){m[p]=(m[p]||0)+1;n/=p}}return n===1?m:null}
+function monzo(n,d){const a=factor(n),b=factor(d);if(!a||!b)return null;const m={};for(const p of PRIMES)m[p]=(a[p]||0)-(b[p]||0);return m}
+function frac(m){let n=1,d=1;for(const p of PRIMES){const e=m[p]||0;if(e>0)n*=p**e;else if(e<0)d*=p**-e}return[n,d]}
+function l2(m){let s=0;for(const p of PRIMES)s+=(m[p]||0)*Math.log2(p);return s}
+function reduce(m){const r={};for(const p of PRIMES)r[p]=m[p]||0;r[2]=0;r[2]=-Math.floor(l2(r)+1e-9);return r}
+const key=m=>PRIMES.map(p=>m[p]||0).join(',');
+const cents=m=>1200*l2(m);
+const ratio=m=>2**l2(m);
+const odd=n=>{while(n%2===0)n/=2;return n};
+function plim(m){let L=1;for(const p of PRIMES)if(m[p])L=p;return L}
+function oddLim(m){const[n,d]=frac(m);return Math.max(odd(n),odd(d))}
+const NAMES=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+function near12(c){const k=Math.round(c/100);const dev=c-100*k;return{name:NAMES[((k%12)+12)%12],dev}}
+const sgn=x=>(x>=0?'+':'−')+Math.abs(x).toFixed(1);
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+const sup=n=>String(n).split('').map(c=>SUP[c]||c).join('');
+function ket(m){let hi=3;for(const p of PRIMES)if(m[p])hi=Math.max(hi,p);return'['+PRIMES.filter(p=>p<=hi).map(p=>(m[p]||0)<0?'−'+Math.abs(m[p]):(m[p]||0)).join(' ')+'⟩'}
+function parseRatio(s){
+  s=s.trim().replace(':','/');if(!s)return null;
+  const mm=s.match(/^(\d+)\s*(?:\/\s*(\d+))?$/);if(!mm)return{err:'Use a form like 7/4 or 11:8.'};
+  const n=+mm[1],d=mm[2]?+mm[2]:1;if(!n||!d)return{err:'Zero is not a ratio.'};
+  const m=monzo(n,d);if(!m)return{err:'Only primes up to 13 are supported.'};return{m:reduce(m)};
+}
+
+/* ---------- state ---------- */
+const S={base:261.63,label:'ratio',tap:'build',zoom:1,panX:0,panY:0,lview:'region',proj:'wilson',nstyle:'dots',reach:{3:3,5:2,7:1,11:0,13:0},scaleId:'hexany',scaleText:'',edgesText:'',swap:'1',custom:null,rotX:.42,rotY:-.62,
+  chord:[],inspect:null,mode:'o',N:16,timbre:'reed',vol:.6};
+const store={get(){try{return JSON.parse(localStorage.getItem('jiexp')||'null')}catch(e){return null}},set(v){try{localStorage.setItem('jiexp',JSON.stringify(v))}catch(e){}}};
+const fromKey=k=>{const a=k.split(',').map(Number);const m={};PRIMES.forEach((p,i)=>m[p]=a[i]);return m};
+function save(){store.set({base:S.base,label:S.label,tap:S.tap,lview:S.lview,proj:S.proj,nstyle:S.nstyle,reach:S.reach,scaleId:S.scaleId,scaleText:S.scaleText,edgesText:S.edgesText,swap:S.swap,cross:S.cross,custom:S.custom,rotX:S.rotX,rotY:S.rotY,mode:S.mode,N:S.N,hsN:typeof hsN!=='undefined'?hsN:16,hsLo:typeof hsLo!=='undefined'?hsLo:1,timbre:S.timbre,vol:S.vol,chord:S.chord.map(key),inspect:S.inspect&&key(S.inspect)})}
+const saved=store.get();
+if(saved){for(const k of['px','py','pz','lz','shape','span'])delete saved[k];if(saved.proj&&!['wilson','grady','tri','rose','3d','custom'].includes(saved.proj))delete saved.proj;Object.assign(S,saved);S.chord=(saved.chord||[]).map(fromKey);S.inspect=saved.inspect?fromKey(saved.inspect):null}
+else{S.chord=[[1,1],[5,4],[3,2],[7,4]].map(([n,d])=>reduce(monzo(n,d)))}
+if(!S.inspect)S.inspect=reduce(monzo(5,4));
+const inChord=m=>S.chord.some(c=>key(c)===key(m));
+function toggleChord(m){const k=key(m);const i=S.chord.findIndex(c=>key(c)===k);if(i>=0)S.chord.splice(i,1);else S.chord.push(m);sortChord()}
+function sortChord(){S.chord.sort((a,b)=>cents(a)-cents(b))}
+sortChord();
+
+/* ---------- audio ---------- */
+let ac,master,waves={},drone=null;
+function audio(){
+  if(!ac){
+    ac=new(window.AudioContext||window.webkitAudioContext)();
+    const comp=ac.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;
+    master=ac.createGain();master.gain.value=S.vol;master.connect(comp);comp.connect(ac.destination);
+    const mk=f=>{const N=16,re=new Float32Array(N),im=new Float32Array(N);for(let k=1;k<N;k++)im[k]=f(k);return ac.createPeriodicWave(re,im)};
+    waves.reed=mk(k=>(k%2?1:.55)/Math.pow(k,1.25));
+    waves.glass=mk(k=>[0,1,.18,.42,.06,.2,.03,.1][k]||0);
+  }
+  if(ac.state==='suspended')ac.resume();return ac;
+}
+function tone(f,when=0,dur=1.8,amp=.22){
+  const a=audio(),t=a.currentTime+when+.005,o=a.createOscillator(),g=a.createGain();
+  if(S.timbre==='sine')o.type='sine';else o.setPeriodicWave(waves[S.timbre]);
+  o.frequency.value=f;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(amp,t+.012);
+  g.gain.exponentialRampToValueAtTime(amp*.55,t+.35);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(master);o.start(t);o.stop(t+dur+.05);
+}
+const hz=m=>S.base*ratio(m);
+function playChord(ms,arp=false){
+  const amp=.24/Math.sqrt(Math.max(1,ms.length));
+  if(arp){ms.forEach((m,i)=>tone(hz(m),i*.2,1.2,.2));ms.forEach(m=>tone(hz(m),ms.length*.2+.15,2.6,amp))}
+  else ms.forEach(m=>tone(hz(m),0,2.8,amp));
+}
+function setDrone(on){
+  const a=audio();
+  if(on&&!drone){const o=a.createOscillator(),g=a.createGain();if(S.timbre==='sine')o.type='sine';else o.setPeriodicWave(waves[S.timbre]);
+    o.frequency.value=S.base;g.gain.setValueAtTime(0,a.currentTime);g.gain.linearRampToValueAtTime(.07,a.currentTime+.4);o.connect(g).connect(master);o.start();drone={o,g}}
+  else if(!on&&drone){const{o,g}=drone;g.gain.cancelScheduledValues(a.currentTime);g.gain.setTargetAtTime(0,a.currentTime,.08);o.stop(a.currentTime+.5);drone=null}
+}
+
+/* ---------- tokens ---------- */
+const root=document.documentElement;
+const tok=n=>getComputedStyle(root).getPropertyValue(n).trim();
+const PC=p=>p<=2?'--ink':'--p'+p;
+
+/* ---------- controls ---------- */
+const $=id=>document.getElementById(id);
+function seg(id,prop,cb){
+  const el=$(id);const upd=()=>el.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(S[prop]))));
+  el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S[prop]=b.dataset.v;upd();cb&&cb();save()});upd();
+  return upd;
+}
+seg('labelSeg','label',()=>draw());
+seg('tapSeg','tap');
+$('base').value=S.base;$('base').onchange=e=>{const v=+e.target.value;if(v>=20&&v<=2000){S.base=v;if(typeof buildHS==='function'&&isSub())buildHS();if(drone){setDrone(false);setDrone(true)}renderInspector();save()}else e.target.value=S.base};
+$('timbre').value=S.timbre;$('timbre').onchange=e=>{S.timbre=e.target.value;if(drone){setDrone(false);setDrone(true)}save()};
+$('vol').value=S.vol;$('vol').oninput=e=>{S.vol=+e.target.value;if(master)master.gain.value=S.vol;save()};
+$('drone').onclick=e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true';e.currentTarget.setAttribute('aria-pressed',String(on));$('droneTxt').textContent=on?'Stop drone':'Start 1/1 drone';setDrone(on);
+  const r1=document.querySelector('.hrow[data-n="1"]');if(r1)r1.setAttribute('aria-pressed',String(on));
+  if(on){S.inspect=reduce({});waveLock=true;setWave(1,1,`fundamental, the drone · ${S.base.toFixed(1)} Hz`);renderAll()}};
+
+/* ---------- lattice: projections ---------- */
+// Each prime gets a direction; a ratio sits at the sum of its prime exponents times those directions (octaves ignored).
+const LP=[3,5,7,11,13];
+const norm=v=>{let mx=0;for(const p of LP)mx=Math.max(mx,Math.hypot(v[p][0],v[p][1]));const o={};for(const p of LP)o[p]=[v[p][0]/mx,v[p][1]/mx];return o};
+const PROJ={
+  wilson:{note:'Erv Wilson’s standard lattice: 3 across, 5 up, with 7, 11 and 13 as short diagonals so each new prime reads as a shifted copy of the 3·5 plane.',
+    v:norm({3:[20,0],5:[0,20],7:[4,3],11:[-3,4],13:[-1,2]})},
+  grady:{note:'Kraig Grady’s Anaphoria coordinates: 3 across, 5 up, and longer 7, 11 and 13 diagonals that spread higher-limit structures apart.',
+    v:norm({3:[40,0],5:[0,40],7:[13,11],11:[-14,18],13:[-8,4]})},
+  tri:{note:'Triangular: 3 and 5 meet at 60° like a Tonnetz, so 4:5:6 and 10:12:15 triads are triangles; higher primes are short offsets.',
+    v:norm({3:[1,0],5:[.5,.866],7:[.3,.21],11:[-.27,.24],13:[.1,-.3]})},
+  rose:{note:'Pitch-class rose: each prime points to where it lands on a clock face of one octave (1/1 at the top, clockwise), so direction hints at pitch.',
+    v:(()=>{const o={};for(const p of LP){const f=Math.log2(p)%1,a=Math.PI/2-2*Math.PI*f;o[p]=[Math.cos(a),Math.sin(a)]}return o})()},
+};
+const V3={3:[1,0,0],5:[0,1,0],7:[0,0,1],11:[-.5,.42,.45],13:[.42,-.45,.5]};
+const NOTE3D='3D: 3, 5 and 7 on three axes, 11 and 13 on diagonals. Drag to rotate, shift-drag to move, pinch or scroll to zoom.';
+const NOTECUSTOM='Custom: set each prime’s direction and length. It starts from whichever projection you had before.';
+function vec2(){
+  if(S.proj==='custom'&&S.custom){const o={};for(const p of LP){const[a,l]=S.custom[p];const r=a*Math.PI/180;o[p]=[l*Math.cos(r),l*Math.sin(r)]}return o}
+  return(PROJ[S.proj]||PROJ.wilson).v;
+}
+
+/* ---------- lattice: scales ---------- */
+const fromNums=list=>{const seen=new Map();for(const[a,b]of list){const m=monzo(a,b);if(!m)continue;const r=reduce(m);seen.set(key(r),r)}return[...seen.values()].sort((x,y)=>cents(x)-cents(y))};
+const RAT=s=>s.trim().split(/\s+/).map(t=>{const[a,b]=t.split('/').map(Number);return[a,b||1]});
+function combos(arr,k){const out=[];const rec=(i,acc)=>{if(acc.length===k){out.push(acc.slice());return}for(let j=i;j<arr.length;j++){acc.push(arr[j]);rec(j+1,acc);acc.pop()}};rec(0,[]);return out}
+const prod=a=>a.reduce((x,y)=>x*y,1);
+const cps=(set,k)=>{const base=prod(set.slice(0,k));return fromNums(combos(set,k).map(c=>[prod(c),base]))};
+const diamond=odds=>fromNums(odds.flatMap(a=>odds.map(b=>[a,b])));
+const SCALES=[
+  ['ptolemy','Ptolemy’s intense diatonic',()=>fromNums(RAT('1/1 9/8 5/4 4/3 3/2 5/3 15/8'))],
+  ['duodene','Ellis’s duodene (5-limit, 12 notes)',()=>{const l=[];for(let a=-1;a<=2;a++)for(let b=-1;b<=1;b++)l.push([3**Math.max(a,0)*5**Math.max(b,0),3**Math.max(-a,0)*5**Math.max(-b,0)]);return fromNums(l)}],
+  ['euler','Euler–Fokker genus 3·5·7',()=>fromNums([1,3,5,7,15,21,35,105].map(n=>[n,1]))],
+  ['hexany','Hexany: pairs of 1·3·5·7',()=>cps([1,3,5,7],2)],
+  ['dekany','Dekany: pairs of 1·3·5·7·11',()=>cps([1,3,5,7,11],2)],
+  ['eikosany','Eikosany: triples of 1·3·5·7·9·11',()=>cps([1,3,5,7,9,11],3)],
+  ['dia7','7-limit tonality diamond',()=>diamond([1,3,5,7])],
+  ['dia11','11-limit tonality diamond (Partch)',()=>diamond([1,3,5,7,9,11])],
+  ['harm','Harmonic series 8–16',()=>fromNums([8,9,10,11,12,13,14,15].map(n=>[n,8]))],
+  ['sub','Subharmonic series 8–16',()=>fromNums([8,9,10,11,12,13,14,15].map(n=>[16,n]))],
+  ['cross','Cross set (from the cross-set module)',null],
+  ['custom','Pasted scale',null],
+];
+function parseScale(text){
+  const lines=text.split(/\r?\n/);
+  const data=lines.filter(l=>!l.trim().startsWith('!'));
+  const nonEmpty=data.map(l=>l.trim()).filter(Boolean);
+  const looksScl=lines.some(l=>l.trim().startsWith('!'))||(nonEmpty.length>2&&/[a-zA-Z]/.test(nonEmpty[0])&&/^\d+$/.test(nonEmpty[1]));
+  let tokens,name='Pasted scale';
+  if(looksScl){
+    name=(data[0]||'').trim()||name;
+    const rest=data.slice(1).map(l=>l.trim()).filter(Boolean);
+    const cnt=parseInt(rest[0],10);
+    tokens=rest.slice(1).map(l=>l.split(/\s+/)[0]);
+    if(cnt>=0)tokens=tokens.slice(0,cnt);
+    tokens.unshift('1/1');
+  }else tokens=text.split(/[\s,;]+/).filter(Boolean);
+  const list=[],skipped=[];
+  for(const t of tokens){
+    if(/^-?\d*\.\d*$/.test(t)){skipped.push(t+'¢');continue}
+    const r=t.match(/^(\d+)(?:[\/:](\d+))?$/);
+    if(!r||!+r[1]||(r[2]&&!+r[2])){skipped.push(t);continue}
+    const a=+r[1],b=r[2]?+r[2]:1;
+    if(!monzo(a,b)){skipped.push(t);continue}
+    list.push([a,b]);
+  }
+  return{name,notes:fromNums(list),skipped};
+}
+let scaleCache=null;
+function currentScale(){
+  if(scaleCache&&scaleCache.id===S.scaleId&&scaleCache.text===S.scaleText)return scaleCache.sc;
+  let sc;
+  if(S.scaleId==='cross')return{name:crossName(),notes:crossNotes(),skipped:[]};
+  if(S.scaleId==='custom')sc=parseScale(S.scaleText||'');
+  else{const d=SCALES.find(s=>s[0]===S.scaleId)||SCALES[3];sc={name:d[1],notes:d[2](),skipped:[]}}
+  scaleCache={id:S.scaleId,text:S.scaleText,sc};return sc;
+}
+
+/* ---------- lattice: structure ---------- */
+const MAXR={3:6,5:4,7:3,11:2,13:2},MAXN=2500;
+const ekey=e=>LP.map(p=>e[p]||0).join(',');
+const mFromE=e=>{const m={};for(const p of LP)m[p]=e[p]||0;return reduce(m)};
+const eFromM=m=>{const e={};for(const p of LP)if(m[p])e[p]=m[p];return e};
+const regionCount=r=>LP.reduce((a,p)=>a*(2*(r[p]||0)+1),1);
+let edgeErr='';
+function extraEdges(){
+  edgeErr='';const out=[];const bad=[];
+  for(const t of (S.edgesText||'').split(/[\s,;]+/).filter(Boolean)){
+    const r=t.match(/^(\d+)(?:[\/:](\d+))?$/);const m=r&&+r[1]&&monzo(+r[1],r[2]?+r[2]:1);
+    if(!m){bad.push(t);continue}
+    const e=eFromM(m);const nz=LP.filter(p=>e[p]);
+    if(!nz.length)continue;                          // octaves: nothing to draw
+    if(nz.length===1&&Math.abs(e[nz[0]])===1)continue; // already a prime step
+    out.push(e);
+  }
+  if(bad.length)edgeErr=`Couldn’t read ${bad.join(', ')} as an edge interval.`;
+  return out;
+}
+let LAT=null;
+function rebuild(){
+  let es;
+  if(S.lview==='scale')es=currentScale().notes.map(eFromM);
+  else{
+    es=[{}];
+    for(const p of LP){const r=S.reach[p]||0;if(!r)continue;const nx=[];for(const e of es)for(let k=-r;k<=r;k++)nx.push(k?{...e,[p]:k}:{...e});es=nx}
+  }
+  const map=new Map(),nodes=[];
+  for(const e of es){const k=ekey(e);if(map.has(k))continue;const n={e,k,m:mFromE(e)};map.set(k,n);nodes.push(n)}
+  const act=LP.filter(p=>nodes.some(n=>n.e[p]));
+  const edges=[],xs=extraEdges();
+  for(const n of nodes){
+    for(const p of act){const t=map.get(ekey({...n.e,[p]:(n.e[p]||0)+1}));if(t)edges.push({a:n,b:t,p})}
+    if(S.lview==='scale'&&S.swap==='1')for(let i=0;i<act.length;i++)for(let j=i+1;j<act.length;j++){const p=act[i],q=act[j];const t=map.get(ekey({...n.e,[p]:(n.e[p]||0)+1,[q]:(n.e[q]||0)-1}));if(t)edges.push({a:n,b:t,p:-1})}
+    for(const x of xs){const e2={};for(const p of LP){const v=(n.e[p]||0)+(x[p]||0);if(v)e2[p]=v}const t=map.get(ekey(e2));if(t)edges.push({a:n,b:t,p:0})}
+  }
+  LAT={nodes,map,edges,act};project();
+}
+function project(){
+  if(!LAT)return;
+  const is3=S.proj==='3d',v=is3?null:vec2();
+  for(const n of LAT.nodes){let x=0,y=0,z=0;for(const p of LP){const k=n.e[p];if(!k)continue;if(is3){x+=k*V3[p][0];y+=k*V3[p][1];z+=k*V3[p][2]}else{x+=k*v[p][0];y+=k*v[p][1]}}n.wx=x;n.wy=y;n.wz=z}
+  const N=LAT.nodes.length||1;
+  if(is3){
+    let cx=0,cy=0,cz=0;for(const n of LAT.nodes){cx+=n.wx;cy+=n.wy;cz+=n.wz}cx/=N;cy/=N;cz/=N;
+    let R=0;for(const n of LAT.nodes)R=Math.max(R,Math.hypot(n.wx-cx,n.wy-cy,n.wz-cz));
+    LAT.c=[cx,cy,cz];LAT.r=Math.max(R,.6);
+  }else{
+    let a=1e9,b=-1e9,c=1e9,d=-1e9;for(const n of LAT.nodes){a=Math.min(a,n.wx);b=Math.max(b,n.wx);c=Math.min(c,n.wy);d=Math.max(d,n.wy)}
+    LAT.c=[(a+b)/2,(c+d)/2,0];LAT.w=Math.max(b-a,.6);LAT.h=Math.max(d-c,.6);
+  }
+  let dm=Infinity;for(const p of LAT.act){const L=is3?Math.hypot(...V3[p])*.8:Math.hypot(v[p][0],v[p][1]);if(L>1e-6)dm=Math.min(dm,L)}
+  LAT.dmin=isFinite(dm)?dm:1;
+}
+
+/* ---------- lattice: controls ---------- */
+function resetView(){S.zoom=1;S.panX=0;S.panY=0;S.rotX=.42;S.rotY=-.62}
+function relayout(){rebuild();resetView();draw();renderStrip();renderLatNote()}
+function renderPrimes(){
+  $('regionCtl').innerHTML=LP.map(p=>{const r=S.reach[p]||0;return`<span class="pr${r?'':' off'}" style="--c:var(${PC(p)})"><b>${p}</b><span class="stepper"><button data-p="${p}" data-d="-1" aria-label="Fewer steps of ${p}" ${r?'':'disabled'}>−</button><output>${r?'±'+r:'off'}</output><button data-p="${p}" data-d="1" aria-label="More steps of ${p}" ${r>=MAXR[p]?'disabled':''}>+</button></span></span>`}).join('');
+}
+$('regionCtl').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-p]');if(!b)return;const p=+b.dataset.p,d=+b.dataset.d;
+  const nr={...S.reach,[p]:Math.max(0,Math.min(MAXR[p],(S.reach[p]||0)+d))};
+  if(regionCount(nr)>MAXN){flashNote(`That would draw ${regionCount(nr).toLocaleString()} ratios; the limit is ${MAXN.toLocaleString()}. Shrink another prime first.`);return}
+  S.reach=nr;renderPrimes();relayout();save();
+});
+function renderScalePick(){
+  $('scalePick').innerHTML=SCALES.filter(s=>s[0]!=='custom'||S.scaleText).map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('');
+  $('scalePick').value=S.scaleId;
+}
+$('scalePick').onchange=e=>{S.scaleId=e.target.value;relayout();save()};
+$('scaleEditBtn').onclick=()=>{$('scaleEditor').hidden=false;$('scaleText').value=S.scaleText||'';$('scaleErr').textContent='';$('scaleText').focus()};
+$('scaleCancel').onclick=()=>{$('scaleEditor').hidden=true};
+$('scaleApply').onclick=()=>{
+  const t=$('scaleText').value;const sc=parseScale(t);
+  if(!sc.notes.length){$('scaleErr').textContent='No ratios found. Use lines like 9/8 or 5:4; cents values can’t go on a JI lattice.';return}
+  S.scaleText=t;S.scaleId='custom';scaleCache=null;$('scaleEditor').hidden=true;renderScalePick();relayout();save();
+};
+$('scalePlay').onclick=()=>{const ns=currentScale().notes;ns.forEach((m,i)=>tone(hz(m),i*.3,1.1,.2));if(ns.length)tone(hz(ns[0])*2,ns.length*.3,1.6,.2)};
+$('scaleChord').onclick=()=>{S.chord=currentScale().notes.slice(0,24);sortChord();renderAll();save()};
+let edgeT=0;
+$('edgesIn').value=S.edgesText||'';
+$('edgesIn').oninput=e=>{S.edgesText=e.target.value;clearTimeout(edgeT);edgeT=setTimeout(()=>{rebuild();draw();renderLatNote();save()},250)};
+const updView=seg('viewSeg','lview',()=>{syncLatCtl();relayout()});
+seg('styleSeg','nstyle',()=>draw());
+seg('swapSeg','swap',()=>{rebuild();draw()});
+function syncLatCtl(){
+  $('regionCtl').hidden=S.lview!=='region';$('scaleCtl').hidden=S.lview!=='scale';
+  $('scaleStrip').hidden=S.lview!=='scale';if(S.lview!=='scale')$('scaleEditor').hidden=true;
+  $('customCtl').hidden=S.proj!=='custom';
+  $('proj').value=S.proj;
+}
+function customFrom(v){const o={};for(const p of LP){const[x,y]=v[p];o[p]=[Math.round((Math.atan2(y,x)*180/Math.PI+360)%360),Math.round(Math.hypot(x,y)*100)/100]}return o}
+function renderCustom(){
+  $('customCtl').innerHTML=LP.map(p=>{const[a,l]=S.custom[p];return`<span class="cp" style="--c:var(${PC(p)})"><b>${p}</b><label>angle <input type="range" id="ca${p}" data-p="${p}" data-k="0" min="0" max="359" value="${a}"></label><label>length <input type="range" id="cl${p}" data-p="${p}" data-k="1" min="0" max="100" value="${Math.round(l*100)}"></label></span>`}).join('');
+}
+$('customCtl').addEventListener('input',e=>{const i=e.target;if(!i.dataset.p)return;const p=+i.dataset.p;S.custom[p]=[...S.custom[p]];S.custom[p][+i.dataset.k]=+i.dataset.k?+i.value/100:+i.value;project();draw();save()});
+$('proj').onchange=e=>{
+  const prev=S.proj;S.proj=e.target.value;
+  if(S.proj==='custom'){S.custom=customFrom(prev==='3d'||prev==='custom'?(S.custom?vec2():PROJ.wilson.v):(PROJ[prev]||PROJ.wilson).v);renderCustom()}
+  syncLatCtl();project();resetView();draw();renderLatNote();save();
+};
+let noteFlash=0;
+function renderLatNote(){
+  if(performance.now()<noteFlash)return;
+  const base=S.proj==='3d'?NOTE3D:S.proj==='custom'?NOTECUSTOM:PROJ[S.proj].note;
+  let extra='';
+  if(S.lview==='scale'){const sc=currentScale();extra=` ${sc.notes.length} notes`+(sc.skipped.length?`; skipped ${sc.skipped.slice(0,4).join(', ')}${sc.skipped.length>4?'…':''} (cents or primes above 13)`:'')+'.'}
+  $('latNote').textContent=base+extra+(edgeErr?' '+edgeErr:'');
+}
+function flashNote(t){$('latNote').textContent=t;noteFlash=performance.now()+3500;setTimeout(renderLatNote,3600)}
+function renderStrip(){
+  if(S.lview!=='scale')return;
+  const ns=currentScale().notes;
+  $('scaleStrip').innerHTML=ns.map((m,i)=>{const[a,b]=frac(m);return`<button class="sn${inChord(m)?' on':''}" data-i="${i}" style="--c:var(${PC(plim(m))})"><b>${a}/${b}</b><small>${cents(m).toFixed(0)}¢</small></button>`}).join('');
+}
+$('scaleStrip').addEventListener('click',e=>{const b=e.target.closest('.sn');if(!b)return;choose(currentScale().notes[+b.dataset.i])});
+$('zin').onclick=()=>{S.zoom=Math.min(6,S.zoom*1.25);draw()};
+$('zout').onclick=()=>{S.zoom=Math.max(.3,S.zoom/1.25);draw()};
+$('zreset').onclick=()=>{resetView();draw()};
+
+/* ---------- lattice: drawing ---------- */
+const cv=$('lat'),ctx=cv.getContext('2d');let hoverN=null,VIEW={};
+function draw(){
+  const dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;
+  if(!W||!H)return;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  if(!LAT)rebuild();
+  const T={ink:tok('--ink'),mute:tok('--mute'),line:tok('--line'),panel:tok('--panel'),sel:tok('--sel-ink'),well:tok('--well'),oto:tok('--oto'),uto:tok('--uto'),blue:tok('--blue'),gold:tok('--gold'),tyr:tok('--tyrian-mid')};
+  const PCOL={};for(const p of LP)PCOL[p]=tok(PC(p));PCOL[0]=T.tyr;PCOL[-1]=T.ink;
+  const mono=tok('--f-mono'),is3=S.proj==='3d',pad=44,lab=S.nstyle==='bubble'?0:58;
+  let s=is3?(Math.min(W-lab,H)/2-pad)/LAT.r:Math.min((W-2*pad-lab)/LAT.w,(H-2*pad-30)/LAT.h);
+  s=Math.min(s,220)*S.zoom;
+  const ox=W/2-lab/2+S.panX,oy=H/2-10+S.panY;VIEW={W,H,s,ox,oy};
+  const cr=Math.cos(S.rotY),sr=Math.sin(S.rotY),cx=Math.cos(S.rotX),sx=Math.sin(S.rotX);
+  const rot=(x,y,z)=>{const x1=x*cr+z*sr,z1=-x*sr+z*cr;return[x1,y*cx-z1*sx,y*sx+z1*cx]};
+  const insK=S.inspect?key(S.inspect):'',rootK=key(reduce({}));
+  for(const n of LAT.nodes){
+    if(is3){const[x,y,z]=rot(n.wx-LAT.c[0],n.wy-LAT.c[1],n.wz-LAT.c[2]);n.x=ox+x*s;n.y=oy-y*s;n.t=(z/LAT.r+1)/2}
+    else{n.x=ox+(n.wx-LAT.c[0])*s;n.y=oy-(n.wy-LAT.c[1])*s;n.t=1}
+    const k=key(n.m);n.on=inChord(n.m);n.ins=k===insK;n.root=k===rootK;
+  }
+  const depthA=t=>is3?.28+.72*t:1;
+  const sp=s*LAT.dmin;
+  const bubble=S.nstyle==='bubble'&&sp*.42>=12,R=bubble?Math.min(30,sp*.42):4.5;
+  const showAll=bubble||sp>=16;
+
+  // otonal / utonal triangles among chord notes
+  const tris=[];
+  for(const n of LAT.nodes){
+    if(!n.on)continue;
+    for(let i=0;i<LAT.act.length;i++)for(let j=i+1;j<LAT.act.length;j++){
+      const p=LAT.act[i],q=LAT.act[j];
+      const A=LAT.map.get(ekey({...n.e,[p]:(n.e[p]||0)+1})),B=LAT.map.get(ekey({...n.e,[q]:(n.e[q]||0)+1}));
+      if(A&&B&&A.on&&B.on)tris.push([n,A,B,T.oto]);
+      const C=LAT.map.get(ekey({...n.e,[p]:(n.e[p]||0)-1})),D=LAT.map.get(ekey({...n.e,[q]:(n.e[q]||0)-1}));
+      if(C&&D&&C.on&&D.on)tris.push([n,C,D,T.uto]);
+    }
+  }
+  for(const[a,b,c,col]of tris){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.closePath();ctx.globalAlpha=.2*depthA((a.t+b.t+c.t)/3);ctx.fillStyle=col;ctx.fill()}
+  ctx.globalAlpha=1;
+
+  // edges
+  const ed=is3?[...LAT.edges].sort((u,v)=>(u.a.t+u.b.t)-(v.a.t+v.b.t)):LAT.edges;
+  for(const g of ed){
+    const both=g.a.on&&g.b.on;
+    ctx.beginPath();ctx.moveTo(g.a.x,g.a.y);ctx.lineTo(g.b.x,g.b.y);
+    ctx.strokeStyle=PCOL[g.p];ctx.lineWidth=both?3.4:(g.p>0?1.6:1.2);
+    ctx.globalAlpha=(both?(g.p<0?.7:1):g.p>0?.6:g.p<0?.28:.55)*depthA((g.a.t+g.b.t)/2);
+    if(!g.p)ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+  }
+  ctx.globalAlpha=1;
+
+  // nodes
+  const ns=is3?[...LAT.nodes].sort((u,v)=>u.t-v.t):LAT.nodes;
+  const labelOf=n=>{const c=cents(n.m);if(S.label==='ratio'){const[a,b]=frac(n.m);return[String(a),String(b)]}if(S.label==='cents')return[c.toFixed(0)+'¢',null];const q=near12(c);return[q.name,sgn(q.dev)]};
+  for(const n of ns){
+    const a=depthA(n.t),sc=is3?.75+.45*n.t:1;ctx.globalAlpha=a;
+    if(bubble){
+      const r=R*sc;
+      ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);ctx.fillStyle=n.on?T.blue:n.root?T.gold:T.panel;ctx.fill();
+      ctx.lineWidth=n.root?3:1.5;ctx.strokeStyle=n.on?T.blue:n.root?T.ink:T.line;ctx.stroke();
+      if(n.ins){ctx.beginPath();ctx.arc(n.x,n.y,r+5,0,Math.PI*2);ctx.setLineDash([4,3]);ctx.lineWidth=1.6;ctx.strokeStyle=T.ink;ctx.stroke();ctx.setLineDash([])}
+      n.r=r;
+      if(r>=11){
+        const[l1,l2]=labelOf(n);ctx.fillStyle=n.on?T.sel:T.ink;ctx.textAlign='center';ctx.textBaseline='middle';
+        let fs=Math.max(9,Math.min(r*.58,15));ctx.font=`500 ${fs}px ${mono}`;
+        const w=Math.max(ctx.measureText(l1).width,l2?ctx.measureText(l2).width:0);
+        if(w>r*1.7){fs=Math.max(7,fs*r*1.7/w);ctx.font=`500 ${fs}px ${mono}`}
+        if(l2){ctx.fillText(l1,n.x,n.y-fs*.62);ctx.fillText(l2,n.x,n.y+fs*.62);
+          if(S.label==='ratio'){const bw=Math.min(r*1.3,Math.max(ctx.measureText(l1).width,ctx.measureText(l2).width)+4);ctx.fillRect(n.x-bw/2,n.y-.6,bw,1.2)}}
+        else ctx.fillText(l1,n.x,n.y);
+      }
+    }else{
+      const r=(n.on?6:n.root?5.5:4)*sc;n.r=Math.max(r,7);
+      ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);ctx.fillStyle=n.on?T.blue:n.root?T.gold:T.panel;ctx.fill();
+      ctx.lineWidth=n.root?2:1.4;ctx.strokeStyle=n.on?T.blue:T.ink;ctx.stroke();
+      if(n.ins){ctx.beginPath();ctx.arc(n.x,n.y,r+4,0,Math.PI*2);ctx.setLineDash([3,3]);ctx.lineWidth=1.4;ctx.strokeStyle=T.ink;ctx.stroke();ctx.setLineDash([])}
+      if(showAll||n.on||n.ins||n.root||n===hoverN){
+        const[l1,l2]=labelOf(n);const txt=l2?(S.label==='ratio'?l1+'/'+l2:l1+' '+l2):l1;
+        const fs=is3?10+2*n.t:11.5;ctx.font=`500 ${fs}px ${mono}`;ctx.textAlign='left';ctx.textBaseline='bottom';
+        ctx.lineWidth=3.2;ctx.strokeStyle=T.well;ctx.lineJoin='round';ctx.strokeText(txt,n.x+r+2,n.y-r*.4);
+        ctx.fillStyle=n.on||n.ins?T.ink:T.mute;if(n.on||n.ins||n.root)ctx.font=`600 ${fs}px ${mono}`;ctx.fillText(txt,n.x+r+2,n.y-r*.4);
+      }
+    }
+  }
+  ctx.globalAlpha=1;
+
+  // axis key: each prime's direction, top-left
+  const kx=40,ky=42;let mx=0;const dirs={};
+  for(const p of LAT.act){let d;if(is3){const[x,y]=rot(...V3[p]);d=[x,y]}else d=vec2()[p];dirs[p]=d;mx=Math.max(mx,Math.hypot(d[0],d[1]))}
+  if(LAT.act.length){
+    ctx.beginPath();ctx.arc(kx,ky,2.5,0,Math.PI*2);ctx.fillStyle=T.ink;ctx.fill();
+    ctx.font=`600 11px ${mono}`;ctx.textAlign='center';ctx.textBaseline='middle';
+    for(const p of LAT.act){
+      const[dx,dy]=dirs[p],L=Math.hypot(dx,dy);if(L<1e-6)continue;
+      const len=28*L/mx,ux=dx/L,uy=-dy/L,ex=kx+ux*len,ey=ky+uy*len;
+      ctx.strokeStyle=PCOL[p];ctx.fillStyle=PCOL[p];ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(kx,ky);ctx.lineTo(ex,ey);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-ux*5-uy*3,ey-uy*5+ux*3);ctx.lineTo(ex-ux*5+uy*3,ey-uy*5-ux*3);ctx.closePath();ctx.fill();
+      const lr=Math.max(len,10)+9;ctx.fillText(String(p),kx+ux*lr,ky+uy*lr);
+    }
+  }
+
+  // legend
+  const shown=new Set(LAT.nodes.map(n=>key(n.m)));const hidden=S.chord.filter(m=>!shown.has(key(m))).length;
+  const hasO=tris.some(t=>t[3]===T.oto),hasU=tris.some(t=>t[3]===T.uto),hasX=LAT.edges.some(e=>e.p===0),hasS=LAT.edges.some(e=>e.p<0);
+  $('legend').innerHTML=
+    LAT.act.map(p=>`<span><span class="sw" style="background:var(${PC(p)})"></span>×${p}</span>`).join('')+
+    (hasS?`<span><span class="sw" style="background:var(--sel);opacity:.35"></span>p/q swap</span>`:'')+
+    (hasX?`<span><span class="sw dash"></span>extra</span>`:'')+
+    (hasO?`<span><span class="tri-sw" style="border-bottom:10px solid var(--oto)"></span>otonal</span>`:'')+
+    (hasU?`<span><span class="tri-sw" style="border-top:10px solid var(--uto)"></span>utonal</span>`:'')+
+    `<span>${LAT.nodes.length} ratio${LAT.nodes.length===1?'':'s'}</span>`+
+    (hidden?`<span>${hidden} chord note${hidden>1?'s':''} not shown</span>`:'');
+}
+function hit(x,y){let best=null,bd=1e9;for(const n of LAT.nodes){const d=Math.hypot(n.x-x,n.y-y);if(d<(n.r||6)+5&&(d<bd-2||(Math.abs(d-bd)<=2&&best&&n.t>best.t))){bd=d;best=n}}return best}
+function choose(m,{play=true}={}){
+  S.inspect=m;if(play)tone(hz(m));
+  if(S.tap==='build')toggleChord(m);
+  renderAll();save();
+}
+const ptrs=new Map();let drag=null,pinch=null;
+function zoomAt(f,px,py){
+  const nz=Math.min(6,Math.max(.3,S.zoom*f));f=nz/S.zoom;S.zoom=nz;
+  const{W,H}=VIEW,cx0=VIEW.ox-S.panX;S.panX=px-cx0-(px-cx0-S.panX)*f;S.panY=py-(H/2-10)-(py-(H/2-10)-S.panY)*f;draw();
+}
+cv.addEventListener('pointerdown',e=>{
+  try{cv.setPointerCapture(e.pointerId)}catch(_){}
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1};if(drag)drag.moved=true;return}
+  drag={x:e.clientX,y:e.clientY,px:S.panX,py:S.panY,rx:S.rotX,ry:S.rotY,moved:false,shift:e.shiftKey};
+});
+cv.addEventListener('pointermove',e=>{
+  const r=cv.getBoundingClientRect();
+  if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&ptrs.size>=2){const[a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y)||1;zoomAt(d/pinch.d,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top);pinch.d=d;return}
+  if(!drag){const h=hit(e.clientX-r.left,e.clientY-r.top);cv.style.cursor=h?'pointer':S.proj==='3d'?'move':'grab';if(h!==hoverN){hoverN=h;draw()}return}
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(!drag.moved&&Math.hypot(dx,dy)>6){drag.moved=true;cv.style.cursor='grabbing'}
+  if(drag.moved){
+    if(S.proj==='3d'&&!drag.shift){S.rotY=drag.ry+dx*.01;S.rotX=Math.max(-1.5,Math.min(1.5,drag.rx+dy*.01))}
+    else{S.panX=drag.px+dx;S.panY=drag.py+dy}
+    draw();
+  }
+});
+const endPtr=e=>{
+  ptrs.delete(e.pointerId);
+  if(pinch){if(ptrs.size<2)pinch=null;if(!ptrs.size){drag=null;save()}return}
+  if(e.type==='pointerup'&&drag&&!drag.moved){const r=cv.getBoundingClientRect();const n=hit(e.clientX-r.left,e.clientY-r.top);if(n)choose(n.m)}
+  else if(drag&&drag.moved)save();
+  drag=null;cv.style.cursor=S.proj==='3d'?'move':'grab';
+};
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('pointerleave',()=>{if(hoverN&&!drag){hoverN=null;draw()}});
+cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect();zoomAt(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+new ResizeObserver(()=>draw()).observe($('wrap'));
+function initLattice(){
+  if(S.proj==='custom'&&!S.custom)S.custom=customFrom(PROJ.wilson.v);
+  if(S.proj==='custom')renderCustom();
+  renderPrimes();renderScalePick();syncLatCtl();rebuild();renderLatNote();renderStrip();
+}
+
+/* ---------- inspector ---------- */
+function renderInspector(){
+  const m=S.inspect,[n,d]=frac(m),c=cents(m),q=near12(c);
+  $('iNum').textContent=n;$('iDen').textContent=d;
+  $('iCents').textContent=c.toFixed(2)+'¢';
+  $('iHz').textContent=hz(m).toFixed(2)+' Hz';
+  $('iMonzo').textContent=ket(m);
+  const L=plim(m);$('iLim').innerHTML=`<span style="color:var(${PC(L)})">●</span> ${L<=2?'—':L+'-limit'}`;
+  $('iOdd').textContent=oddLim(m);
+  $('iTen').textContent=Math.log2(n*d).toFixed(3)+' bits';
+  $('iEdo').textContent=`${q.name} ${sgn(q.dev)}¢`;
+  const inv={};for(const p of PRIMES)inv[p]=-(m[p]||0);const iv=reduce(inv);const[a,b]=frac(iv);
+  $('iInv').textContent=key(iv)===key(m)?`${a}/${b} (self)`:`${a}/${b} · ${cents(iv).toFixed(1)}¢`;
+  $('iToggle').textContent=inChord(m)?'Remove from chord':'Add to chord';
+  if(!waveLock)setWave(n,d);waveLock=false;
+}
+$('iPlay').onclick=()=>tone(hz(S.inspect));
+$('iDyad').onclick=()=>{tone(S.base,0,2.6,.17);tone(hz(S.inspect),0,2.6,.17)};
+$('iToggle').onclick=()=>{toggleChord(S.inspect);renderAll();save()};
+$('entryForm').addEventListener('submit',e=>{
+  e.preventDefault();const r=parseRatio($('ratioIn').value);
+  if(!r)return;if(r.err){$('err').textContent=r.err;return}
+  $('err').textContent='';S.inspect=r.m;tone(hz(r.m));renderAll();save();
+});
+
+/* ---------- chord ---------- */
+const PRESETS=[['Major triad','4:5:6'],['Minor triad','10:12:15'],['Harmonic seventh','4:5:6:7'],['Subminor triad','6:7:9'],
+  ['Supermajor triad','14:18:21'],['Neutral triad','18:22:27'],['Utonal tetrad','1/(4:5:6:7)'],['Otonal hexad','4:5:6:7:9:11'],['13-limit otonal','8:10:12:13:14']];
+$('preset').innerHTML='<option value="">Load a chord…</option>'+PRESETS.map((p,i)=>`<option value="${i}">${p[0]} · ${p[1]}</option>`).join('');
+$('preset').onchange=e=>{
+  if(e.target.value==='')return;const spec=PRESETS[+e.target.value][1];
+  const ut=spec.startsWith('1/(');const v=spec.replace(/[1]\/\(|\)/g,'').split(':').map(Number);
+  S.chord=v.map(x=>reduce(ut?monzo(v[0],x):monzo(x,v[0])));
+  const seen=new Set();S.chord=S.chord.filter(m=>{const k=key(m);if(seen.has(k))return false;seen.add(k);return true});
+  sortChord();S.inspect=S.chord[S.chord.length-1];
+  e.target.value='';renderAll();save();playChord(S.chord,true);
+};
+function forms(ms){
+  if(!ms.length)return null;
+  const fr=ms.map(frac);
+  const L=fr.reduce((a,[,d])=>lcm(a,d),1);let ot=fr.map(([n,d])=>n*L/d);const g1=ot.reduce(gcd);ot=ot.map(x=>x/g1);
+  const N=fr.reduce((a,[n])=>lcm(a,n),1);let ut=fr.map(([n,d])=>N*d/n);const g2=ut.reduce(gcd);ut=ut.map(x=>x/g2);
+  return{ot,ut};
+}
+function renderChord(){
+  const tray=$('tray');
+  if(!S.chord.length){tray.innerHTML='<span class="empty">Tap lattice nodes or harmonics to add notes.</span>'}
+  else tray.innerHTML=S.chord.map((m,i)=>{const[n,d]=frac(m);return`<span class="chip" style="--c:var(${PC(plim(m))})"><span class="nm" data-i="${i}" role="button" tabindex="0">${n}/${d}</span><button data-x="${i}" aria-label="Remove ${n}/${d}">×</button></span>`}).join('');
+  const f=forms(S.chord);
+  $('cOt').textContent=f?f.ot.join(':'):'—';
+  $('cUt').textContent=f?`1/(${f.ut.join(':')})`:'—';
+  $('cLim').textContent=S.chord.length?Math.max(...S.chord.map(plim))+'-limit':'—';
+  let ol=1;for(let i=0;i<S.chord.length;i++)for(let j=0;j<i;j++){const iv={};for(const p of PRIMES)iv[p]=(S.chord[i][p]||0)-(S.chord[j][p]||0);ol=Math.max(ol,oddLim(iv))}
+  $('cOdd').textContent=S.chord.length>1?ol:'—';
+  const t=$('ivt');
+  if(S.chord.length<2){t.innerHTML='<tr><td style="color:var(--mute)">Intervals appear with two or more notes.</td></tr>';return}
+  const lbl=m=>{const[n,d]=frac(m);return n+'/'+d};
+  let h='<tr><th>↑ over →</th>'+S.chord.slice(0,-1).map(m=>`<th>${lbl(m)}</th>`).join('')+'</tr>';
+  for(let i=1;i<S.chord.length;i++){
+    h+=`<tr><th>${lbl(S.chord[i])}</th>`;
+    for(let j=0;j<S.chord.length-1;j++){
+      if(j>=i){h+='<td></td>';continue}
+      const iv={};for(const p of PRIMES)iv[p]=(S.chord[i][p]||0)-(S.chord[j][p]||0);
+      const[n,d]=frac(iv);h+=`<td>${n}/${d}<small>${cents(iv).toFixed(0)}¢</small></td>`;
+    }
+    h+='</tr>';
+  }
+  t.innerHTML=h;
+}
+$('tray').addEventListener('click',e=>{
+  const x=e.target.closest('[data-x]');if(x){S.chord.splice(+x.dataset.x,1);renderAll();save();return}
+  const n=e.target.closest('[data-i]');if(n){const m=S.chord[+n.dataset.i];S.inspect=m;tone(hz(m));renderAll();save()}
+});
+$('tray').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.dataset.i){e.preventDefault();e.target.click()}});
+$('cPlay').onclick=()=>playChord(S.chord);
+$('cArp').onclick=()=>playChord(S.chord,true);
+$('cClear').onclick=()=>{S.chord=[];renderAll();save()};
+
+/* ---------- interval bench + waves ---------- */
+const HN={1:'fundamental',2:'octave',3:'fifth',4:'two octaves',5:'major third',6:'fifth',7:'harmonic seventh',8:'three octaves',9:'major tone',10:'major third',11:'undecimal tritone',12:'fifth',13:'neutral sixth',14:'harmonic seventh',15:'major seventh',16:'four octaves'};
+let waveLock=false,W8={n:5,d:4,t0:0},hsN=Math.min(64,+(saved&&saved.hsN)||16),hsLo=saved&&saved.hsLo!=null?+saved.hsLo:1,hsAct=0,hsT={};
+function setWave(n,d,label){return;W8={n,d,t0:performance.now()};
+  const k=n+'/'+d,c=1200*Math.log2(n/d),nm=label||null;
+  const simple=n<=64&&d<=32;
+  $('waveCap').innerHTML=`<b>${k}</b>${nm?nm+' · ':''}${c.toFixed(1)}¢<br>`+(n===d?'Identical waves.':simple?`The pattern repeats every ${d} cycle${d>1?'s':''} of 1/1 (${n} of the upper note).`:'Too complex to repeat within view; showing four cycles of 1/1.');
+  if(reduced)drawWave(performance.now()+1e4);
+}
+const lpf=n=>{let p=1;for(let k=2;k*k<=n;k++)while(n%k===0){p=k;n/=k}return n>1?n:p};
+const TOKP={3:1,5:1,7:1,11:1,13:1};
+function hInfo(n){
+  let b=1;while(b*2<=n)b*=2;const g=gcd(n,b),ra=n/g,rb=b/g;
+  const c=1200*Math.log2(n/b),q=near12(c),L=lpf(n);
+  return{ra,rb,c,q,L,col:L<=2?'--ink':TOKP[L]?'--p'+L:'--mute'};
+}
+const isSub=()=>S.mode==='u';
+function hsRootK(){const hi=Math.max(Math.max(1,hsLo),hsN);return Math.max(0,Math.ceil(Math.log2(hi*65/S.base)))}
+const hsFreq=n=>isSub()?S.base*2**hsRootK()/n:S.base*n;
+function subInfo(n){let B=1;while(B<n)B*=2;const g=gcd(B,n),ra=B/g,rb=n/g,c=1200*Math.log2(B/n),q=near12(c%1200);return{ra,rb,c,q}}
+function hsHeader(){
+  const u=isSub(),k=hsRootK();
+  $('hsEyebrow').textContent=u?'Undertones of 1/1':'Overtones of 1/1';
+  $('hsTitle').textContent=u?'The subharmonic series':'The harmonic series';
+  $('hsHint').textContent=u
+    ?`String 1 toggles the 1/1 drone. The undertones hang from 1/1 raised ${k} octave${k===1?'':'s'} (${(S.base*2**k).toFixed(1)} Hz) so the low ones stay audible: string n sounds that pitch ÷ n.`
+    :'String 1 is the 1/1 drone: tap it to start or stop it. String n sounds n × 1/1 and vibrates in n segments.';
+}
+function buildHS(){
+  hsHeader();
+  const lo=Math.max(1,hsLo),hi=Math.max(lo,hsN),count=hi-lo+1;
+  const rh=count<=16?30:count<=32?22:count<=48?18:16;
+  $('hs').style.setProperty('--rh',rh+'px');
+  let h='';
+  for(let n=lo;n<=hi;n++){
+    const u=isSub(),{col}=hInfo(n),{ra,rb,q}=u?subInfo(n):hInfo(n),nm=u?'subharmonic '+n:(HN[n]||'harmonic '+n);
+    h+=`<button class="hrow" data-n="${n}" style="--c:var(${col})" ${n===1?`aria-pressed="${!!drone}" aria-label="1/1 drone on or off"`:`aria-current="${n===hsAct}" aria-label="${u?'Subharmonic':'Harmonic'} ${n}, ${nm}, ${ra}/${rb}"`}><span class="hn">${n}</span><canvas></canvas><span class="hr"><b>${u?(n===1?'1/1':'1/'+n):n+'/1'}</b><small>${n>1&&(ra!==n||rb!==1)?`≡ ${ra}/${rb} · `:''}${q.name}${Math.abs(q.dev)>=.5?sgn(q.dev):''}</small></span></button>`;
+  }
+  $('hs').innerHTML=h;hsT={};
+}
+let hsRaf=0;
+function syncRange(src){
+  let lo=+$('hsLo').value,hi=+$('hsHi').value;
+  if(lo>hi){if(src==='lo')hi=lo;else lo=hi}
+  $('hsLo').value=lo;$('hsHi').value=hi;hsLo=lo;hsN=hi;
+  $('hsLoV').textContent=lo;$('hsHiV').textContent=hi;
+  const f=v=>`calc(11px + (100% - 22px) * ${v/64})`;
+  $('rfill').style.left=f(lo);$('rfill').style.width=`calc((100% - 22px) * ${(hi-lo)/64})`;
+  $('hsLo').style.zIndex=lo>=60?3:1;$('hsHi').style.zIndex=2;
+}
+$('hsLo').value=hsLo;$('hsHi').value=hsN;syncRange('hi');
+seg('modeSeg','mode',()=>{buildHS();if(reduced)drawStrings(0)});
+let seriesTimers=[];
+$('sPlay').onclick=()=>{
+  seriesTimers.forEach(clearTimeout);seriesTimers=[];
+  const lo=Math.max(1,hsLo),hi=Math.max(lo,hsN),cnt=hi-lo+1,step=Math.min(.22,7/cnt);
+  for(let n=lo;n<=hi;n++){const i=n-lo;
+    tone(n===1?(isSub()?hsFreq(1):S.base):hsFreq(n),i*step,1.2,.18/Math.sqrt(1+(isSub()?4:n)/8));
+    seriesTimers.push(setTimeout(()=>{hsT[n]=performance.now();hsAct=n},i*step*1000));
+  }
+};
+['Lo','Hi'].forEach(k=>$('hs'+k).addEventListener('input',()=>{syncRange(k.toLowerCase());cancelAnimationFrame(hsRaf);hsRaf=requestAnimationFrame(()=>{buildHS();if(reduced)drawStrings(0)});save()}));
+function pluck(n,full=true){
+  tone(hsFreq(n),0,2.6,.2/Math.sqrt(1+(isSub()?4:n)/8));
+  hsAct=n;hsT[n]=performance.now();
+  document.querySelectorAll('.hrow').forEach(r=>{if(r.dataset.n!=='1')r.setAttribute('aria-current',String(+r.dataset.n===n))});
+  const mz=isSub()?monzo(1,n):monzo(n,1);if(mz)S.inspect=reduce(mz);
+  if(full){renderAll();save()}
+}
+const hsEl=$('hs');let strum=null;
+const rowAt=(x,y)=>{const el=document.elementFromPoint(x,y);const r=el&&el.closest('.hrow');return r&&hsEl.contains(r)?+r.dataset.n:0};
+hsEl.addEventListener('pointerdown',e=>{
+  const n=rowAt(e.clientX,e.clientY);if(!n)return;e.preventDefault();
+  try{hsEl.setPointerCapture(e.pointerId)}catch(_){}
+  strum={id:e.pointerId,last:n,count:0};
+  if(n===1)$('drone').click();else{pluck(n,false);strum.count++}
+});
+hsEl.addEventListener('pointermove',e=>{
+  if(!strum||e.pointerId!==strum.id)return;
+  const n=rowAt(e.clientX,e.clientY);if(!n||n===strum.last)return;
+  const lo=Math.min(n,strum.last),hi=Math.max(n,strum.last),dir=n>strum.last?1:-1;
+  for(let k=strum.last+dir;dir>0?k<=n:k>=n;k+=dir)if(k>1){pluck(k,false);strum.count++}
+  strum.last=n;
+});
+const endStrum=e=>{if(!strum||e.pointerId!==strum.id)return;const c=strum.count;strum=null;if(c){renderAll();save()}};
+hsEl.addEventListener('pointerup',endStrum);hsEl.addEventListener('pointercancel',endStrum);
+hsEl.addEventListener('click',e=>{if(e.detail!==0)return;const b=e.target.closest('.hrow');if(!b)return;const n=+b.dataset.n;if(n===1)$('drone').click();else pluck(n)});
+function drawStrings(now){
+  const dpr=window.devicePixelRatio||1,ink=tok('--ink'),grid=tok('--grid');
+  const theme=ink+grid;
+  document.querySelectorAll('.hrow').forEach(row=>{
+    const cv=row.querySelector('canvas'),W=cv.clientWidth,H=cv.clientHeight;if(!W)return;
+    const n0=+row.dataset.n,live=(n0===1&&drone)||(hsT[n0]&&now-hsT[n0]<2700);
+    if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv._still=''}
+    const sig=theme+'|'+(n0===hsAct)+'|'+(n0===1&&!!drone);
+    if(!live&&cv._still===sig)return;cv._still=live?'':sig;
+    const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+    const n=+row.dataset.n,col=getComputedStyle(row).getPropertyValue('--c').trim()||ink,mid=H/2,x0=4,x1=W-4,w=x1-x0;
+    const since=hsT[n]?(now-hsT[n])/1000:99,boost=reduced?0:Math.pow(Math.max(0,1-since/2.6),1.5);
+    const EA=H/2-3,A=n===1?(drone?EA:0):EA*boost,osc=reduced?1:Math.cos(now/1000*(2.2+n*.55)*Math.PI);
+    g.strokeStyle=grid;g.lineWidth=1;g.beginPath();g.moveTo(x0,mid);g.lineTo(x1,mid);g.stroke();
+    const steps=Math.min(Math.max(80,n*24),Math.ceil(w*2));
+    g.globalAlpha=.28;g.strokeStyle=col;g.lineWidth=1;
+    [1,-1].forEach(sg=>{g.beginPath();for(let i=0;i<=steps;i++){const u=i/steps,y=mid-sg*EA*.8*Math.sin(n*Math.PI*u);i?g.lineTo(x0+u*w,y):g.moveTo(x0+u*w,y)}g.stroke()});
+    g.globalAlpha=1;g.lineWidth=n===hsAct||(n===1&&drone)?2.4:1.7;g.beginPath();
+    for(let i=0;i<=steps;i++){const u=i/steps,y=mid-A*osc*Math.sin(n*Math.PI*u);i?g.lineTo(x0+u*w,y):g.moveTo(x0+u*w,y)}g.stroke();
+    g.fillStyle=ink;const dr=Math.min(1.8,w/n/5);for(let k=0;k<=n;k++){g.beginPath();g.arc(x0+w*k/n,mid,k===0||k===n?2.6:dr,0,Math.PI*2);g.fill()}
+  });
+}
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wv=null,wx=null;
+function drawWave(now){return;
+  const dpr=window.devicePixelRatio||1,W=wv.clientWidth,H=wv.clientHeight;if(!W||!H)return;
+  if(wv.width!==Math.round(W*dpr)||wv.height!==Math.round(H*dpr)){wv.width=Math.round(W*dpr);wv.height=Math.round(H*dpr)}
+  wx.setTransform(dpr,0,0,dpr,0,0);wx.clearRect(0,0,W,H);
+  const{n,d,t0}=W8,ink=tok('--ink'),mute=tok('--mute'),grid=tok('--grid'),up=tok(PC(plim(monzo(n,d))));
+  const k=reduced?1:Math.min(1,(now-t0)/750),ease=1-Math.pow(1-k,3);
+  const ph=reduced?0:Math.min(now-t0,3000)/1000*.18;
+  const top=58,pad=14,narrow=W<460;
+  const L=narrow?0:Math.min(H-top-pad,W*.34);
+  const x0=pad,x1=W-pad-(L?L+pad:0),ww=x1-x0,hh=H-top-pad;
+  const cl=(n<=64&&d<=32)?d:4,cu=cl*n/d;
+  const yA=top+hh*.28,yB=top+hh*.76,amp=hh*.2;
+  wx.strokeStyle=grid;wx.lineWidth=1;[yA,yB].forEach(y=>{wx.beginPath();wx.moveTo(x0,y);wx.lineTo(x1,y);wx.stroke()});
+  wx.font=`500 11px ${tok('--f-mono')}`;wx.fillStyle=mute;wx.textBaseline='bottom';
+  wx.fillText('1/1 and '+n+'/'+d,x0,yA-amp-4);wx.fillText('sum',x0,yB-amp-4);
+  const steps=Math.max(400,Math.min(2400,cu*40)),end=Math.floor(steps*ease);
+  const line=(f,col,w,alpha,yc,sc)=>{wx.beginPath();for(let i=0;i<=end;i++){const u=i/steps,x=x0+u*ww,y=yc-sc*f(u);i?wx.lineTo(x,y):wx.moveTo(x,y)}wx.strokeStyle=col;wx.lineWidth=w;wx.globalAlpha=alpha;wx.stroke();wx.globalAlpha=1};
+  const s1=u=>Math.sin(2*Math.PI*cl*(u+ph)),s2=u=>Math.sin(2*Math.PI*cu*(u+ph));
+  line(s1,ink,1.6,.45,yA,amp);line(s2,up,2,1,yA,amp);
+  line(u=>(s1(u)+s2(u))/2,ink,2,1,yB,amp*1.15);
+  if(L){
+    const cx=x1+pad+L/2,cy=top+hh/2,R=L/2-6;
+    wx.strokeStyle=grid;wx.strokeRect(cx-R,cy-R,2*R,2*R);
+    const N=Math.min(3000,Math.max(600,(n+d)*60)),e2=Math.floor(N*ease);
+    const P=s=>[cx+R*Math.sin(2*Math.PI*d*s),cy-R*Math.sin(2*Math.PI*n*s+Math.PI/2)];
+    wx.beginPath();for(let i=0;i<=e2;i++){const[x,y]=P(i/N);i?wx.lineTo(x,y):wx.moveTo(x,y)}
+    wx.strokeStyle=up;wx.lineWidth=1.4;wx.globalAlpha=.85;wx.stroke();wx.globalAlpha=1;
+    if(!reduced&&k>=1&&now-t0<3000){const s=(ph/ Math.max(1,d))%1;const[x,y]=P(s);wx.beginPath();wx.arc(x,y,4.5,0,Math.PI*2);wx.fillStyle=ink;wx.fill()}
+    wx.fillStyle=mute;wx.textBaseline='top';wx.fillText(d+' : '+n,cx-R,cy+R+3>H-12?cy+R-14:cy+R+3);
+  }
+}
+function waveLoop(now){drawWave(now);drawStrings(now);requestAnimationFrame(waveLoop)}
+if(reduced)new ResizeObserver(()=>{drawWave(performance.now()+1e4);drawStrings(0)}).observe(document.querySelector('.hero'));else requestAnimationFrame(waveLoop);
+
+/* ---------- cross sets & tonality diamonds ---------- */
+const XP=[
+  ['d5','Tonality diamond · 5-limit','1 3 5',null,'div'],
+  ['d7','Tonality diamond · 7-limit','1 3 5 7',null,'div'],
+  ['d9','Tonality diamond · 9-limit','1 3 5 7 9',null,'div'],
+  ['d11','Tonality diamond · 11-limit (Partch)','1 3 5 7 9 11',null,'div'],
+  ['d13','Tonality diamond · 13-limit','1 3 5 7 9 11 13',null,'div'],
+  ['c1','Cross set · 1·3·5 × 1·7·11','1 3 5','1 7 11','mul'],
+  ['c2','Cross set · 1·3·7 × 1·5·9','1 3 7','1 5 9','mul'],
+  ['c3','Cross set · major triad × minor triad','1 5/4 3/2','1 6/5 3/2','mul'],
+  ['c4','Cross set · harmonics 8–11 ÷ 1·3·5','8 9 10 11','1 3 5','div'],
+  ['custom','Custom sets',null,null,null],
+];
+if(!S.cross||typeof S.cross!=='object')S.cross={preset:'d11',a:'1 3 5 7 9 11',b:'1 3 5 7 9 11',op:'div',same:true,view:'diamond'};
+function parseSet(t){
+  const out=[],bad=[],seen=new Set();
+  for(const tk of (t||'').split(/[\s,;]+/).filter(Boolean)){
+    const r=tk.match(/^(\d+)(?:[\/:](\d+))?$/);
+    if(!r||!+r[1]||(r[2]&&!+r[2])||!monzo(+r[1],r[2]?+r[2]:1)){bad.push(tk);continue}
+    const n=+r[1],d=r[2]?+r[2]:1,g=gcd(n,d),k=(n/g)+'/'+(d/g);
+    if(seen.has(k))continue;seen.add(k);out.push({n:n/g,d:d/g,lab:d/g===1?String(n/g):(n/g)+'/'+(d/g)});
+  }
+  return{els:out.slice(0,13),bad,cut:out.length>13};
+}
+function crossData(){
+  const X=S.cross,A=parseSet(X.a),B=X.same?A:parseSet(X.b);
+  const cell=(a,b)=>{const z=X.op==='div'?monzo(a.n*b.d,a.d*b.n):monzo(a.n*b.n,a.d*b.d);return reduce(z)};
+  const rows=A.els.map(a=>B.els.map(b=>cell(a,b)));
+  const seen=new Map(),order=[];
+  rows.forEach((r,i)=>r.forEach((m,j)=>{const k=key(m);if(!seen.has(k)){seen.set(k,[i,j]);order.push(m)}}));
+  const ints=A.els.every(e=>e.d===1)&&B.els.every(e=>e.d===1);
+  return{A,B,rows,seen,distinct:order.sort((x,y)=>cents(x)-cents(y)),ints};
+}
+const crossNotes=()=>crossData().distinct;
+const crossName=()=>{const p=XP.find(x=>x[0]===S.cross.preset);return p&&p[0]!=='custom'?p[1]:`Cross set ${S.cross.op==='div'?'A ÷ B':'A × B'}`};
+function cellTxt(m){
+  const c=cents(m);
+  if(S.label==='cents')return c.toFixed(0)+'¢';
+  if(S.label==='note'){const q=near12(c),d=Math.round(q.dev);return q.name+(d?(d>0?'+':'−')+Math.abs(d):'')}
+  const[a,b]=frac(m);return a+'/'+b;
+}
+function chordName(kind,el){
+  const X=S.cross,D=crossData();
+  if(X.op==='div'&&D.ints)return kind==='col'?`Otonal chord over 1/${el.lab}`:`Utonal chord under ${el.lab}/1`;
+  return kind==='col'?`A ${X.op==='div'?'÷':'×'} ${el.lab}`:`${el.lab} ${X.op==='div'?'÷':'×'} B`;
+}
+function playLine(kind,idx){
+  const D=crossData();const ms=kind==='col'?D.rows.map(r=>r[idx]):D.rows[idx];
+  const u=[];const ks=new Set();for(const m of ms){const k=key(m);if(!ks.has(k)){ks.add(k);u.push(m)}}
+  // voice upward in the order of the set so the chord sounds as built, not octave-folded
+  let prev=-1e9;const fr=u.map(m=>{let f=hz(m);while(1200*Math.log2(f/S.base)<prev+1)f*=2;prev=1200*Math.log2(f/S.base);return f});
+  fr.forEach((f,i)=>tone(f,i*.18,1.2,.18));fr.forEach(f=>tone(f,fr.length*.18+.12,2.6,.22/Math.sqrt(fr.length)));
+  S.chord=u;sortChord();S.inspect=u[0];renderAll();save();
+}
+function renderCross(force){
+  const X=S.cross,D=crossData(),box=$('xView');
+  $('xPreset').value=X.preset;$('xOp').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===X.op)));
+  $('xViewSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===X.view)));
+  if(force||document.activeElement!==$('xA'))$('xA').value=X.a;
+  if(force||document.activeElement!==$('xB')||X.same)$('xB').value=X.same?X.a:X.b;
+  $('xB').disabled=X.same;$('xSame').checked=X.same;
+  const bad=[...D.A.bad,...(X.same?[]:D.B.bad)];
+  $('xErr').textContent=bad.length?`Skipped ${bad.join(', ')}: use whole numbers or ratios with primes up to 13.`:(D.A.cut||D.B.cut)?'Sets are capped at 13 members.':'';
+  const nA=D.A.els.length,nB=D.B.els.length;
+  if(!nA||!nB){box.innerHTML='<p class="empty">Enter at least one member in each set.</p>';$('xStats').textContent='';return}
+  let ol=1,uni=0;for(const r of D.rows)for(const m of r){ol=Math.max(ol,oddLim(m));if(key(m)===key(reduce({})))uni++}
+  $('xStats').innerHTML=`<b>${D.distinct.length}</b> distinct pitches from <b>${nA*nB}</b> cells · ${ol}-odd-limit · ${uni} unison${uni===1?'':'s'}`;
+  const opSym=X.op==='div'?'÷':'×';
+  const cls=(m,i,j)=>{const k=key(m),first=D.seen.get(k),rep=first[0]!==i||first[1]!==j;return'xc'+(inChord(m)?' on':'')+(k===key(reduce({}))?' uni':'')+(rep?' rep':'')};
+  if(X.view==='diamond'&&nA===nB){
+    const n=nA,W=box.clientWidth||600,h=Math.max(20,Math.min(40,Math.floor(W/(2*n+2))));
+    let html=`<div class="dia" style="width:${(2*n+2)*h}px;height:${(2*n+1)*h}px;--h:${h}px">`;
+    const pos=(i,j)=>`left:${(i-j+n)*h}px;top:${(i+j+1)*h}px`;
+    D.B.els.forEach((b,j)=>{html+=`<button class="xh col" style="${pos(-1,j)}" data-k="col" data-i="${j}" title="${chordName('col',b)}" aria-label="${chordName('col',b)}"><span>${b.lab}</span></button>`});
+    D.A.els.forEach((a,i)=>{html+=`<button class="xh row" style="${pos(i,-1)}" data-k="row" data-i="${i}" title="${chordName('row',a)}" aria-label="${chordName('row',a)}"><span>${a.lab}</span></button>`});
+    D.rows.forEach((r,i)=>r.forEach((m,j)=>{html+=`<button class="${cls(m,i,j)} dc" style="${pos(i,j)};--c:var(${PC(plim(m))})" data-i="${i}" data-j="${j}" title="${D.A.els[i].lab} ${opSym} ${D.B.els[j].lab} = ${cellTxt(m)} · ${cents(m).toFixed(1)}¢"><span>${cellTxt(m)}</span></button>`}));
+    html+='</div>';
+    box.innerHTML=html;
+    $('xCap').textContent=X.op==='div'&&D.ints?'Left edge: otonal chords (each column shares a denominator). Right edge: utonal chords. 1/1 runs down the middle. Tap an edge label to hear its chord.':'Tap an edge label to hear that row or column as a chord.';
+  }else{
+    let html=`<div class="xgrid-wrap"><table class="xgrid"><tr><th class="corner">${opSym}</th>`;
+    D.B.els.forEach((b,j)=>{html+=`<th><button class="xh col" data-k="col" data-i="${j}" title="${chordName('col',b)}">${b.lab}</button></th>`});
+    html+='</tr>';
+    D.rows.forEach((r,i)=>{html+=`<tr><th><button class="xh row" data-k="row" data-i="${i}" title="${chordName('row',D.A.els[i])}">${D.A.els[i].lab}</button></th>`;
+      r.forEach((m,j)=>{html+=`<td><button class="${cls(m,i,j)} gc" style="--c:var(${PC(plim(m))})" data-i="${i}" data-j="${j}"><b>${cellTxt(m)}</b><small>${cents(m).toFixed(0)}¢</small></button></td>`});html+='</tr>'});
+    html+='</table></div>';box.innerHTML=html;
+    $('xCap').textContent=(X.view==='diamond'?'The diamond needs two sets of the same size, so this is shown as a grid. ':'')+(X.op==='div'&&D.ints?'Columns are otonal chords, rows are utonal. Tap a header to hear it.':'Tap a row or column header to hear it as a chord.');
+  }
+}
+$('xPreset').innerHTML=XP.map(p=>`<option value="${p[0]}">${p[1]}</option>`).join('');
+$('xPreset').onchange=e=>{const p=XP.find(x=>x[0]===e.target.value);S.cross.preset=p[0];if(p[2]){S.cross.a=p[2];S.cross.same=!p[3];if(p[3])S.cross.b=p[3];S.cross.op=p[4]}renderCross(true);crossChanged();save()};
+$('xOp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.cross.op=b.dataset.v;S.cross.preset='custom';renderCross(true);crossChanged();save()});
+$('xViewSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.cross.view=b.dataset.v;renderCross();save()});
+let xT=0;
+const xEdit=()=>{clearTimeout(xT);xT=setTimeout(()=>{S.cross.preset='custom';renderCross();crossChanged();save()},220)};
+$('xA').oninput=e=>{S.cross.a=e.target.value;xEdit()};
+$('xB').oninput=e=>{S.cross.b=e.target.value;xEdit()};
+$('xSame').onchange=e=>{S.cross.same=e.target.checked;if(!S.cross.same&&!S.cross.b)S.cross.b=S.cross.a;S.cross.preset='custom';renderCross(true);crossChanged();save()};
+$('xView').addEventListener('click',e=>{
+  const h=e.target.closest('.xh');if(h){playLine(h.dataset.k,+h.dataset.i);return}
+  const c=e.target.closest('.xc');if(!c)return;choose(crossData().rows[+c.dataset.i][+c.dataset.j]);
+});
+$('xPlay').onclick=()=>{const ns=crossNotes();ns.forEach((m,i)=>tone(hz(m),i*.22,1,.18));if(ns.length)tone(hz(ns[0])*2,ns.length*.22,1.5,.18)};
+$('xLattice').onclick=()=>{
+  S.lview='scale';S.scaleId='cross';S.swap='1';updView();
+  $('swapSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===S.swap)));
+  renderScalePick();syncLatCtl();relayout();save();
+  document.querySelector('.lattice').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+};
+function crossChanged(){if(S.lview==='scale'&&S.scaleId==='cross'){relayout()}}
+let xW=0;new ResizeObserver(es=>{const w=es[0].contentRect.width;if(Math.abs(w-xW)>4){xW=w;if(S.cross.view==='diamond')renderCross()}}).observe($('xView'));
+
+/* ---------- glue ---------- */
+function renderAll(){renderInspector();renderChord();draw();renderStrip();renderCross()}
+const redrawTheme=()=>draw();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redrawTheme);
+new MutationObserver(redrawTheme).observe(root,{attributes:true,attributeFilter:['data-theme']});
+buildHS();initLattice();renderAll();if(reduced)drawStrings(0);
+document.fonts&&document.fonts.ready.then(draw);
+})();
+</script>
+<script>
+/* Nick Vuci light/dark toggle: follows the device until the viewer picks; the choice is kept and set as data-theme on <html>. */
+(function(){
+  var root=document.documentElement, sys=window.matchMedia('(prefers-color-scheme: dark)');
+  var btns=[].slice.call(document.querySelectorAll('.nv-theme'));
+  function cur(){var c=root.dataset.theme;return c==='light'||c==='dark'?c:(sys.matches?'dark':'light')}
+  function sync(){var d=cur()==='dark',l=d?'Switch to light theme':'Switch to dark theme';
+    btns.forEach(function(b){b.classList.toggle('is-dark',d);b.setAttribute('aria-label',l);b.title=l;b.setAttribute('aria-pressed',String(d))});
+    document.dispatchEvent(new CustomEvent('nv-theme',{detail:cur()}))}
+  btns.forEach(function(b){b.addEventListener('click',function(){var t=cur()==='dark'?'light':'dark';root.dataset.theme=t;
+    try{localStorage.setItem('theme',t)}catch(e){}sync()})});
+  if(sys.addEventListener)sys.addEventListener('change',sync);
+  /* the app bar spans the full window, edge to edge, whatever margins the page sets on its container */
+  var bar=document.querySelector('.nv-appbar');
+  function bleed(){if(!bar)return;bar.style.marginLeft=bar.style.marginTop=bar.style.width='';
+    var r=bar.getBoundingClientRect(),w=document.documentElement.clientWidth;
+    bar.style.marginLeft=(-r.left)+'px';bar.style.width=w+'px';bar.style.marginTop=(-(r.top+window.scrollY))+'px';
+    var r2=bar.getBoundingClientRect();if(Math.abs(r2.left)>1){bar.style.marginLeft=(-r.left-r2.left)+'px'}}
+  bleed();addEventListener('resize',bleed);addEventListener('load',bleed);
+  sync();
+})();
+</script>
+
+</body></html>

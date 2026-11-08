@@ -64,6 +64,40 @@
           </div>
           <p class="mapHint">Choose a concept to see its key ideas. Drag concepts to arrange the map.</p>
         </div>
+        <div class="prototypes">
+          <label class="prototypesLabel" for="prototypeSelect">Prototype applets</label>
+          <div class="prototypesRow">
+            <select id="prototypeSelect">
+              <option value="">Choose a prototype to examine…</option>
+              <optgroup label="Just intonation">
+                <option value="applets/prototypes/ji-explorer.html">JI Explorer</option>
+                <option value="applets/prototypes/fifteen-limit-atlas.html">Fifteen-Limit Atlas</option>
+              </optgroup>
+              <optgroup label="Equal tunings">
+                <option value="applets/prototypes/edo-explorer.html">EDO Explorer</option>
+              </optgroup>
+              <optgroup label="Generated collections (MOS)">
+                <option value="applets/prototypes/mos-explorer.html">MOS Explorer</option>
+              </optgroup>
+              <optgroup label="Linear temperaments">
+                <option value="applets/prototypes/temperament-workbench.html">Temperament Workbench</option>
+              </optgroup>
+              <optgroup label="Combined">
+                <option value="applets/prototypes/xenharmonic-workbench.html">Xenharmonic Workbench</option>
+                <option value="applets/prototypes/xenharmonic-workbench-copy.html">Xenharmonic Workbench (older copy)</option>
+              </optgroup>
+              <optgroup label="Composing">
+                <option value="applets/prototypes/mos-melody-engine.html">MOS Melody Engine</option>
+                <option value="applets/prototypes/mos-versette.html">MOS Versette</option>
+              </optgroup>
+              <optgroup label="Ear training">
+                <option value="applets/prototypes/odd-limit-ear-trainer.html">Odd-Limit Ear Trainer</option>
+                <option value="applets/prototypes/ear-trainer-classic.html">Ear Trainer Classic</option>
+              </optgroup>
+            </select>
+            <a class="btn small prototypesOpen" id="prototypeOpen" href="#" target="_blank" rel="noopener" aria-disabled="true">Open</a>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -111,6 +145,21 @@
         sync();
       });
       media.addEventListener("change", sync);
+      sync();
+    })();
+  </script>
+  <script>
+    // Prototype picker: the selection sets the link; Open shows it in a new tab so the map stays put.
+    (() => {
+      const select = document.getElementById("prototypeSelect");
+      const open = document.getElementById("prototypeOpen");
+      const sync = () => {
+        const has = Boolean(select.value);
+        open.setAttribute("aria-disabled", String(!has));
+        open.href = has ? select.value : "#";
+      };
+      select.addEventListener("change", sync);
+      open.addEventListener("click", (e) => { if (!select.value) e.preventDefault(); });
       sync();
     })();
   </script>

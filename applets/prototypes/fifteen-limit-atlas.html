@@ -1,0 +1,1988 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>Fifteen-Limit Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: one working column; shared controls on top, four views, a fixed "selected interval" bar at the bottom. Otonal = blue ink, utonal = plum. Prime limit drives point colour. */
+:root{
+  --bg:#F1F4F3; --surface:#FFFFFF; --sunk:#E6ECEB; --ink:#15232A; --muted:#58696E; --line:#CFD9D8;
+  --oto:#1E6A86; --uto:#7B3F7E; --sel:#D08A12;
+  --p2:#58696E; --p3:#3F525B; --p5:#1C7A66; --p7:#8A4A9C; --p11:#996A08; --p13:#B53A31;
+  --f-disp:"Spectral",Georgia,"Times New Roman",serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1618; --surface:#162125; --sunk:#1D2A2F; --ink:#E2EBEB; --muted:#94A7A9; --line:#2A3A3F;
+  --oto:#62B6D4; --uto:#C78BCB; --sel:#F0B243;
+  --p2:#94A7A9; --p3:#A9B8BF; --p5:#4FC4A9; --p7:#C68DD8; --p11:#E2B54E; --p13:#F07D70; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1618; --surface:#162125; --sunk:#1D2A2F; --ink:#E2EBEB; --muted:#94A7A9; --line:#2A3A3F;
+  --oto:#62B6D4; --uto:#C78BCB; --sel:#F0B243;
+  --p2:#94A7A9; --p3:#A9B8BF; --p5:#4FC4A9; --p7:#C68DD8; --p11:#E2B54E; --p13:#F07D70; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:20px 230px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:18px}
+h1{font-family:var(--f-disp);font-weight:700;font-size:clamp(28px,6vw,42px);line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1 em{font-style:italic;font-weight:500;color:var(--oto)}
+h2{font-family:var(--f-disp);font-weight:700;font-size:22px;margin:0;text-wrap:balance}
+.lede{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.note{color:var(--muted);font-size:13.5px;max-width:68ch;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:end}
+.ctl{display:grid;gap:5px}
+.lbl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 11px;font-family:var(--f-mono);font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=number]{width:84px;font:inherit;font-family:var(--f-mono);padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;padding:9px 14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--oto)}
+.view{display:grid;gap:14px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.c2{color:var(--p2)}.c3{color:var(--p3)}.c5{color:var(--p5)}.c7{color:var(--p7)}.c11{color:var(--p11)}.c13{color:var(--p13)}
+.b2{background:var(--p2)}.b3{background:var(--p3)}.b5{background:var(--p5)}.b7{background:var(--p7)}.b11{background:var(--p11)}.b13{background:var(--p13)}
+
+/* ruler svg */
+svg text{font-family:var(--f-mono);fill:var(--muted)}
+.r-grid{stroke:var(--line);stroke-width:1}
+.r-base{stroke:var(--line);stroke-width:1}
+.r-lane{font-size:11px;fill:var(--muted)}
+.r-pt{cursor:pointer}
+.r-pt circle{stroke:var(--surface);stroke-width:1.5}
+.r-pt text{font-size:10.5px;fill:var(--ink)}
+.r-pt.on circle{stroke:var(--sel);stroke-width:3}
+.r-pt.on text{fill:var(--sel);font-weight:600}
+.r-selline{stroke:var(--sel);stroke-width:1.5;stroke-dasharray:3 3}
+
+/* tables */
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--sunk)}
+tbody tr.on{background:color-mix(in srgb,var(--sel) 16%,transparent)}
+.gapbar{display:inline-block;height:6px;border-radius:3px;background:var(--sel);vertical-align:middle;margin-right:6px;opacity:.85}
+
+/* diamond */
+.diamond{border-collapse:separate;border-spacing:3px;width:auto;margin:0 auto}
+.diamond th,.diamond td{border:0;padding:0}
+.dcell{width:54px;height:40px;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-family:var(--f-mono);font-size:12.5px;display:grid;place-items:center;position:relative}
+.dcell::before{content:"";position:absolute;inset:0;border-radius:5px;background:currentColor;opacity:.09}
+.dcell span{color:var(--ink);position:relative}
+.dcell.uni{border-style:dashed}
+.dcell.on{border:2px solid var(--sel)}
+.dhead{width:54px;height:40px;border-radius:6px;border:0;font-family:var(--f-mono);font-size:12px;line-height:1.1;display:grid;place-items:center}
+.dhead small{display:block;font-family:var(--f-body);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;opacity:.85}
+.dhead.o{background:color-mix(in srgb,var(--oto) 16%,var(--surface));color:var(--oto)}
+.dhead.u{background:color-mix(in srgb,var(--uto) 16%,var(--surface));color:var(--uto)}
+.dcorner{font-size:10px;color:var(--muted);text-align:center;line-height:1.2}
+@media (max-width:520px){.dcell,.dhead{width:38px;height:34px;font-size:10.5px}.dhead small{font-size:8px}}
+
+/* steps */
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.chain{display:grid;gap:0}
+.chain-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.srow{display:grid;grid-template-columns:70px 1fr 74px;gap:10px;align-items:center;background:none;border:0;padding:5px 4px;border-radius:6px;text-align:left;width:100%}
+.srow:hover{background:var(--sunk)}
+.srow .bar{height:14px;border-radius:3px}
+.chain.o .bar{background:var(--oto)} .chain.u .bar{background:var(--uto)}
+.crow{display:flex;gap:8px;align-items:center;padding:1px 4px 1px 80px;font-size:12px;color:var(--muted);background:none;border:0;width:100%;text-align:left;border-radius:6px}
+.crow:hover{background:var(--sunk);color:var(--ink)}
+.crow b{font-family:var(--f-mono);font-weight:600;color:var(--sel)}
+.srow.on,.crow.on{background:color-mix(in srgb,var(--sel) 16%,transparent)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:5px 11px;font-size:13px;font-weight:500;display:inline-flex;gap:6px;align-items:center}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--oto);color:var(--surface);border-color:var(--oto)}
+
+/* commas */
+.cbar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+input[type=range]{accent-color:var(--oto);width:200px}
+.clist{display:grid;gap:8px}
+.ccard{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
+.ccard.on{border-color:var(--sel)}
+.chead{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:baseline;width:100%;background:none;border:0;padding:11px 14px;text-align:left}
+.cratio{font-family:var(--f-mono);font-weight:600;font-size:17px}
+.cname{font-family:var(--f-disp);font-style:italic;font-size:16px}
+.ccents{font-family:var(--f-mono);font-size:14px;text-align:right}
+.cmeta{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted)}
+.cmeta .mono{color:var(--ink)}
+.edos{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.edo{font-family:var(--f-mono);font-size:11.5px;padding:0 6px;border-radius:4px;background:var(--sunk);color:var(--ink)}
+.cbody{border-top:1px solid var(--line);padding:8px 14px 12px;display:grid;gap:4px}
+.pair{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:13px;flex-wrap:wrap}
+.pair .btn{padding:2px 9px;font-size:12px}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+
+/* selected bar */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  box-shadow:0 -6px 24px color-mix(in srgb,var(--ink) 10%,transparent);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));max-height:56vh;overflow-y:auto}
+.dock-in{max-width:1080px;margin:0 auto;display:grid;gap:8px}
+.dock-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.d-ratio{font-family:var(--f-mono);font-size:24px;font-weight:600;line-height:1}
+.d-name{font-family:var(--f-disp);font-style:italic;font-size:16px;color:var(--muted)}
+.badge{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.d-actions{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.d-more{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.d-more table{font-size:12.5px}
+.d-more th,.d-more td{padding:3px 6px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13px;align-content:start}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-family:var(--f-mono)}
+
+/* schemata */
+.scard{padding:12px 14px;display:grid;gap:9px}
+.stitle{font-family:var(--f-disp);font-weight:700;font-size:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spath{display:flex;flex-wrap:wrap;gap:4px 5px;align-items:center}
+.schip{font-family:var(--f-mono);font-size:12.5px;padding:3px 8px;border-radius:6px;background:var(--sunk);border:1px solid transparent;white-space:nowrap}
+.schip .dr{margin-left:5px;color:var(--sel);font-weight:600}
+.schip.now{border-color:var(--sel);background:color-mix(in srgb,var(--sel) 22%,var(--surface))}
+.sarrow{color:var(--muted);font-size:12px}
+.sres{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.sact{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.esel{font:inherit;font-family:var(--f-mono);font-size:13px;padding:4px 6px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink)}
+.spiv{display:grid;gap:3px;font-size:12.5px;font-family:var(--f-mono);border-top:1px solid var(--line);padding-top:8px}
+.sviz{display:grid;gap:6px;min-width:0}
+.roll-wrap{border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.roll{display:block}
+.seg{display:inline-flex;gap:3px}
+.vz-pair{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:12px;align-items:center}
+.vz-pair svg{width:100%;height:auto;display:block}
+.vz-clock{max-width:230px}
+.vz-cap{margin:0;font-size:12.5px;color:var(--muted);max-width:70ch}
+@media (max-width:560px){.vz-pair{grid-template-columns:1fr}.vz-clock{max-width:220px;margin:0 auto}}
+.sform{display:grid;gap:14px}
+.lat{display:block}
+.lat text{font-family:var(--f-mono)}
+.lnode{cursor:pointer}
+.lnode:hover circle,.lnode:focus circle{stroke:var(--sel);stroke-width:2.5}
+.ltri.now{fill-opacity:.42}
+.esel:disabled{opacity:.45}
+.pv-list{display:grid;gap:6px;font-size:13px}
+.pv-row{display:grid;grid-template-columns:minmax(0,190px) 1fr;gap:4px 12px}
+@media (max-width:520px){.pv-row{grid-template-columns:1fr}}
+.hexk{display:block;margin:0 auto;width:100%;max-width:420px;touch-action:none;user-select:none;-webkit-user-select:none}
+.hbk{cursor:pointer}
+.hun{cursor:pointer}
+[hidden]{display:none!important}
+.sform>*,.clist,.clist>*,.ccard{min-width:0}
+.ctl{min-width:0;max-width:100%;grid-template-columns:minmax(0,1fr)}
+.ctl>select.esel{width:100%;min-width:0;text-overflow:ellipsis}
+.lbh{font-family:var(--f-disp);font-size:18px;margin:10px 0 0}
+.tclose{margin:0;font-size:12.5px}
+.ear{color:var(--ink);display:flex;gap:8px;align-items:baseline;margin:0}
+.ear .lbl{flex:none;color:var(--sel)}
+.tname{display:inline-block;padding:0 6px;margin:1px 2px;border-radius:4px;background:var(--sunk);color:var(--ink);font-size:12px}
+.subtabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:-8px}
+.subtab{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px;color:var(--muted)}
+.subtab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cbtn{background:none;border:0;padding:0;cursor:pointer}
+.cbtn:hover .cratio{text-decoration:underline}
+.latflex{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.latsvg{flex:0 0 auto;max-width:100%;overflow-x:auto}
+.latside{flex:1 1 230px;min-width:220px;max-width:360px;display:grid;gap:6px;padding:4px 6px 6px}
+.lchord{border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;display:grid;gap:2px;background:var(--surface)}
+.lchord.now{border-color:var(--sel);background:color-mix(in srgb,var(--sel) 16%,var(--surface))}
+.lct{color:var(--muted);font-size:12px;display:flex;flex-wrap:wrap;gap:2px 8px}
+.lnow{border:2px solid var(--sel);border-radius:10px;padding:8px 10px;display:grid;gap:5px;background:var(--surface)}
+.lnow-h{font-size:14px}
+.lnt{font-size:12.5px}.lnt th,.lnt td{padding:3px 6px}.lnt tbody tr{cursor:default}.lnt tbody tr:hover{background:none}
+.hrow2{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr) auto;gap:6px 14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+@media (max-width:620px){.hrow2{grid-template-columns:1fr}}
+.hp2{border:0;cursor:pointer;font-size:12px}
+.hp2:hover{background:color-mix(in srgb,var(--sel) 22%,var(--surface))}
+.sruler{display:block;width:100%;min-width:620px;height:auto}
+.cgrid{font-size:12.5px;width:auto}
+.cgrid th,.cgrid td{padding:5px 8px;text-align:center;white-space:nowrap}
+.cgrid tbody th{text-align:left;font-weight:500}
+.cgrid tbody tr{cursor:default}
+.cgrid td small{display:block;color:var(--muted);font-family:var(--f-mono);font-size:10px}
+.cgrid td.cl{color:var(--oto);font-weight:700}
+.cgrid tr.ra th{box-shadow:inset 3px 0 var(--oto)} .cgrid tr.rb th{box-shadow:inset 3px 0 var(--uto)}
+.cpair{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
+.ccol{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:8px;min-width:0}
+.ccol.ca{border-top:3px solid var(--oto)} .ccol.cb{border-top:3px solid var(--uto)}
+.mlist{display:grid;gap:5px;font-size:12.5px}
+.mrow{display:grid;grid-template-columns:minmax(0,150px) 1fr;gap:4px 10px;align-items:baseline}
+.mot{display:inline-block;padding:0 5px;border-radius:4px;background:var(--sunk);margin:1px 2px 1px 0}
+.hp{font-size:11.5px;color:var(--oto);font-weight:600;margin-right:4px}.hp.none{color:var(--muted);font-weight:500}
+#cmpText p{margin:0 0 6px}
+
+.stg{font-size:12.5px;width:auto}
+.stg th,.stg td{text-align:center;padding:5px 9px;vertical-align:top}
+.stg tbody th{text-align:left}
+.stg tbody tr{cursor:default}
+.stg tbody tr:hover{background:none}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+.cin{width:120px;font:inherit;font-family:var(--f-mono);padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+#v-schemata h2{margin-top:6px}
+@media (prefers-reduced-motion:no-preference){.tab,.chip,.btn{transition:background .15s,border-color .15s,color .15s}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="nv-brand">
+/* Nick Vuci house style: Ivory (light) and Nocturne (dark, the original nickvuci.com palette).
+   The applet's own variables are mapped onto the design-system tokens below. */
+:root{--nv-ground-start:#f7f4ec;--nv-ground-end:#f7f4ec;--nv-surface:#f7f4ec;--nv-surface-raised:#fffdf8;--nv-surface-sunk:#ece7db;--nv-ink:#121933;--nv-ink-muted:#565c70;--nv-hairline:#dcd5c6;--nv-brand-blue:#1640c8;--nv-blue:#1640c8;--nv-on-blue:#fffdf8;--nv-blue-soft:#dde4f7;--nv-gold:#b8892b;--nv-gold-ink:#7a5a1c;--nv-gold-soft:#efe4cb;--nv-on-gold:#121933;--nv-alert:#b42a12;--nv-focus-ring:#1640c8;--nv-burgundy:#6b1d34;--nv-burgundy-ink:#6b1d34;--nv-burgundy-mid:#7a2c40;--nv-burgundy-soft:#f3e4e8;--nv-burgundy-wash:#faf2f3;--nv-band:#2e0f16;--nv-on-band:#f5ecee;--nv-on-band-muted:#d1b6bd;--nv-band-line:#4f2530;--nv-band-edge:#916a72;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#d1a246;--nv-prime-3:#3d5ba9;--nv-prime-5:#2f7d6b;--nv-prime-7:#a2562e;--nv-prime-11:#6b4f9e;--nv-prime-13:#963c8c;--nv-edge:#8F897C;--nv-grid:#e8e2d5;--nv-font-display:"Cormorant Garamond","EB Garamond",Garamond,"Times New Roman",serif;--nv-font-sans:"Montserrat","Helvetica Neue",Arial,system-ui,sans-serif;--nv-font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--bg:var(--nv-surface);--surface:var(--nv-surface-raised);--sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--muted:var(--nv-ink-muted);--line:var(--nv-hairline);--oto:var(--nv-blue);--uto:var(--nv-burgundy-mid);--sel:var(--nv-gold);--p2:var(--nv-ink-muted);--p3:var(--nv-prime-3);--p5:var(--nv-prime-5);--p7:var(--nv-prime-7);--p11:var(--nv-prime-11);--p13:var(--nv-prime-13);--f-disp:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--bg:var(--nv-surface);--surface:var(--nv-surface-raised);--sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--muted:var(--nv-ink-muted);--line:var(--nv-hairline);--oto:var(--nv-blue);--uto:var(--nv-burgundy-mid);--sel:var(--nv-gold);--p2:var(--nv-ink-muted);--p3:var(--nv-prime-3);--p5:var(--nv-prime-5);--p7:var(--nv-prime-7);--p11:var(--nv-prime-11);--p13:var(--nv-prime-13);--f-disp:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:dark}}
+:root[data-theme="dark"]{--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--bg:var(--nv-surface);--surface:var(--nv-surface-raised);--sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--muted:var(--nv-ink-muted);--line:var(--nv-hairline);--oto:var(--nv-blue);--uto:var(--nv-burgundy-mid);--sel:var(--nv-gold);--p2:var(--nv-ink-muted);--p3:var(--nv-prime-3);--p5:var(--nv-prime-5);--p7:var(--nv-prime-7);--p11:var(--nv-prime-11);--p13:var(--nv-prime-13);--f-disp:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:dark}
+html body{background-color:var(--nv-surface);background-image:linear-gradient(135deg,var(--nv-ground-start),var(--nv-ground-end));background-attachment:fixed;color:var(--nv-ink)}
+.eyebrow{color:var(--nv-gold-ink)}
+h2,h3{color:var(--nv-burgundy-ink)}
+
+.nv-appbar{position:relative;z-index:30;background:var(--nv-surface-raised);border-bottom:1px solid var(--nv-burgundy-soft);
+  padding-top:env(safe-area-inset-top,0px);font-family:var(--nv-font-sans);color:var(--nv-ink)}
+.nv-appbar,.nv-appbar *{box-sizing:border-box}
+.nv-appbar{text-align:left;grid-column:1/-1;align-self:stretch}
+.nv-in{max-width:var(--nv-appbar-max,1200px);margin:0 auto;justify-content:flex-start;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:14px}
+.nv-lock{display:flex;align-items:center;gap:12px;flex:none;text-decoration:none;color:inherit}
+.nv-lock:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-mark{display:block;width:40px;height:auto}
+.nv-wm{font-weight:400;font-size:18px;letter-spacing:.18em;white-space:nowrap;line-height:1}
+.nv-wm .n{color:var(--nv-brand-blue)}.nv-wm .v{color:var(--nv-gold)}
+.nv-name{margin:0;padding-left:14px;border-left:1px solid var(--nv-burgundy-soft);font-family:var(--nv-font-sans);font-weight:400;font-size:18px;
+  line-height:1;letter-spacing:.18em;color:var(--nv-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:640px){.nv-wm{display:none}.nv-mark{width:34px}.nv-name{font-size:15px;letter-spacing:.1em;padding-left:12px}.nv-in{gap:12px;padding-top:10px;padding-bottom:10px}}
+
+.nv-theme{flex:none;display:grid;place-items:center;width:36px;height:36px;padding:0;margin-left:auto;cursor:pointer;
+  color:var(--nv-ink-muted);background:transparent;border:1px solid var(--nv-burgundy-soft);border-radius:2px;
+  transition:color .2s ease,border-color .2s ease,background-color .2s ease}
+.nv-theme:hover{color:var(--nv-gold);border-color:var(--nv-gold)}
+.nv-theme:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-ti{grid-area:1/1;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity .3s ease,transform .3s ease}
+.nv-ti-sun{opacity:0;transform:rotate(-45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-moon{opacity:0;transform:rotate(45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-sun{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.nv-ti,.nv-theme{transition:none}}
+
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nv-appbar{border-bottom-width:2px}
+  :root:not([data-theme="light"]) .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+  :root:not([data-theme="light"]) .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}}
+:root[data-theme="dark"] .nv-appbar{border-bottom-width:2px}
+:root[data-theme="dark"] .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+:root[data-theme="dark"] .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}
+
+</style>
+
+<div class="nv-appbar" role="banner"><div class="nv-in"><a class="nv-lock" href="https://nickvuci.com" target="_blank" rel="noopener" aria-label="Nick Vuci — nickvuci.com"><svg class="nv-mark" viewBox="-7.75 0 205.50 80" role="img" aria-label="Nick Vuci"><defs><clipPath id="nvc"><rect x="-9.75" y="0" width="209.50" height="80"/></clipPath><polyline id="nvz" points="-20.50,106.19 0.00,71.84 38.00,8.16 76.00,71.84 114.00,8.16 152.00,71.84 190.00,8.16 210.50,-26.19" fill="none" stroke-width="7.0" stroke-linejoin="miter" stroke-miterlimit="10"/><clipPath id="nvf0"><polygon points="114.00,16.31 106.69,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf1"><polygon points="114.00,16.31 107.90,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf2"><polygon points="114.00,16.31 109.12,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf3"><polygon points="114.00,16.31 110.34,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf4"><polygon points="114.00,16.31 111.56,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf5"><polygon points="114.00,16.31 112.78,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf6"><polygon points="114.00,16.31 114.00,-43.69 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf7"><polygon points="114.00,16.31 115.22,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf8"><polygon points="114.00,16.31 116.44,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf9"><polygon points="114.00,16.31 117.66,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf10"><polygon points="114.00,16.31 118.88,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf11"><polygon points="114.00,16.31 120.10,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf12"><polygon points="114.00,16.31 121.31,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath></defs><g clip-path="url(#nvc)"><use href="#nvz" style="stroke:var(--nv-brand-blue)"/><g clip-path="url(#nvf0)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 4.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf1)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 12.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf2)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 20.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf3)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 29.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf4)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 37.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf5)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 45.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf6)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 54.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf7)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 62.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf8)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 70.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf9)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 79.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf10)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 87.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf11)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 95.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf12)"><use href="#nvz" style="stroke:var(--nv-gold)"/></g></g></svg><span class="nv-wm"><span class="n">Nick</span> <span class="v">Vuci</span></span></a><h1 class="nv-name">Fifteen-Limit Atlas</h1><button type="button" class="nv-theme" aria-label="Switch to dark theme" aria-pressed="false" title="Switch to dark theme"><svg class="nv-ti nv-ti-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M19.5 14.2A7.5 7.5 0 0 1 9.8 4.5a7.5 7.5 0 1 0 9.7 9.7Z"/></svg><svg class="nv-ti nv-ti-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button></div></div>
+<div class="wrap">
+  <header>
+    <h2 class="nv-dup" aria-hidden="true" hidden>Fifteen-Limit <em>Atlas</em></h2>
+    <p class="lede">Every interval built from the odd numbers 1 to 15, and the comma pumps hiding inside them. <b>Scale</b> lays out the notes, the tonality diamond and the harmonic series; <b>Commas</b> finds the small differences between intervals; <b>Pumps</b> holds a library of comma pumps, finds new ones, builds and compares them; <b>HexBoard</b> voice-leads a pump into playable music. Tap anything to hear it.</p>
+  </header>
+
+  <div class="controls">
+    <div class="ctl" id="oddCtl"><span class="lbl">Odd limit</span><div class="chips" id="limChips"></div></div>
+    <div class="ctl"><label class="lbl" for="base">1/1 in Hz</label><input id="base" type="number" min="55" max="880" step="0.01" value="220"></div>
+    <div class="ctl"><span class="lbl">Timbre</span><div class="chips">
+      <button class="chip" id="tRich" aria-pressed="true">Harmonic</button>
+      <button class="chip" id="tSine" aria-pressed="false">Sine</button></div></div>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-group="scale">Scale</button>
+    <button class="tab" role="tab" data-group="commas">Commas</button>
+    <button class="tab" role="tab" data-group="pumps">Pumps</button>
+    <button class="tab" role="tab" data-group="hex">HexBoard</button>
+  </nav>
+  <div class="subtabs" id="subtabs" role="tablist" aria-label="Views in this section"></div>
+
+  <section class="view" id="v-intervals">
+    <p class="note">Each lane holds the intervals that first appear at that odd limit. Read up the lanes to watch the octave fill in; dense spots are where temperaments will want to merge pitches.</p>
+    <div class="legend" id="legend"></div>
+    <div class="panel scroll-x" id="rulerWrap"></div>
+    <div class="panel scroll-x"><table id="ivTable"></table></div>
+    <p class="note">“Gap” is the distance up to the next interval in the set. Gaps under about 30¢ are commas: pairs a temperament might identify.</p>
+  </section>
+
+  <section class="view" id="v-diamond" hidden>
+    <p class="note">Row <span style="color:var(--oto)">÷u</span> is the otonal chord 1:3:5… over the undertone u; column <span style="color:var(--uto)">×n</span> is the utonal chord on harmonic n. Every pitch sits at the crossing of one of each, so each cell is a pivot between an otonality and a utonality. Tap a header to hear its chord voiced as true harmonics or subharmonics. Repeated cells (like 3/2 = 9/6) are outlined together when selected.</p>
+    <div class="panel scroll-x" id="diamondWrap"></div>
+  </section>
+
+  <section class="view" id="v-steps" hidden>
+    <p class="note">Harmonics 8–16 (8/8 … 16/8) and subharmonics 8–16 (16/16, 16/15 … 16/8), both read upward from 1/1 like a Scale Workshop scale. Each row is a scale degree with the step that reaches it. Overtone steps shrink as you climb; undertone steps grow. Between neighbouring steps sits the comma n²/(n²−1) that separates them. Tempering one of these commas makes two adjacent steps the same size. Tap a step to hear it, or a comma to hear its two steps one after the other.</p>
+    <div class="steps-grid" id="stepsWrap"></div>
+    <div id="huWrap" class="view" style="gap:12px">
+      <h2>Harmonics and subharmonics together</h2>
+      <p class="note">Both 8–16 series combined into one scale: 15 notes, mirror-symmetric around 1/1. Amber brackets mark the three places where an overtone and an undertone nearly collide. Tap a note to hear it against 1/1. The commas that emerge between its intervals are listed in the Commas section.</p>
+      <div class="panel scroll-x" id="huRuler" style="padding:6px"></div>
+      <p class="note" id="huSum" style="color:var(--ink)"></p>
+      <div class="chips"><button class="btn pri" id="huToCommas">See the commas of this scale →</button></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-commas" hidden>
+    <p class="note">A comma here is the small difference between two intervals of a scale: the gap a temperament can close. Pick which notes to search, then tap a pair to hear its two intervals, tap the ratio to inspect it below, or find a chord loop (pump) that produces it.</p>
+    <div class="panel sform" id="cmCtl">
+      <div class="ctl"><span class="lbl">Notes to search</span><div class="chips" id="cmSrc"></div></div>
+      <div class="controls">
+        <div class="ctl"><label class="lbl" for="thr">Largest comma: <span class="mono" id="thrOut">40</span>¢</label><input id="thr" type="range" min="5" max="70" step="1" value="40"></div>
+        <div class="ctl"><span class="lbl">Prime limit</span><div class="chips" id="cmLims"></div></div>
+      </div>
+    </div>
+    <p class="note" id="cSummary" style="color:var(--ink)"></p>
+    <p class="note" id="cMiss"></p>
+    <div class="clist" id="clist"></div>
+  </section>
+
+<section class="view" id="v-compare" hidden>
+    <p class="note" style="color:var(--ink)"><b>One idea links every pump here: each comma is the difference between two melodic steps that the voice-leading uses as if they were the same.</b> The syntonic comma is 9/8 against 10/9; the augmented diesis is 16/15 against 25/24; marvel is 16/15 against 15/14. Tempering a comma out makes its two steps one step, which is why the loop closes. Pumps that share a step are relatives; pumps with unrelated steps pull the voices in different directions.</p>
+    <h2>Steps and the commas that join them</h2>
+    <div class="panel scroll-x" id="cmpRuler" style="padding:6px"></div>
+    <h2>All main pumps</h2>
+    <div class="panel scroll-x" id="cmpTable"></div>
+    <h2>Side by side</h2>
+    <div class="panel sform" id="cmpCtl">
+      <div class="controls">
+        <div class="ctl" style="flex:1 1 240px;min-width:0"><label class="lbl" for="cmpA"><span style="color:var(--oto)">●</span> First</label><select class="esel" id="cmpA" style="max-width:100%"></select></div>
+        <div class="ctl" style="flex:1 1 240px;min-width:0"><label class="lbl" for="cmpB"><span style="color:var(--uto)">●</span> Second</label><select class="esel" id="cmpB" style="max-width:100%"></select></div>
+      </div>
+      <div class="chips"><button class="btn pri" data-cp="both:ji">▶ Both, just ×2</button><button class="btn" data-cp="both:et">▶ Both, tempered ×2</button><button class="btn" data-cp="a:ji">▶ First</button><button class="btn" data-cp="b:ji">▶ Second</button></div>
+    </div>
+    <div class="cpair" id="cmpPair"></div>
+    <div class="panel note" id="cmpText" style="color:var(--ink);max-width:none"></div>
+    <h2>Which tunings close which loops</h2>
+    <p class="note">● = the loop closes in that EDO. The small numbers give each equated step's size in that EDO's steps; the loop closes exactly when the two numbers match.</p>
+    <div class="panel scroll-x" id="cmpGrid"></div>
+  </section>
+
+  <section class="view" id="v-hex" hidden>
+    <p class="note">Turn a comma pump into playable music. The chords are voice-led automatically: common tones stay in the same voice, other voices move by the smallest step. The comma then has to go somewhere, and each realisation puts it in a different place. The held notes form the pump's own pivot melody.</p>
+    <div class="panel sform" id="hxCtl">
+      <div class="controls">
+        <div class="ctl" style="min-width:0;flex:1 1 240px"><label class="lbl" for="hxSrc">Pump</label><select class="esel" id="hxSrc" style="max-width:100%"></select></div>
+        <div class="ctl"><span class="lbl">Loops</span><div class="chips" id="hxLoops"></div></div>
+      </div>
+      <div class="ctl"><span class="lbl">Where the comma goes</span><div class="chips" id="hxMode"></div></div>
+      <div class="ctl" id="hxShiftCtl"><span class="lbl">Jump on move</span><div class="chips" id="hxShift"></div></div>
+      <div class="ctl" id="hxEdoCtl"><label class="lbl" for="hxEdo">Tempered in</label><select class="esel" id="hxEdo"></select></div>
+      <div class="chips"><button class="btn pri" id="hxPlay">▶ Play</button><button class="btn" id="hxAll">▶ All four in turn</button><button class="btn" id="hxPiv">▶ Pivot melody</button><span class="note" id="hxNow" style="align-self:center"></span></div>
+    </div>
+    <div id="hxStatus"></div>
+    <div class="panel scroll-x" id="hxRoll" style="padding:6px"></div>
+    <h2>Pivot melody</h2>
+    <p class="note">The note each move holds, and how its role changes. Played as a line over a 1/1 drone, it is a motif only this pump produces.</p>
+    <div class="panel" id="hxPivot"></div>
+    <h2>Formulae</h2>
+    <p class="note">The pump as a schema: a bass line, a melody taken from one voice of the voice-leading, and the held notes that connect them, stage by stage like a galant schema. Figures add passing tones, neighbors or arpeggios drawn from each chord's own scale. Everything follows the realisation chosen above, so the same formula can be heard drifting, shifting, spread or tempered.</p>
+    <div class="panel sform" id="hfCtl">
+      <div class="ctl"><span class="lbl">Figure</span><div class="chips" id="hfFig"></div></div>
+      <div class="controls">
+        <div class="ctl"><span class="lbl">Melody voice</span><div class="chips" id="hfVoice"></div></div>
+        <div class="ctl"><span class="lbl">Listen</span><div class="chips"><button class="chip" id="hfChords" aria-pressed="true">With chords</button><button class="btn pri" id="hfPlay">▶ Play formula</button></div></div>
+      </div>
+    </div>
+    <div class="panel scroll-x" id="hfStages"></div>
+    <div class="panel scroll-x" id="hfRoll" style="padding:6px"></div>
+    <p class="note">Ink = chord tone of the melody voice, orange = a note held into the next chord, amber = passing or neighbor tone.</p>
+    <h2>Textures</h2>
+    <p class="note">The loop's chords set as counterpoint. Every voice comes from the voice-leading above, one bar per chord, and follows the realisation you chose (drift, comma shift, spread or tempered), so a suspension that resolves into a drifted chord resolves into the drift.</p>
+    <div class="panel sform" id="txCtl">
+      <div class="ctl"><span class="lbl">Texture</span><div class="chips" id="txKind"></div></div>
+      <div class="controls">
+        <div class="ctl"><span class="lbl">Bass</span><div class="chips" id="txBass"></div></div>
+        <div class="ctl"><span class="lbl">Tempo</span><div class="chips" id="txTempo"></div></div>
+        <div class="ctl"><span class="lbl">Listen</span><div class="chips"><button class="btn pri" id="txPlay">▶ Play texture</button></div></div>
+      </div>
+      <p class="note" id="txNote" style="color:var(--ink)"></p>
+    </div>
+    <div class="panel scroll-x" id="txRoll" style="padding:6px"></div>
+    <div class="legend" id="txLegend"></div>
+    <h2>HexBoard</h2>
+    <div class="panel sform" id="hbCtl">
+      <div class="controls">
+        <div class="ctl"><span class="lbl">Layout</span><div class="chips" id="hbLay"></div></div>
+        <div class="ctl"><label class="lbl" for="hbA">Across</label><input id="hbA" type="number" step="1"></div>
+        <div class="ctl"><label class="lbl" for="hbB">Up-right</label><input id="hbB" type="number" step="1"></div>
+        <div class="ctl"><label class="lbl" for="hbC">Center degree</label><input id="hbC" type="number" step="1"></div>
+      </div>
+    </div>
+    <div class="panel scroll-x" id="hxKeys" style="padding:6px"></div>
+    <p class="note" id="hxKeysCap"></p>
+  </section>
+
+  <section class="view" id="v-lattice" hidden>
+    <p class="note">Any comma pump drawn on the just-intonation lattice. Each prime has its own direction (3 right, 5 up-right; 7, 11 and 13 on their own slants, coloured as in the key), so chords are small shapes and the pump is a walk from the black 1/1 to the ringed node where it lands. Pick a pump here, or open any pump card with ◇ Lattice. Tap a node to hear it against 1/1.</p>
+    <div class="panel sform" id="latCtl">
+      <div class="controls">
+        <div class="ctl" style="min-width:0;flex:1 1 240px"><label class="lbl" for="latSrc">Pump</label><select class="esel" id="latSrc" style="max-width:100%"></select></div>
+        <div class="ctl"><span class="lbl">&nbsp;</span><button class="chip" id="latAll" aria-pressed="true">Show all three arms</button></div>
+      </div>
+      <div class="chips"><button class="btn" id="latFindGo">Find pumps for another comma →</button></div>
+      <div class="controls">
+        <div class="ctl"><span class="lbl">Tuning</span><div class="chips" id="latTune"></div></div>
+        <div class="ctl"><label class="lbl" for="latEdo">Tempered in</label><select class="esel" id="latEdo"></select></div>
+        <div class="ctl"><label class="lbl" for="latRef">Keeps comma in</label><select class="esel" id="latRef"></select></div>
+      </div>
+      <div class="chips"><button class="btn pri" id="latPlay">▶ Play loop ×3</button><button class="btn" id="latScale">▶ Scale</button></div>
+    </div>
+    <div id="latInfo"></div>
+    <div class="panel scroll-x" id="latWrap" style="padding:6px"></div>
+    <p class="note">“Keeps comma” lists the most accurate EDOs in which the comma is still a real step, so the loop drifts on a keyboard much as in just intonation. For the three 5-limit arms that is 53-EDO (81/80 = 1 step, 128/125 = 2, 648/625 = 3); 12-EDO is the familiar tuning that closes all three at once.</p>
+  </section>
+
+  <section class="view" id="v-schemata" hidden>
+    <p class="note">A comma pump is a short chord progression that returns to its starting chord by name but not by pitch. Each move keeps common tones, and a held note may change which harmonic it is. The leftover drift is a comma, and every temperament that tempers that comma closes the loop. Play each pump three times in just intonation to hear it slide, then tempered to hear it close. “Closes in” lists the temperaments from the catalog that cover every prime the loop uses and temper its comma.</p>
+    <div class="panel sform" id="lbCtl">
+      <div class="ctl"><span class="lbl">Prime limit of the comma</span><div class="chips" id="lbLim"></div></div>
+      <div class="ctl" style="max-width:340px"><label class="lbl" for="lbTemp">Closes in</label><select class="esel" id="lbTemp"></select></div>
+      <div class="ctl"><span class="lbl">12-EDO</span><div class="chips"><button class="chip" id="lb12" aria-pressed="false">Only commas 12-EDO does not temper out</button></div></div>
+    </div>
+    <p class="note" id="lbCount" style="color:var(--ink)"></p>
+    <div class="clist" id="classics"></div>
+  </section>
+
+  <section class="view" id="v-find" hidden>
+    <h2>Pumps for a comma</h2>
+    <p class="note">Type any comma up to the 13-limit. The finder searches loops of up to six moves and shows the different ones it finds, those that hold the most common tones first. Every result can be opened on the lattice or realised on the HexBoard.</p>
+    <div class="panel sform">
+      <div class="controls">
+        <div class="ctl"><label class="lbl" for="fcComma">Comma</label><div class="chips"><input id="fcComma" type="text" inputmode="numeric" placeholder="225/224" autocomplete="off" class="cin"><button class="btn pri" id="fcGo">Find pumps</button></div></div>
+        <div class="ctl"><span class="lbl">Examples</span><div class="chips" id="fcEx"></div></div>
+      </div>
+    </div>
+    <p class="note" id="fcMsg" style="color:var(--ink);min-height:1.5em"></p>
+    <div class="clist" id="fcList"></div>
+    <h2>Search by chord vocabulary</h2>
+    <p class="note">The other way round: pick the chords allowed and how smooth each move must be, and see every comma those chords can pump.</p>
+    <div class="panel sform" id="sForm">
+      <div class="ctl"><span class="lbl">Chord vocabulary</span><div class="chips" id="sTypes"></div></div>
+      <div class="controls">
+        <div class="ctl"><span class="lbl">Start and end on</span><div class="chips" id="sStart"></div></div>
+        <div class="ctl"><span class="lbl">Common tones per move</span><div class="chips" id="sShared"></div></div>
+        <div class="ctl"><span class="lbl">Moves per loop (max)</span><div class="chips" id="sLen"></div></div>
+        <div class="ctl"><label class="lbl" for="sThr">Largest drift: <span class="mono" id="sThrOut">30</span>¢</label><input id="sThr" type="range" min="2" max="70" step="1" value="30"></div>
+      </div>
+      <div class="legend" id="sVocab"></div>
+    </div>
+    <p class="note" id="sSummary"></p>
+    <div class="clist" id="found"></div>
+  </section>
+
+  <section class="view" id="v-build" hidden>
+    <p class="note">New pumps from old ones. Transforming a pump keeps its comma but changes how the loop moves; combining two pumps adds their commas, so two small loops make a third.</p>
+    <div class="panel sform" id="btCtl">
+      <h2>Transform a pump</h2>
+      <div class="controls">
+        <div class="ctl" style="min-width:0;flex:1 1 260px"><label class="lbl" for="btSrc">Pump</label><select class="esel" id="btSrc" style="max-width:100%"></select></div>
+        <div class="ctl"><span class="lbl">Transform</span><div class="chips" id="btOp"></div></div>
+      </div>
+      <div class="ctl" id="btRot"></div>
+      <div id="btOut" class="clist"></div>
+      <h2 style="margin-top:10px">Combine two pumps</h2>
+      <div class="controls">
+        <div class="ctl" style="min-width:0;flex:1 1 240px"><label class="lbl" for="bcA">Pump A</label><select class="esel" id="bcA" style="max-width:100%"></select></div>
+        <div class="ctl" style="min-width:0;flex:1 1 240px"><label class="lbl" for="bcB">Pump B</label><select class="esel" id="bcB" style="max-width:100%"></select></div>
+        <div class="ctl"><span class="lbl">Order</span><div class="chips" id="bcMode"></div></div>
+      </div>
+      <div id="bcOut" class="clist"></div>
+    </div>
+  </section>
+</div>
+
+<aside class="dock" aria-label="Selected interval">
+  <div class="dock-in" id="dock"></div>
+</aside>
+
+<script>
+(function(){
+"use strict";
+const ODDS=[1,3,5,7,9,11,13,15];
+const PR=[2,3,5,7,11,13];
+const EDO_SHOW=[12,17,19,22,24,31,41,46,53,72];
+const NAMES={
+ "1/1":"unison","2/1":"octave","3/2":"perfect fifth","4/3":"perfect fourth","5/4":"major third","8/5":"minor sixth",
+ "6/5":"minor third","5/3":"major sixth","9/8":"major whole tone","16/9":"Pythagorean minor seventh","10/9":"minor whole tone",
+ "9/5":"just minor seventh","15/8":"just major seventh","16/15":"diatonic semitone","7/4":"harmonic seventh","8/7":"septimal whole tone",
+ "7/6":"septimal minor third","12/7":"septimal major sixth","9/7":"septimal major third","14/9":"septimal minor sixth",
+ "7/5":"septimal tritone","10/7":"greater septimal tritone","11/8":"undecimal superfourth","16/11":"undecimal subfifth",
+ "11/9":"undecimal neutral third","18/11":"undecimal neutral sixth","12/11":"undecimal neutral second","11/10":"greater undecimal neutral second",
+ "13/8":"tridecimal neutral sixth","16/13":"tridecimal neutral third","13/12":"tridecimal 2/3-tone",
+ "81/80":"syntonic comma","64/63":"septimal comma","225/224":"marvel comma","126/125":"starling comma","243/242":"rastma",
+ "100/99":"ptolemisma","121/120":"biyatisma","144/143":"grossma","169/168":"buzurgisma","196/195":"mynucuma",
+ "99/98":"mothwellsma","50/49":"jubilisma","49/48":"slendro diesis","36/35":"septimal diesis","45/44":"undecimal diesis",
+ "33/32":"undecimal quarter-tone","28/27":"septimal third-tone","25/24":"classic chroma","128/125":"lesser diesis",
+ "2401/2400":"breedsma","385/384":"keenanisma","540/539":"swetisma","4096/4095":"schismina","875/864":"keema"
+};
+const S={lim:15,base:220,rich:true,tab:"intervals",sel:[3,2],thr:40,open:null};
+try{const s=JSON.parse(localStorage.getItem("fla")||"{}");
+  if(ODDS.includes(s.lim))S.lim=s.lim; if(s.base>=55&&s.base<=880)S.base=s.base; if(typeof s.rich==="boolean")S.rich=s.rich;
+  if(s.thr)S.thr=s.thr;}catch(e){}
+function save(){try{localStorage.setItem("fla",JSON.stringify({lim:S.lim,base:S.base,rich:S.rich,thr:S.thr}))}catch(e){}}
+
+/* ---------- math ---------- */
+function gcd(a,b){while(b){const t=a%b;a=b;b=t}return a}
+function red(n,d){const g=gcd(n,d);return[n/g,d/g]}
+function octRed(n,d){while(n>=2*d)d*=2;while(n<d)n*=2;return red(n,d)}
+function oddPart(x){while(x%2===0)x/=2;return x}
+function factor(x){const f={};let p=2;while(x>1&&p<=x){while(x%p===0){f[p]=(f[p]||0)+1;x/=p}p++}return f}
+function monzo(n,d){const a=factor(n),b=factor(d);return PR.map(p=>(a[p]||0)-(b[p]||0))}
+function cents(n,d){return 1200*Math.log2(n/d)}
+function key(n,d){return n+"/"+d}
+function pLimit(n,d){const m=monzo(n,d);for(let i=PR.length-1;i>0;i--)if(m[i])return PR[i];return 2}
+function oLimit(n,d){return Math.max(oddPart(n),oddPart(d))}
+function fmtC(c){return c.toFixed(1)}
+function monzoStr(m){return "|"+m.join(" ")+"⟩"}
+function patent(n){return PR.map(p=>Math.round(n*Math.log2(p)))}
+function vanishes(m){const out=[];for(let n=5;n<=72;n++){const v=patent(n);let s=0;for(let i=0;i<PR.length;i++)s+=v[i]*m[i];if(s===0)out.push(n)}return out}
+function odds(){return ODDS.filter(o=>o<=S.lim)}
+
+let SET=[],MAP=new Map();
+function build(){
+  MAP=new Map();
+  for(const a of odds())for(const b of odds()){
+    const r=octRed(a,b),k=key(r[0],r[1]);
+    if(!MAP.has(k))MAP.set(k,{n:r[0],d:r[1],k,c:cents(r[0],r[1]),ol:oLimit(r[0],r[1]),pl:pLimit(r[0],r[1]),cells:[]});
+    MAP.get(k).cells.push([a,b]);
+  }
+  SET=[...MAP.values()].sort((x,y)=>x.c-y.c);
+}
+
+/* ---------- audio ---------- */
+let ac=null,master=null,wave=null;
+function audio(){
+  if(!ac){
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return null;
+    ac=new AC();
+    const comp=ac.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=6;
+    master=ac.createGain();master.gain.value=0.5;master.connect(comp);comp.connect(ac.destination);
+    const real=new Float32Array([0,0,0,0,0,0,0,0,0]);
+    const imag=new Float32Array([0,1,0.55,0.32,0.2,0.13,0.08,0.05,0.03]);
+    wave=ac.createPeriodicWave(real,imag);
+  }
+  if(ac.state==="suspended")ac.resume();
+  return ac;
+}
+const ACTIVE=new Set();
+/* Visual cues follow the audio clock, not wall time: each cue fires when its sound actually reaches the speakers,
+   which absorbs output latency (large on Bluetooth and some laptops). */
+const VISQ=[];let visRAF=0;
+function audibleTime(){if(!ac)return 0;try{if(ac.getOutputTimestamp){const ts=ac.getOutputTimestamp();if(ts&&ts.contextTime>0)return ts.contextTime}}catch(e){}
+  return ac.currentTime-(ac.outputLatency||0)-(ac.baseLatency||0)}
+function visTick(){visRAF=0;const now=audibleTime();VISQ.sort((a,b)=>a.at-b.at);
+  while(VISQ.length&&VISQ[0].at<=now){const e=VISQ.shift();try{e.fn()}catch(err){}}
+  if(VISQ.length)visRAF=requestAnimationFrame(visTick)}
+function vis(fn,ms){const c=audio();VISQ.push({at:(c?c.currentTime:0)+ms/1000,fn});if(!visRAF)visRAF=requestAnimationFrame(visTick);return 0}
+function stopAll(){VISQ.length=0;TIMERS.forEach(clearTimeout);TIMERS=[];document.querySelectorAll(".schip.now").forEach(x=>x.classList.remove("now"));document.querySelectorAll(".rcol").forEach(x=>x.setAttribute("opacity","0"));if(!ac)return;const t=ac.currentTime;ACTIVE.forEach(n=>{try{n.g.gain.cancelScheduledValues(t);n.g.gain.setValueAtTime(n.g.gain.value,t);n.g.gain.linearRampToValueAtTime(0,t+0.04);n.o.stop(t+0.06)}catch(e){}});ACTIVE.clear()}
+function tone(f,t0,dur,amp){
+  const c=audio();if(!c)return;
+  const o=c.createOscillator(),g=c.createGain();
+  if(S.rich)o.setPeriodicWave(wave);else o.type="sine";
+  o.frequency.value=f;
+  const t=c.currentTime+t0;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(amp,t+0.03);
+  g.gain.setValueAtTime(amp,t+Math.max(0.05,dur-0.25));g.gain.linearRampToValueAtTime(0,t+dur);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.05);
+  const node={o,g};ACTIVE.add(node);o.onended=()=>ACTIVE.delete(node);
+}
+function playTogether(n,d){const b=S.base;tone(b,0,0.7,0.22);tone(b,0.75,2.2,0.2);tone(b*n/d,0.75,2.2,0.2)}
+function playApart(n,d){const b=S.base;tone(b,0,0.75,0.25);tone(b*n/d,0.8,1.1,0.25)}
+function playFreqs(fs,arp){const amp=0.5/Math.sqrt(fs.length+1);
+  fs.forEach((f,i)=>tone(f,arp?i*0.22:0,arp?2.8-i*0.12:2.4,amp));
+  if(arp)fs.forEach(f=>tone(f,fs.length*0.22+0.5,2.4,amp));}
+function playSeq(fs,step){fs.forEach((f,i)=>tone(f,i*step,step*1.1,0.24))}
+
+/* ---------- selection ---------- */
+function select(n,d,noPlay){S.sel=[n,d];if(!noPlay)playTogether(n,d);renderDock();markSel()}
+function selKey(){return key(S.sel[0],S.sel[1])}
+function markSel(){
+  const k=selKey();
+  document.querySelectorAll("[data-k]").forEach(el=>el.classList.toggle("on",el.dataset.k===k));
+  const ln=document.getElementById("rSel");
+  if(ln){const v=MAP.get(k)||(k==="2/1"?{c:1200}:null);
+    if(v){const x=RX(v.c);ln.setAttribute("x1",x);ln.setAttribute("x2",x);ln.style.display=""}else ln.style.display="none";}
+}
+
+/* ---------- controls ---------- */
+const limChips=document.getElementById("limChips");
+ODDS.slice(1).forEach(o=>{const b=document.createElement("button");b.className="chip";b.textContent=o;b.dataset.l=o;
+  b.addEventListener("click",()=>{S.lim=o;save();rebuild()});limChips.appendChild(b)});
+const baseIn=document.getElementById("base");baseIn.value=S.base;
+baseIn.addEventListener("change",()=>{const v=parseFloat(baseIn.value);if(v>=55&&v<=880){S.base=v;save()}else baseIn.value=S.base});
+const tRich=document.getElementById("tRich"),tSine=document.getElementById("tSine");
+function setT(r){S.rich=r;tRich.setAttribute("aria-pressed",r);tSine.setAttribute("aria-pressed",!r);save()}
+tRich.addEventListener("click",()=>setT(true));tSine.addEventListener("click",()=>setT(false));setT(S.rich);
+
+const GROUPS={scale:[["intervals","Intervals"],["diamond","Diamond"],["steps","Harmonic series"]],commas:[["commas","Commas"]],
+  pumps:[["schemata","Library"],["find","Find"],["build","Build"],["lattice","Lattice"],["compare","Compare"]],hex:[["hex","HexBoard"]]};
+const TABS=Object.values(GROUPS).flat().map(x=>x[0]);
+const groupOf=n=>Object.keys(GROUPS).find(g=>GROUPS[g].some(x=>x[0]===n));
+const LASTSUB={scale:"intervals",commas:"commas",pumps:"schemata",hex:"hex"};
+function goTab(n){showTab(n);try{history.replaceState(null,"","#"+n)}catch(e){}}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>goTab(LASTSUB[t.dataset.group])));
+document.getElementById("subtabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)goTab(b.dataset.sub)});
+function showTab(name){S.tab=name;const g=groupOf(name)||"scale";LASTSUB[g]=name;
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.group===g));
+  const st=document.getElementById("subtabs");st.hidden=GROUPS[g].length<2;
+  st.innerHTML=GROUPS[g].length<2?"":GROUPS[g].map(([k,l])=>`<button class="subtab" role="tab" data-sub="${k}" aria-selected="${k===name}">${l}</button>`).join("");
+  document.getElementById("oddCtl").hidden=!(g==="scale"||(name==="commas"&&typeof CM!=="undefined"&&CM.src==="odd"));
+  TABS.forEach(n=>document.getElementById("v-"+n).hidden=n!==name);
+  if(name==="intervals")renderRuler();
+  if(name==="hex"&&typeof HX!=="undefined"&&HX.ref)renderHX();}
+
+/* ---------- legend ---------- */
+document.getElementById("legend").innerHTML="<span class='lbl'>Prime limit</span>"+
+  [[3,"3"],[5,"5"],[7,"7"],[11,"11"],[13,"13"]].map(([p,l])=>`<span><i class="dot b${p}"></i>${l}</span>`).join("");
+
+/* ---------- intervals: ruler ---------- */
+let RX=c=>c;
+const rulerWrap=document.getElementById("rulerWrap");
+function renderRuler(){
+  const lanes=[1,...odds().slice(1)];
+  const W=Math.max(rulerWrap.clientWidth-28,1200),padL=46,padR=26,laneH=60,top=22;
+  RX=c=>padL+(W-padL-padR)*c/1200;
+  const H=top+lanes.length*laneH+6;
+  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Intervals on a cents ruler by odd limit">`;
+  for(let c=0;c<=1200;c+=100){const x=RX(c);s+=`<line class="r-grid" x1="${x}" x2="${x}" y1="${top-4}" y2="${H-4}"/><text x="${x}" y="${top-8}" font-size="10" text-anchor="middle">${c}</text>`}
+  const pts=[...SET,{n:2,d:1,k:"2/1",c:1200,ol:1,pl:2}];
+  lanes.forEach((L,i)=>{const y=top+i*laneH+laneH-14;
+    s+=`<line class="r-base" x1="${padL}" x2="${W-padR}" y1="${y}" y2="${y}"/><text class="r-lane" x="4" y="${y+4}">${L===1?"1":"≤"+L}</text>`;
+    const inLane=pts.filter(p=>p.ol===L);
+    inLane.forEach(p=>{const x=RX(p.c);
+      s+=`<g class="r-pt" data-k="${p.k}" data-n="${p.n}" data-d="${p.d}" tabindex="0"><title>${p.k} · ${fmtC(p.c)}¢</title>`+
+        `<circle cx="${x}" cy="${y}" r="6" fill="var(--p${p.pl})"/>`+
+        `<text x="${x+2}" y="${y-11}" transform="rotate(-58 ${x+2} ${y-11})">${p.k}</text></g>`});
+  });
+  s+=`<line id="rSel" class="r-selline" x1="0" x2="0" y1="${top-4}" y2="${H-4}"/></svg>`;
+  rulerWrap.innerHTML=s;
+  rulerWrap.querySelectorAll(".r-pt").forEach(g=>{
+    const go=()=>select(+g.dataset.n,+g.dataset.d);
+    g.addEventListener("click",go);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}})});
+  markSel();
+}
+function renderTable(){
+  const pts=[...SET,{n:2,d:1,k:"2/1",c:1200,ol:1,pl:2}];
+  let h=`<thead><tr><th>Ratio</th><th class="num">Cents</th><th class="num">Gap ↑</th><th class="num">Odd</th><th class="num">Prime</th><th>Monzo 2·3·5·7·11·13</th><th>Name</th></tr></thead><tbody>`;
+  pts.forEach((p,i)=>{const nx=pts[i+1];const gap=nx?nx.c-p.c:null;
+    const bar=gap!==null&&gap<30?`<i class="gapbar" style="width:${Math.max(4,(30-gap)*1.6)}px"></i>`:"";
+    h+=`<tr data-k="${p.k}" data-n="${p.n}" data-d="${p.d}"><td class="mono c${p.pl}" style="font-weight:600">${p.k}</td><td class="num mono">${fmtC(p.c)}</td>`+
+      `<td class="num mono">${gap===null?"":bar+fmtC(gap)}</td><td class="num mono">${p.ol}</td><td class="num mono">${p.pl}</td>`+
+      `<td class="mono muted">${monzoStr(monzo(p.n,p.d))}</td><td class="muted">${NAMES[p.k]||""}</td></tr>`});
+  const t=document.getElementById("ivTable");t.innerHTML=h+"</tbody>";
+  t.querySelectorAll("tbody tr").forEach(r=>r.addEventListener("click",()=>select(+r.dataset.n,+r.dataset.d)));
+}
+
+/* ---------- diamond ---------- */
+function harmonicVoicing(u){const f0=S.base*(octRed(1,u)[0]/octRed(1,u)[1])/2;return odds().map(n=>f0*n)}
+function subVoicing(n){const r=octRed(n,1);const f1=S.base*(r[0]/r[1])*8;return odds().map(u=>f1/u).sort((a,b)=>a-b)}
+function renderDiamond(){
+  const O=odds();
+  let h=`<table class="diamond"><thead><tr><th><div class="dcorner">n ÷ u</div></th>`;
+  O.forEach(n=>h+=`<th><button class="dhead u" data-u="${n}" title="Utonal chord on harmonic ${n}"><span>×${n}<small>uton.</small></span></button></th>`);
+  h+="</tr></thead><tbody>";
+  O.forEach(u=>{h+=`<tr><th><button class="dhead o" data-o="${u}" title="Otonal chord over undertone ${u}"><span>÷${u}<small>oton.</small></span></button></th>`;
+    O.forEach(n=>{const r=octRed(n,u),k=key(r[0],r[1]),pl=pLimit(r[0],r[1]);
+      h+=`<td><button class="dcell c${pl}${n===u?" uni":""}" data-k="${k}" data-n="${r[0]}" data-d="${r[1]}" title="${n}/${u} → ${k}"><span>${k}</span></button></td>`});
+    h+="</tr>"});
+  const w=document.getElementById("diamondWrap");w.innerHTML=h+"</tbody></table>";
+  w.querySelectorAll(".dcell").forEach(b=>b.addEventListener("click",()=>select(+b.dataset.n,+b.dataset.d)));
+  w.querySelectorAll("[data-o]").forEach(b=>b.addEventListener("click",()=>playFreqs(harmonicVoicing(+b.dataset.o),true)));
+  w.querySelectorAll("[data-u]").forEach(b=>b.addEventListener("click",()=>playFreqs(subVoicing(+b.dataset.u),true)));
+  markSel();
+}
+
+/* ---------- steps ---------- */
+function renderSteps(){
+  const maxC=cents(9,8);
+  function chain(kind){
+    const o=kind==="o";
+    // pitches as ratios of 1/1
+    const hs=[];for(let h=8;h<=16;h++)hs.push(h);
+    // ascending scale degrees from 1/1, unreduced as Scale Workshop writes them:
+    // overtones 8/8 … 16/8, undertones 16/16, 16/15 … 16/8
+    const pitches=o?hs.map(h=>[h,8]):hs.slice().reverse().map(h=>[16,h]);
+    const steps=[];for(let i=0;i<8;i++){const a=pitches[i],b=pitches[i+1];const r=red(b[0]*a[1],b[1]*a[0]);steps.push({r,a,b})}
+    const deg=p=>{const r=red(p[0],p[1]);const raw=p[0]+"/"+p[1],k=key(r[0],r[1]);
+      return `<span class="mono" style="font-weight:600;line-height:1.15">${raw}<br><small class="muted" style="font-weight:400;font-size:10.5px">${raw===k?"&nbsp;":"= "+k}</small></span>`};
+    let h=`<div class="panel chain ${kind}"><div class="chain-head"><h2>${o?"Harmonics 8–16":"Subharmonics 8–16"}</h2>`+
+      `<button class="btn pri" data-play="${kind}">▶ Play scale</button></div>`+
+      `<div class="srow" style="cursor:default">${deg(pitches[0])}<span class="muted" style="font-size:12px">1/1</span><span></span></div>`;
+    steps.forEach((s,i)=>{const c=cents(s.r[0],s.r[1]),k=key(s.r[0],s.r[1]);
+      h+=`<button class="srow" data-k="${k}" data-step="${kind}${i}">${deg(s.b)}`+
+        `<span class="bar" style="width:${(c/maxC*100).toFixed(1)}%"></span><span class="mono" style="text-align:right;line-height:1.15">+${k}<br><small class="muted">${fmtC(c)}¢</small></span></button>`;
+      if(i<7){const t=steps[i+1].r;const cr=red(s.r[0]*t[1],s.r[1]*t[0]);
+        const big=cr[0]>=cr[1]?cr:[cr[1],cr[0]];const ck=key(big[0],big[1]);
+        h+=`<button class="crow" data-k="${ck}" data-comma="${kind}${i}"><span>${o?"↓":"↑"}</span><b>${ck}</b><span>${fmtC(cents(big[0],big[1]))}¢</span><span>${NAMES[ck]||""}</span></button>`}
+    });
+    return {html:h+"</div>",pitches,steps};
+  }
+  const A=chain("o"),B=chain("u");
+  const w=document.getElementById("stepsWrap");w.innerHTML=A.html+B.html;
+  const data={o:A,u:B};
+  w.querySelectorAll("[data-play]").forEach(b=>b.addEventListener("click",()=>{const d=data[b.dataset.play];playSeq(d.pitches.map(p=>S.base*p[0]/p[1]),0.42)}));
+  w.querySelectorAll("[data-step]").forEach(b=>b.addEventListener("click",()=>{const d=data[b.dataset.step[0]],i=+b.dataset.step.slice(1),s=d.steps[i];
+    select(s.r[0],s.r[1],true);playSeq([S.base*s.a[0]/s.a[1],S.base*s.b[0]/s.b[1]],0.5)}));
+  w.querySelectorAll("[data-comma]").forEach(b=>b.addEventListener("click",()=>{const d=data[b.dataset.comma[0]],i=+b.dataset.comma.slice(1);
+    const [n,dd]=b.dataset.k.split("/").map(Number);select(n,dd,true);
+    const p=d.pitches.map(q=>S.base*q[0]/q[1]);
+    playSeq([p[i],p[i+1]],0.5);setTimeout(()=>playSeq([p[i+1],p[i+2]],0.5),1300)}));
+  markSel();
+}
+
+/* ---------- commas ---------- */
+const thr=document.getElementById("thr"),thrOut=document.getElementById("thrOut");
+thr.value=S.thr;thrOut.textContent=S.thr;
+thr.addEventListener("input",()=>{S.thr=+thr.value;thrOut.textContent=S.thr;save();renderCommas()});
+function findCommas(){
+  const pts=[...SET,{n:2,d:1,k:"2/1",c:1200}];const m=new Map();
+  for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+    const lo=pts[i],hi=pts[j],c=hi.c-lo.c;if(c>S.thr+1e-9)break;if(c<1e-9)continue;
+    const r=red(hi.n*lo.d,hi.d*lo.n),k=key(r[0],r[1]);
+    if(!m.has(k))m.set(k,{n:r[0],d:r[1],k,c,pairs:[]});m.get(k).pairs.push([lo,hi]);
+  }
+  return [...m.values()].sort((a,b)=>a.c-b.c);
+}
+const CM={src:"odd",lims:[5,7,11,13]};
+function commaList(){
+  if(CM.src==="hu")return huCommas(S.thr);
+  return findCommas().map(c=>{const m=monzo(c.n,c.d);return{m,k:c.k,c:c.c,pl:pLimitM(m),pairs:c.pairs}})}
+function renderCommas(){
+  if(typeof HU_IV==="undefined")return;
+  const all=commaList(),list=all.filter(c=>CM.lims.includes(c.pl<=5?5:c.pl));
+  document.getElementById("cmSrc").innerHTML=[["odd",`${S.lim}-odd-limit set (${SET.length} notes)`],["hu","Harmonics + subharmonics 8–16 (15 notes)"]].map(([k,l])=>`<button class="chip" data-cs="${k}" aria-pressed="${CM.src===k}">${l}</button>`).join("");
+  document.getElementById("cmLims").innerHTML=[5,7,11,13].map(p=>`<button class="chip" data-cl="${p}" aria-pressed="${CM.lims.includes(p)}"><span class="c${p}">●</span> ${p}-limit</button>`).join("");
+  document.getElementById("cSummary").textContent=`${all.length} comma${all.length===1?"":"s"} up to ${S.thr}¢ from ${all.reduce((s,c)=>s+c.pairs.length,0)} interval pairs (${[5,7,11,13].map(p=>`${all.filter(c=>(c.pl<=5?5:c.pl)===p).length} at ${p}-limit`).join(", ")}).`;
+  const miss=[...SEVEN].filter(k=>!(CM.src==="hu"?huCommas(70):findCommasAt(70)).some(c=>c.k===k));
+  document.getElementById("cMiss").innerHTML=miss.length?`Of the seven pump commas, <b class="mono">${miss.join(", ")}</b> never appear as the difference of two intervals in these notes; they only arise from longer chord loops.`:"All seven pump commas appear in these notes.";
+  const el=document.getElementById("clist");
+  el.innerHTML=list.length?list.map((c,i)=>{const v=vanishes(c.m),open=S.open===c.k,ps=open?c.pairs:c.pairs.slice(0,4);
+    return `<div class="hrow2"><div><button class="cbtn" data-csel="${i}"><span class="cratio c${c.pl}">${c.k}</span></button> <span class="mono">${fmtC(c.c)}¢</span> ${SEVEN.has(c.k)?`<span class="badge" style="color:var(--oto)">pump comma</span>`:""}`+
+      `<div class="cname" style="font-size:14px">${NAMES[c.k]||TEMP[c.k]||""}${TEMP[c.k]&&NAMES[c.k]?" · "+TEMP[c.k]:""}</div><div class="mono muted" style="font-size:11.5px">${c.pl}-limit · ${monzoStr(c.m)}</div></div>`+
+      `<div class="hpairs">${ps.map((p,j)=>`<button class="mot mono hp2" data-cp="${i}|${j}" title="${(NAMES[p[0].k]||p[0].k)+' vs '+(NAMES[p[1].k]||p[1].k)}">${p[0].k} vs ${p[1].k}</button>`).join(" ")}${c.pairs.length>4?` <button class="hp2 mot" data-cmore="${i}">${open?"fewer":"+"+(c.pairs.length-4)+" more"}</button>`:""}`+
+      `<div class="muted" style="font-size:12px">vanishes in ${v.length?v.slice(0,10).join(", ")+(v.length>10?` +${v.length-10}`:"")+" (EDO)":"no EDO up to 72"}</div></div>`+
+      `<div><button class="btn" data-cpump="${c.k}">◇ Find pump</button></div></div>`}).join(""):`<div class="empty">No commas at these limits under ${S.thr}¢. Raise the slider${CM.src==="odd"?" or the odd limit":""}.</div>`;
+  CM._list=list;
+}
+function findCommasAt(t){const keep=S.thr;S.thr=t;const r=findCommas();S.thr=keep;return r}
+function initCommas(){
+  document.getElementById("cmCtl").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+    if(b.dataset.cs){CM.src=b.dataset.cs;showTab("commas")}
+    else if(b.dataset.cl){const p=+b.dataset.cl;CM.lims=CM.lims.includes(p)?CM.lims.filter(x=>x!==p):CM.lims.concat(p)}
+    else return;renderCommas()});
+  document.getElementById("clist").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const L=CM._list;
+    if(b.dataset.cp){const [i,j]=b.dataset.cp.split("|").map(Number),p=L[i].pairs[j],B=S.base;
+      tone(B,0,1.1,0.2);tone(B*Math.pow(2,p[0].c/1200),0,1.1,0.2);tone(B,1.2,1.4,0.2);tone(B*Math.pow(2,p[1].c/1200),1.2,1.4,0.2)}
+    else if(b.dataset.cmore){const c=L[+b.dataset.cmore];S.open=S.open===c.k?null:c.k;renderCommas()}
+    else if(b.dataset.csel){const c=L[+b.dataset.csel],[n,d]=c.k.split("/").map(Number);if(n<1e12&&d<1e12)select(n,d,true)}
+    else if(b.dataset.cpump){findPumpFor(b.dataset.cpump)}});
+}
+
+
+/* ---------- schemata ---------- */
+const L2=PR.map(p=>Math.log2(p));
+const Z6=()=>[0,0,0,0,0,0];
+function mAdd(a,b){return a.map((x,i)=>x+b[i])}
+function mSub(a,b){return a.map((x,i)=>x-b[i])}
+function mMul(a,k){return a.map(x=>x*k)}
+function odd(m){const r=m.slice();r[0]=0;return r}
+function mC(m){let s=0;for(let i=0;i<6;i++)s+=m[i]*L2[i];return s*1200}
+function oKey(m){return m.slice(1).join(",")}
+function isZero(m){for(let i=1;i<6;i++)if(m[i])return false;return true}
+function normM(m){const r=odd(m);r[0]=-Math.floor((mC(r)+600)/1200);return r}
+function unitM(m){const r=odd(m);r[0]=-Math.floor(mC(r)/1200+1e-9);return r}
+function pcC(m){const c=mC(odd(m));return((c%1200)+1200)%1200}
+function mStr(m){let n=1n,d=1n;m.forEach((e,i)=>{const p=BigInt(PR[i]);if(e>0)n*=p**BigInt(e);else if(e<0)d*=p**BigInt(-e)});return n+"/"+d}
+function dotV(v,m){let s=0;for(let i=0;i<6;i++)s+=v[i]*m[i];return s}
+
+const CH={
+ maj:{lab:"maj",name:"major 4:5:6",lim:5,t:[[1,1],[5,4],[3,2]]},
+ min:{lab:"min",name:"minor 10:12:15",lim:5,t:[[1,1],[6,5],[3,2]]},
+ h7:{lab:"h7",name:"harmonic seventh 4:5:6:7",lim:7,t:[[1,1],[5,4],[3,2],[7,4]]},
+ u7:{lab:"u7",name:"utonal 1/(4:5:6:7)",lim:7,t:[[1,1],[7,6],[7,5],[7,4]]},
+ sub:{lab:"sub",name:"subminor 6:7:9",lim:7,t:[[1,1],[7,6],[3,2]]},
+ sup:{lab:"sup",name:"supermajor 14:18:21",lim:7,t:[[1,1],[9,7],[3,2]]},
+ h9:{lab:"h9",name:"harmonic ninth 4:5:6:7:9",lim:9,t:[[1,1],[9,8],[5,4],[3,2],[7,4]]},
+ neu:{lab:"neu",name:"neutral 18:22:27",lim:11,t:[[1,1],[11,9],[3,2]]},
+ h11:{lab:"h11",name:"8:10:11:12",lim:11,t:[[1,1],[5,4],[11,8],[3,2]]},
+ h13:{lab:"h13",name:"8:10:12:13",lim:13,t:[[1,1],[5,4],[3,2],[13,8]]}
+};
+Object.values(CH).forEach(c=>{c.m=c.t.map(([n,d])=>monzo(n,d));c.pc=new Set(c.m.map(oKey))});
+const TEMP={"81/80":"meantone","128/125":"augmented","648/625":"diminished","64/63":"Archytas (superpyth family)",
+ "126/125":"starling","225/224":"marvel","243/242":"rastma","250/243":"porcupine","3125/3072":"magic",
+ "2048/2025":"diaschismic","32805/32768":"schismic","15625/15552":"kleismic","1029/1024":"slendric",
+ "245/243":"sensamagic","2401/2400":"breedsmic","4375/4374":"ragismic","385/384":"keenanismic","540/539":"swetismic",
+ "99/98":"mothwellsmic","100/99":"ptolemismic","121/120":"biyatismic","144/143":"grossmic","169/168":"buzurgismic",
+ "196/195":"mynucumic","50/49":"jubilismic","36/35":"mint","49/48":"semaphore","1728/1715":"orwellismic",
+ "6144/6125":"porwellismic","3136/3125":"hemimean","5120/5103":"hemifamity","875/864":"keemic"};
+
+const CLASSICS=[
+ {title:"I–vi–ii–V–I",lim:5,desc:"The Baroque circle. Every move keeps a common tone: C and E into A minor, A into D minor, D into G, G into C. But the D that A minor hands on is a minor whole tone (10/9) above C, while the G it leads to is built as if that D were a major whole tone (9/8). In just intonation the loop therefore returns a syntonic comma (81/80) flat. Meantone makes 9/8 and 10/9 one size, which is why it closes there.",
+  ear:"Play three passes and compare the last C with the first: the whole progression sinks 21.51¢ each time, about a fifth of a semitone.",
+  seq:[["maj",[1,1]],["min",[5,3]],["min",[2,3]],["maj",[4,3]],["maj",[4,3]]]},
+ {title:"Major-third cycle",lim:5,desc:"Chromatic mediants: C, E, G♯, C, each major triad's third becoming the next root. Three pure major thirds (5/4) fall 41.06¢ short of an octave, so the G♯ chord's third is not the C you started on: the augmented diesis (128/125). 12-EDO and augmented temperament divide the octave into three equal major thirds and close it.",
+  ear:"The return to C sounds clearly low, nearly half a semitone per pass. Each move on its own sounds bright and pure.",
+  seq:[["maj",[1,1]],["maj",[5,4]],["maj",[5,4]],["maj",[5,4]]]},
+ {title:"Minor-third cycle",lim:5,desc:"Minor triads rising by minor thirds (6/5), each chord's third held as the next root: the octatonic frame behind diminished-seventh harmony. Four pure minor thirds overshoot the octave by 648/625 (62.57¢), the largest drift of the classic pumps. Diminished temperament and 12-EDO divide the octave into four equal minor thirds.",
+  ear:"After one pass home is a third of a semitone sharp; after three passes it has climbed 187.70¢, nearly a whole tone.",
+  seq:[["min",[1,1]],["min",[6,5]],["min",[6,5]],["min",[6,5]],["min",[6,5]]]},
+ {title:"Backdoor: I⁷–♭VII–IV–I⁷",lim:7,desc:"Hold the harmonic seventh (7/4) of C⁷ as the root of B♭ major, then fall by fifths through F back to C⁷. The B♭ reached by two fourths from C is 16/9; the seventh you held was 7/4. They differ by the septimal comma (64/63), so the loop returns 27.26¢ flat. Superpyth and the other temperaments that equate 7/4 with 16/9 close it; meantone does not.",
+  ear:"The harmonic seventh sounds sweet and low in the first chord; on the next pass the whole chord is that much lower.",
+  seq:[["h7",[1,1]],["maj",[7,4]],["maj",[3,4]],["h7",[3,2]]]},
+ {title:"Septimal diminished cycle",lim:7,desc:"Harmonic seventh chords on C, E♭, F♯ and A, each holding one chord's fifth as the next chord's third. The last move, from A⁷ back to C⁷, is a subminor third (7/6) instead of a minor third, because A⁷'s harmonic seventh is the G that C⁷ needs as its fifth. Three minor thirds and a subminor third overshoot the octave by the starling comma (126/125). This is the diminished-seventh pivot in just intonation; septimal meantone, sensi and valentine close it.",
+  ear:"The drift is small, 13.79¢ per pass: listen to the top voice after three passes rather than after the first.",
+  seq:[["h7",[1,1]],["h7",[6,5]],["h7",[6,5]],["h7",[6,5]],["h7",[7,6]]]},
+ {title:"Septimal augmented cycle",lim:7,desc:"Two chromatic-mediant moves by major thirds (5/4), then a supermajor third (9/7) back toward C. The last move holds no tone: the three voices move by 36/35, 28/27 and 15/14, so it sounds like a soft slide rather than a leap. Two major thirds and a supermajor third overshoot the octave by the marvel comma (225/224), only 7.71¢. Septimal meantone, magic, miracle and orwell all close it.",
+  ear:"Barely a slip: listen for the gliding final move, which is where the 7.71¢ is spent.",
+  seq:[["maj",[1,1]],["maj",[5,4]],["maj",[5,4]],["maj",[9,7]]]},
+ {title:"Neutral half-fifths",lim:11,desc:"Neutral triads (18:22:27) rising by neutral thirds (11/9), each chord's neutral third held as the next root, then a fourth home. Two neutral thirds fall short of a perfect fifth by the rastma (243/242, 7.14¢), so the fifth is split almost exactly in half: the neutral third familiar from Arabic maqam. Rastmic, mohajira and miracle (11-limit) make the two halves exactly one fifth.",
+  ear:"Listen to the chords themselves more than the drift: each one is neither major nor minor.",
+  seq:[["neu",[1,1]],["neu",[11,9]],["neu",[11,9]],["neu",[4,3]]]}
+];
+function stepsFromSeq(seq){let r=Z6();return seq.map(([T,[n,d]],i)=>{if(i>0)r=odd(mAdd(r,monzo(n,d)));return{T,r:r.slice()}})}
+
+function edoErr(n,steps){const v=patent(n);let mx=0;const ints=[];
+  steps.forEach((s,i)=>{CH[s.T].m.forEach(t=>ints.push(t));if(i>0)ints.push(mSub(s.r,steps[i-1].r))});
+  ints.forEach(m=>{const e=Math.abs(dotV(v,m)*1200/n-mC(m));if(e>mx)mx=e});return mx}
+function info(steps){
+  const D=normM(steps[steps.length-1].r),c=mC(D),can=c<0?mMul(D,-1):D,key=mStr(can);
+  const edos=vanishes(can);let def=null,best=1e9;
+  for(const n of edos){const e=edoErr(n,steps);if(e<=15){def=n;break}if(e<best){best=e;def=n}}
+  return{D,c,key,temp:TEMP[key],name:NAMES[key],edos,def,pl:pLimitM(can)};
+}
+function pLimitM(m){for(let i=5;i>0;i--)if(m[i])return PR[i];return 2}
+function pivotHTML(st){let h="";
+  for(let i=0;i+1<st.length;i++){const A=st[i],B=st[i+1],CA=CH[A.T],CB=CH[B.T];const held=[];
+    CA.m.forEach((a,ai)=>CB.m.forEach((b,bi)=>{if(oKey(mAdd(A.r,a))===oKey(mAdd(B.r,b)))held.push(CA.t[ai].join("/")+" → "+CB.t[bi].join("/"))}));
+    const mv=mStr(unitM(mSub(B.r,A.r)));
+    h+=`<div><b class="c${CA.lim}">${CA.lab}</b> → <b class="c${CB.lim}">${CB.lab}</b> <span class="muted">root ×${mv}</span> · ${held.length?"held "+held.join(", "):"<span class='muted'>no common tone</span>"}</div>`}
+  return h}
+
+const SCH={};
+function cardHTML(id,sc){
+  const st=sc.steps,inf=sc.info;
+  const chips=st.map((s,i)=>{const C=CH[s.T],last=i===st.length-1,root=i===0||last?"1/1":mStr(unitM(s.r));
+    return `<span class="schip" data-i="${i}" title="${C.name}"><b class="c${C.lim}">${C.lab}</b> ${root}${last?`<small class="dr">${inf.c<0?"−":"+"}${fmtC(Math.abs(inf.c))}¢</small>`:""}</span>`}).join(`<span class="sarrow">→</span>`);
+  const zero=isZero(inf.D),cl=zero?[]:(sc.closers||(sc.closers=closers(st,inf.D)));
+  const defV=inf.def?String(inf.def):(cl.length?"t:"+cl[0]:"");
+  const opts=(inf.edos.length&&!zero?`<optgroup label="Equal tunings">${inf.edos.map(n=>`<option value="${n}"${String(n)===defV?" selected":""}>${n}-EDO</option>`).join("")}</optgroup>`:"")+
+    (cl.length?`<optgroup label="Temperaments">${cl.map(k=>`<option value="t:${k}"${"t:"+k===defV?" selected":""}>${CATK.get(k).n}</option>`).join("")}</optgroup>`:"");
+  const canT=!zero&&(inf.edos.length||cl.length);
+  const lim=sc.lim||Math.max(...st.map(s=>CH[s.T].lim));
+  return `<div class="ccard scard" id="sc-${id}">`+
+    (sc.title?`<div class="stitle">${sc.title} <span class="badge c${lim}">${lim}-limit</span></div>`:"")+
+    (sc.desc?`<p class="note">${sc.desc}</p>`:"")+(sc.ear?`<p class="note ear"><span class="lbl">Listen</span> ${sc.ear}</p>`:"")+
+    `<div class="spath">${chips}</div>`+
+    (zero?`<div class="sres"><span class="cname">Returns exactly home: no comma, so every tuning closes it.</span></div>`:
+    `<div class="sres"><span class="cratio c${inf.pl}">${inf.key}</span><span class="cname">${inf.name||inf.temp||"unnamed comma"}</span>`+
+    `<span class="mono muted">${inf.c<0?"sinks":"rises"} ${fmtC(Math.abs(inf.c))}¢ per loop</span></div>`+
+    `<p class="note tclose">${cl.length?`Closes in ${cl.map(k=>`<span class="tname">${CATK.get(k).n}</span>`).join(" ")}`:`No catalog temperament covers this loop's primes and tempers ${inf.key}.`}${inf.edos.length?` · EDOs: <span class="mono">${inf.edos.filter(n=>n<=53).slice(0,10).join(" ")}${inf.edos.length>10?" …":""}</span>`:""}</p>`)+
+    `<div class="sviz" id="vz-${id}"></div>`+
+    `<div class="sact"><div class="seg" role="group" aria-label="Tuning"><button class="chip" data-mode="ji" data-id="${id}" aria-pressed="${sc.mode!=="et"}">Just</button>`+
+    (canT?`<button class="chip" data-mode="et" data-id="${id}" aria-pressed="${sc.mode==="et"}">Tempered</button></div><select class="esel" id="sel-${id}" aria-label="Tuning for the tempered version">${opts}</select>`:`</div><span class="muted" style="font-size:13px">${zero?"":"No EDO up to 72 or catalog temperament tempers this out"}</span>`)+
+    `<button class="btn pri" data-play="${id}">▶ Play ×3</button>`+
+    `<button class="btn" data-pv="${id}" aria-expanded="false">Pivots</button><button class="btn" data-lat="${id}">◇ Lattice</button><button class="btn" data-hx="${id}">⬡ Realise</button></div>`+
+    `<div class="spiv" id="pv-${id}" hidden>${pivotHTML(st)}</div></div>`;
+}
+
+function voiceSeq(id,forceN){
+  const sc=SCH[id],st=sc.steps,D=sc.info.D,L=st.length-1;
+  const tempered=sc.mode==="et";const s=document.getElementById("sel-"+id);
+  const raw=forceN!==undefined?forceN:(tempered?(s?s.value:(sc.info.def?String(sc.info.def):(sc.closers&&sc.closers.length?"t:"+sc.closers[0]:"0"))):0);
+  let n,tk=null;if(typeof raw==="string"&&raw.startsWith("t:")){tk=raw.slice(2);n=CATK.get(tk).n}else n=+raw||0;
+  const v=(!tk&&n)?patent(n):null;
+  const out=[];
+  for(let k=0;k<=3;k++){const last=k===3;for(let i=0;i<(last?1:L);i++){const step=st[i],R=normM(step.r),sh=mMul(D,k),C=CH[step.T];
+    const notes=[];const B=mAdd(mAdd(R,[-1,0,0,0,0,0]),sh);
+    const cc=m=>tk?tCents(tk,m):v?dotV(v,m)*1200/n:mC(m);
+    notes.push({c:cc(B),ji:mC(B),lab:i===0?"1/1":mStr(unitM(step.r)),bass:true});
+    C.m.forEach((t,ti)=>{const P=mAdd(R,t);P[0]-=Math.floor((mC(P)+50)/1200);const Q=mAdd(P,sh);notes.push({c:cc(Q),ji:mC(Q),lab:C.t[ti].join("/"),bass:false})});
+    out.push({k,i:last?L:i,T:step.T,notes})}}
+  return{seq:out,n,L};
+}
+function renderViz(id){
+  const el=document.getElementById("vz-"+id);if(!el)return;
+  const sc=SCH[id],{seq,n,L}=voiceSeq(id),N=seq.length;
+  const colW=62,gap=8,pl=44,pr=12,pt=30,pb=24;
+  const all=seq.flatMap(e=>e.notes.map(x=>x.c));
+  const cmin=Math.min(...all)-80,cmax=Math.max(...all)+80;
+  const ppc=0.115,H=pt+pb+(cmax-cmin)*ppc,W=pl+pr+N*colW;
+  const Y=c=>pt+(cmax-c)*ppc,X=j=>pl+j*colW;
+  let s=`<svg width="${W}" height="${H.toFixed(0)}" viewBox="0 0 ${W} ${H.toFixed(0)}" class="roll" role="img" aria-label="Piano roll of the loop">`;
+  for(let c=Math.ceil(cmin/100)*100;c<=cmax;c+=100){const oct=c%1200===0;
+    s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)" stroke-width="${oct?1:0.5}" opacity="${oct?1:0.6}"/>`;
+    if(oct){const o=c/1200;s+=`<text x="${pl-6}" y="${Y(c)+3}" font-size="9.5" text-anchor="end">${o===0?"1/1":o>0?(2**o)+"/1":"1/"+(2**-o)}</text>`}}
+  for(let k=0;k<=3;k++){const x=X(k*L);s+=`<line x1="${x}" x2="${x}" y1="${pt-6}" y2="${H-pb+4}" stroke="var(--muted)" stroke-width="1" opacity=".5"/>`;
+    if(k<3)s+=`<text x="${(X(k*L)+X((k+1)*L))/2}" y="${H-7}" font-size="10" text-anchor="middle">loop ${k+1}</text>`}
+  // home guides: pitches of the opening chord, extended across
+  seq[0].notes.forEach(x=>{s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(x.c)}" y2="${Y(x.c)}" stroke="var(--oto)" stroke-width="1" stroke-dasharray="2 4" opacity=".55"/>`});
+  seq.forEach((e,j)=>{const x0=X(j)+gap/2,w=colW-gap,C=CH[e.T];
+    s+=`<rect class="rcol" data-j="${j}" x="${X(j)}" y="${pt-6}" width="${colW}" height="${H-pt-pb+10}" fill="var(--sel)" opacity="0"/>`;
+    s+=`<text x="${x0+w/2}" y="${pt-14}" font-size="10" text-anchor="middle" style="fill:var(--p${C.lim});font-weight:600">${C.lab}</text>`;
+    s+=`<text x="${x0+w/2}" y="${pt-3}" font-size="9" text-anchor="middle">${e.notes[0].lab}</text>`;
+    const nx=seq[j+1];
+    e.notes.forEach(x=>{const y=Y(x.c);
+      if(nx&&nx.notes.some(z=>Math.abs(z.c-x.c)<0.01))s+=`<line x1="${x0+w}" x2="${x0+w+gap}" y1="${y}" y2="${y}" stroke="var(--oto)" stroke-width="5" stroke-linecap="butt"/>`;
+      s+=`<rect x="${x0}" y="${y-4}" width="${w}" height="8" rx="2" fill="${x.bass?"var(--uto)":"var(--oto)"}"/>`;
+      s+=`<text x="${x0+3}" y="${y-6}" font-size="8.5" style="fill:var(--ink)">${x.bass?"":x.lab}</text>`});
+    if(e.i===0&&j>0){const d=e.notes[0].c-seq[0].notes[0].c;const y=Y(e.notes[0].c);
+      s+=`<text x="${x0+w/2}" y="${y+16}" font-size="10" text-anchor="middle" style="fill:var(--sel);font-weight:600">${Math.abs(d)<0.05?"±0¢":(d>0?"+":"−")+Math.abs(d).toFixed(1)+"¢"}</text>`}
+  });
+  s+=`</svg>`;
+  const endD=seq[N-1].notes[0].c-seq[0].notes[0].c;
+  const modeTxt=typeof n==="string"?n:n?`${n}-EDO`:"just intonation";
+  el.innerHTML=`<div class="roll-wrap scroll-x">${s}</div><p class="vz-cap">${modeTxt}: blue bars are chord tones, plum the bass, thick ties mark held common tones. Dotted lines carry the opening chord across so you can see where the loop lands: ${Math.abs(endD)<0.05?"it closes exactly every time.":`after three loops it is ${(endD>0?"+":"−")+Math.abs(endD).toFixed(1)}¢ from where it started.`}</p>`;
+}
+
+let TIMERS=[];
+function playSchema(id){
+  stopAll();const {seq}=voiceSeq(id),dur=0.95;const card=document.getElementById("sc-"+id);
+  seq.forEach((e,j)=>{const amp=0.5/Math.sqrt(e.notes.length+1);
+    e.notes.forEach(x=>tone(S.base*Math.pow(2,x.c/1200),j*dur,dur+0.12,amp));
+    TIMERS.push(vis(()=>{if(!card)return;card.querySelectorAll(".schip").forEach(z=>z.classList.toggle("now",+z.dataset.i===e.i));
+      card.querySelectorAll(".rcol").forEach(z=>z.setAttribute("opacity",+z.dataset.j===j?"0.16":"0"))},j*dur*1000))});
+  TIMERS.push(vis(()=>{if(!card)return;card.querySelectorAll(".schip.now").forEach(z=>z.classList.remove("now"));card.querySelectorAll(".rcol").forEach(z=>z.setAttribute("opacity","0"))},seq.length*dur*1000+300));
+}
+function bindCards(root){
+  root.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+    if(b.dataset.play)playSchema(b.dataset.play);
+    else if(b.dataset.lat){stopAll();openInLattice(SCH[b.dataset.lat])}
+    else if(b.dataset.hx){stopAll();openInHex(SCH[b.dataset.hx])}
+    else if(b.dataset.mode){const id=b.dataset.id;SCH[id].mode=b.dataset.mode;b.parentNode.querySelectorAll("[data-mode]").forEach(z=>z.setAttribute("aria-pressed",z===b));renderViz(id)}
+    else if(b.dataset.pv){const p=document.getElementById("pv-"+b.dataset.pv);p.hidden=!p.hidden;b.setAttribute("aria-expanded",!p.hidden)}
+  });
+  root.addEventListener("change",e=>{const t=e.target;if(t.classList&&t.classList.contains("esel"))renderViz(t.id.slice(4))});
+}
+
+/* search */
+const SS={types:["maj","min"],start:"maj",shared:1,len:5,thr:45};
+try{const s=JSON.parse(localStorage.getItem("fla-s")||"{}");if(Array.isArray(s.types)&&s.types.every(t=>CH[t])&&s.types.length)Object.assign(SS,s)}catch(e){}
+if(!SS.types.includes(SS.start))SS.start=SS.types[0];
+function buildMoves(types,minShared){const mv={};
+  types.forEach(A=>{mv[A]=[];const seen=new Set();
+    types.forEach(B=>CH[A].m.forEach(a=>CH[B].m.forEach(b=>{const r=odd(mSub(a,b));const k=B+"|"+oKey(r);if(seen.has(k))return;seen.add(k);
+      if(A===B&&isZero(r))return;let sh=0;CH[B].m.forEach(t=>{if(CH[A].pc.has(oKey(mAdd(t,r))))sh++});
+      if(sh>=minShared)mv[A].push({B,r})})))});
+  return mv}
+function bfs(start,adj,depth,cap,inverse){
+  const st=new Map(),s0={T:start,r:Z6(),d:0,link:null};st.set(start+"|"+oKey(s0.r),s0);
+  let front=[s0],capped=false;
+  for(let d=1;d<=depth&&!capped;d++){const nf=[];
+    for(const s of front){for(const m of adj[s.T]){const T=inverse?m.A:m.B,r=inverse?mSub(s.r,m.r):mAdd(s.r,m.r),k=T+"|"+oKey(r);
+        if(st.has(k))continue;const ns={T,r,d,link:s};st.set(k,ns);nf.push(ns);if(st.size>cap){capped=true;break}}
+      if(capped)break}
+    front=nf}
+  return{st,capped}}
+function search(cfg){cfg=cfg||SS;
+  const mv=buildMoves(cfg.types,cfg.shared),pr={};cfg.types.forEach(t=>pr[t]=[]);
+  for(const A in mv)mv[A].forEach(m=>pr[m.B].push({A,r:m.r}));
+  const h1=Math.ceil(cfg.len/2),h2=Math.floor(cfg.len/2),cap=60000;
+  const F=bfs(cfg.start,mv,h1,cap,false),B=bfs(cfg.start,pr,h2,cap,true);
+  const byT={};for(const s of B.st.values()){(byT[s.T]=byT[s.T]||[]).push({s,c:pcC(s.r)})}
+  for(const t in byT)byT[t].sort((a,b)=>a.c-b.c);
+  const best=new Map(),thr=cfg.thr;
+  function lower(arr,x){let lo=0,hi=arr.length;while(lo<hi){const m=(lo+hi)>>1;if(arr[m].c<x)lo=m+1;else hi=m}return lo}
+  for(const f of F.st.values()){const arr=byT[f.T];if(!arr)continue;const fc=pcC(f.r);
+    for(const off of [-1200,0,1200]){let i=lower(arr,fc+off-thr);
+      for(;i<arr.length&&arr[i].c<=fc+off+thr;i++){const b=arr[i].s,len=f.d+b.d;if(len<2)continue;
+        const delta=odd(mSub(f.r,b.r));if(isZero(delta))continue;const D=normM(delta),c=mC(D);if(Math.abs(c)>thr+1e-9)continue;
+        const can=c<0?mMul(D,-1):D,key=oKey(can),prev=best.get(key);
+        if(!prev||len<prev.len)best.set(key,{len,f,b,delta})}}}
+  const out=[...best.values()].map(x=>{const fw=[];let s=x.f;while(s){fw.unshift({T:s.T,r:s.r});s=s.link}
+    s=x.b.link;while(s){fw.push({T:s.T,r:odd(mAdd(s.r,x.delta))});s=s.link}
+    return{steps:fw,len:x.len}});
+  out.forEach(o=>o.info=info(o.steps));
+  out.sort((a,b)=>a.len-b.len||Math.abs(a.info.c)-Math.abs(b.info.c));
+  return{out,capped:F.capped||B.capped}}
+
+function renderSchemaControls(){
+  const tc=document.getElementById("sTypes");
+  tc.innerHTML=Object.entries(CH).map(([k,C])=>`<button class="chip" data-st="${k}" aria-pressed="${SS.types.includes(k)}" title="${C.name}"><span class="c${C.lim}">●</span> ${C.lab}</button>`).join("");
+  document.getElementById("sStart").innerHTML=SS.types.map(k=>`<button class="chip" data-ss="${k}" aria-pressed="${k===SS.start}">${CH[k].lab}</button>`).join("");
+  document.getElementById("sShared").innerHTML=[1,2].map(k=>`<button class="chip" data-sh="${k}" aria-pressed="${k===SS.shared}">${k}+</button>`).join("");
+  document.getElementById("sLen").innerHTML=[3,4,5,6].map(k=>`<button class="chip" data-sl="${k}" aria-pressed="${k===SS.len}">${k}</button>`).join("");
+  document.getElementById("sThr").value=SS.thr;document.getElementById("sThrOut").textContent=SS.thr;
+  document.getElementById("sVocab").innerHTML=SS.types.map(k=>`<span><b class="c${CH[k].lim}">${CH[k].lab}</b> ${CH[k].name}</span>`).join("");
+}
+let sTimer;
+function runSearch(){
+  try{localStorage.setItem("fla-s",JSON.stringify(SS))}catch(e){}
+  renderSchemaControls();
+  const el=document.getElementById("found"),sum=document.getElementById("sSummary");
+  sum.textContent="Searching…";
+  clearTimeout(sTimer);sTimer=setTimeout(()=>{
+    const {out,capped}=search();
+    Object.keys(SCH).forEach(k=>{if(k[0]==="f")delete SCH[k]});
+    const shown=out.slice(0,40);
+    sum.textContent=`${out.length} comma${out.length===1?"":"s"} found${out.length>40?", showing the 40 shortest loops":""}.`+(capped?" Search hit its size limit; try fewer chord types or a shorter loop.":"");
+    el.innerHTML=shown.length?shown.map((o,i)=>{SCH["f"+i]=o;return cardHTML("f"+i,o)}).join(""):`<div class="empty">No loops drift by ${SS.thr}¢ or less with these settings. Allow longer loops or add chord types.</div>`;
+    shown.forEach((o,i)=>renderViz("f"+i));
+  },30);
+}
+function initSchemata(){
+  const cl=document.getElementById("classics");
+  CLASSICS.forEach((c,i)=>{const steps=stepsFromSeq(c.seq);SCH["c"+i]={...c,steps,info:info(steps)}});
+  bindCards(document.getElementById("found"));
+  document.getElementById("sForm").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+    if(b.dataset.st){const k=b.dataset.st;if(SS.types.includes(k)){if(SS.types.length>1)SS.types=SS.types.filter(x=>x!==k)}else SS.types.push(k);
+      if(!SS.types.includes(SS.start))SS.start=SS.types[0]}
+    else if(b.dataset.ss)SS.start=b.dataset.ss;
+    else if(b.dataset.sh)SS.shared=+b.dataset.sh;
+    else if(b.dataset.sl)SS.len=+b.dataset.sl;
+    else return;
+    runSearch()});
+  const thrIn=document.getElementById("sThr");
+  thrIn.addEventListener("input",()=>{SS.thr=+thrIn.value;document.getElementById("sThrOut").textContent=SS.thr});
+  thrIn.addEventListener("change",runSearch);
+  runSearch();
+}
+
+/* ---------- pump lattice ---------- */
+const ARMS=[
+ {name:"Meantone",col:"var(--oto)",what:"I–vi–ii–V–I, roots falling by fifths",seq:[["maj",[1,1]],["min",[5,3]],["min",[2,3]],["maj",[4,3]],["maj",[4,3]]]},
+ {name:"Augmented",col:"var(--sel)",what:"major chords, roots falling by major thirds",seq:[["maj",[1,1]],["maj",[4,5]],["maj",[4,5]],["maj",[4,5]]]},
+ {name:"Diminished",col:"var(--uto)",what:"minor chords, roots falling by minor thirds",seq:[["min",[1,1]],["min",[5,6]],["min",[5,6]],["min",[5,6]],["min",[5,6]]]}
+];
+ARMS.forEach((A,i)=>{A.steps=stepsFromSeq(A.seq);A.info=info(A.steps);SCH["L"+i]={steps:A.steps,info:A.info,title:A.name+" arm",what:A.what,col:A.col}});
+const LS={src:"L0",tune:"ji",edo:ARMS[0].info.def,ref:null,all:true};
+// screen directions per prime (x right, y up): 3 → right, 5 → up-right, then 7, 11, 13 on their own slants
+const PV=[null,[1,0],[0.5,0.866],[-0.36,0.6],[0.3,-0.62],[-0.62,-0.3]];
+const PCOL=[null,"var(--p3)","var(--p5)","var(--p7)","var(--p11)","var(--p13)"];
+function latSrc(){return SCH[LS.src]}
+function latCol(){const s=latSrc();return s.col||"var(--oto)"}
+function latN(){return LS.tune==="ji"?0:LS.tune==="ref"?LS.ref:LS.edo}
+function tunedC(m,n){return n?dotV(patent(n),m)*1200/n:mC(m)}
+function refEdos(inf,steps){const out=[];for(let n=12;n<=99;n++){const st=dotV(patent(n),inf.D);if(st!==0)out.push({n,st,err:edoErr(n,steps)})}
+  return out.sort((a,b)=>a.err-b.err).slice(0,10)}
+function stepNodes(steps,map){steps.forEach(s=>CH[s.T].m.forEach(t=>{const P=odd(mAdd(s.r,t));map.set(oKey(P),P)}));return map}
+function latArms(){ // [{steps,col,on}]
+  if(LS.src[0]==="L"&&LS.all)return ARMS.map((A,i)=>({steps:A.steps,col:A.col,on:"L"+i===LS.src,idx:i}));
+  return[{steps:latSrc().steps,col:latCol(),on:true}]}
+function renderLattice(){
+  const arms=latArms(),nodeMap=new Map();arms.forEach(a=>stepNodes(a.steps,nodeMap));
+  const nodes=[...nodeMap.values()],u=66;
+  const proj=m=>{let x=0,y=0;for(let i=1;i<6;i++){x+=m[i]*PV[i][0];y+=m[i]*PV[i][1]}return[x,y]};
+  const pr=nodes.map(proj),xs=pr.map(p=>p[0]),ys=pr.map(p=>p[1]);
+  const xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys),pad=46;
+  const W=(xmax-xmin)*u+pad*2,H=(ymax-ymin)*u+pad*2+14;
+  const XY=m=>{const [x,y]=proj(m);return[pad+(x-xmin)*u,pad+(ymax-y)*u]};
+  let s=`<svg width="${W.toFixed(0)}" height="${H.toFixed(0)}" viewBox="0 0 ${W.toFixed(0)} ${H.toFixed(0)}" class="lat" role="img" aria-label="Lattice of the pump">`;
+  s+=`<defs><marker id="arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>${arms.map((a,i)=>`<marker id="ar${i}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${a.col}"/></marker>`).join("")}</defs>`;
+  // prime edges between present nodes
+  const used=new Set();
+  nodes.forEach(P=>{for(let i=1;i<6;i++){const Q=P.slice();Q[i]+=1;if(nodeMap.has(oKey(Q))){const [x1,y1]=XY(P),[x2,y2]=XY(Q);s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${PCOL[i]}" stroke-width="1" opacity=".35"/>`;used.add(i)}}});
+  s+=`<text x="10" y="${H-10}" font-size="10">${[...used].sort().map(i=>`<tspan style="fill:${PCOL[i]}">━ ${PR[i]}</tspan>`).join("  ")}</text>`;
+  // chord shapes + root paths
+  const order=arms.map((a,i)=>i).sort((a,b)=>(arms[a].on?1:0)-(arms[b].on?1:0));
+  order.forEach(ai=>{const a=arms[ai],on=a.on;
+    a.steps.forEach((st,j)=>{const pts=CH[st.T].m.map(t=>XY(odd(mAdd(st.r,t))));
+      const cx=pts.reduce((q,p)=>q+p[0],0)/pts.length,cy=pts.reduce((q,p)=>q+p[1],0)/pts.length;
+      pts.sort((p,q)=>Math.atan2(p[1]-cy,p[0]-cx)-Math.atan2(q[1]-cy,q[0]-cx));
+      s+=`<polygon class="ltri" data-on="${on?1:0}" data-i="${j}" points="${pts.map(p=>p.join(",")).join(" ")}" fill="${a.col}" fill-opacity="${on?0.15:0.05}" stroke="${a.col}" stroke-opacity="${on?0.6:0.2}" stroke-width="1.2" stroke-linejoin="round"/>`});
+    const rp=a.steps.map(st=>XY(st.r));
+    for(let j=0;j+1<rp.length;j++){const [x1,y1]=rp[j],[x2,y2]=rp[j+1],dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,k=Math.min(10/L,0.3);
+      s+=`<line x1="${x1+dx*k}" y1="${y1+dy*k}" x2="${x2-dx*k}" y2="${y2-dy*k}" stroke="${a.col}" stroke-width="${on?2.6:1.2}" opacity="${on?1:0.35}" marker-end="url(#ar${ai})"/>`}
+    if(on){const inf=info(a.steps),[ex,ey]=rp[rp.length-1],[hx,hy]=rp[0],n=latN();
+      const st=n?dotV(patent(n),inf.D):null,closes=n&&st===0;
+      const mx=(ex+hx)/2,my=(ey+hy)/2,nx=-(hy-ey),ny=hx-ex,nl=Math.hypot(nx,ny)||1,cx=mx+nx/nl*30,cy=my+ny/nl*30;
+      s+=`<path d="M${ex} ${ey}Q${cx} ${cy} ${hx} ${hy}" fill="none" stroke="${closes?"var(--oto)":"var(--sel)"}" stroke-width="2" stroke-dasharray="${closes?"0":"5 4"}"/>`;
+      s+=`<circle cx="${ex}" cy="${ey}" r="13" fill="none" stroke="${a.col}" stroke-width="2"/>`;
+      s+=`<text x="${cx}" y="${cy}" font-size="11" text-anchor="middle" style="fill:${closes?"var(--oto)":"var(--sel)"};font-weight:600;paint-order:stroke;stroke:var(--surface);stroke-width:3px">${closes?"= 1/1 in "+n+"-EDO":inf.key+(n?" = "+Math.abs(st)+" step"+(Math.abs(st)===1?"":"s"):"")}</text>`}
+  });
+  // nodes
+  nodes.forEach(P=>{const [x,y]=XY(P),home=isZero(P),U=unitM(P),k=mStr(U);
+    s+=`<g class="lnode" data-m="${P.join(",")}" tabindex="0"><title>${k} · ${fmtC(mC(U))}¢</title><circle cx="${x}" cy="${y}" r="${home?9:6}" fill="${home?"var(--ink)":"var(--surface)"}" stroke="var(--ink)" stroke-width="1.4"/>`+
+      `<text x="${x}" y="${y+(home?22:18)}" font-size="10" text-anchor="middle" style="fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3px">${k}</text></g>`});
+  s+=`</svg>`;
+  const wrap=document.getElementById("latWrap");wrap.innerHTML=`<div class="latflex"><div class="latsvg">${s}</div><div class="latside" id="latSide"></div></div>`;renderLatSide(null);
+  wrap.querySelectorAll(".lnode").forEach(g=>{const go=()=>{const P=g.dataset.m.split(",").map(Number),U=unitM(P);
+      tone(S.base,0,0.6,0.2);tone(S.base,0.65,1.8,0.2);tone(S.base*Math.pow(2,tunedC(U,latN())/1200),0.65,1.8,0.2)};
+    g.addEventListener("click",go);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}})});
+  renderLatInfo(nodes.length);
+}
+function renderLatInfo(count){
+  const sc=latSrc(),inf=sc.info,steps=sc.steps,n=latN(),st=n?dotV(patent(n),inf.D):null,flat=inf.c<0;
+  const chips=steps.map((s,i)=>{const C=CH[s.T];return `<span class="schip" data-li="${i}"><b class="c${C.lim}">${C.lab}</b> ${i===0?"1/1":mStr(unitM(s.r))}</span>`}).join(`<span class="sarrow">→</span>`);
+  let verdict;
+  if(!n)verdict=`In just intonation the loop lands <b>${fmtC(Math.abs(inf.c))}¢ ${flat?"flat":"sharp"}</b> of home: the comma ${inf.key}.`;
+  else if(st===0)verdict=`In ${n}-EDO the comma ${inf.key} is 0 steps, so the loop <b>closes</b>${inf.temp?": "+inf.temp+" temperament":""}.`;
+  else verdict=`In ${n}-EDO the comma ${inf.key} is <b>${Math.abs(st)} step${Math.abs(st)===1?"":"s"}</b> (${fmtC(Math.abs(st)*1200/n)}¢), so the loop still drifts, as in just intonation.`;
+  const head=sc.title?sc.title:"Pump for "+inf.key;
+  document.getElementById("latInfo").innerHTML=`<div class="spath">${chips}</div><p class="note" style="color:var(--ink)"><b>${head}</b>${sc.what?" — "+sc.what:""}. ${verdict} ${count} pitches.</p>`;
+}
+function latSourceOptions(){return pumpOptions(LS.src)}
+function latReset(){const sc=latSrc();LS.edo=sc.info.def;const r=refEdos(sc.info,sc.steps);LS.ref=r.length?r[0].n:53;if(LS.tune==="et"&&!sc.info.edos.length)LS.tune="ji"}
+function renderLatControls(){
+  const sc=latSrc();
+  const src=document.getElementById("latSrc");src.innerHTML=latSourceOptions();src.value=LS.src;
+  const isArm=LS.src[0]==="L";
+  document.getElementById("latAll").hidden=!isArm;document.getElementById("latAll").setAttribute("aria-pressed",LS.all);
+  const has=sc.info.edos.length>0;
+  document.getElementById("latTune").innerHTML=[["ji","Just"],["et","Tempered"],["ref","Keeps comma"]].map(([k,l])=>`<button class="chip" data-tune="${k}" aria-pressed="${LS.tune===k}"${k==="et"&&!has?" disabled":""}>${l}</button>`).join("");
+  const e=document.getElementById("latEdo");e.innerHTML=has?sc.info.edos.map(n=>`<option value="${n}"${n===LS.edo?" selected":""}>${n}-EDO</option>`).join(""):`<option>none ≤ 72</option>`;e.disabled=LS.tune!=="et";
+  const r=document.getElementById("latRef");r.innerHTML=refEdos(sc.info,sc.steps).map(o=>`<option value="${o.n}"${o.n===LS.ref?" selected":""}>${o.n}-EDO · comma = ${Math.abs(o.st)} step${Math.abs(o.st)===1?"":"s"}</option>`).join("");r.disabled=LS.tune!=="ref";
+}
+function latChord(e){const sc=latSrc(),st=sc.steps[e.i],D=sc.info.D,k=e.k||0;
+  const C=CH[st.T],root=mAdd(odd(st.r),mMul(odd(D),k));
+  const rows=C.m.map((t,ti)=>({role:C.t[ti].join("/"),ji:mStr(unitM(mAdd(root,t)))}));
+  return{C,rootR:mStr(unitM(root)),rows}}
+function renderLatSide(e){const el=document.getElementById("latSide");if(!el)return;const sc=latSrc(),n=latN(),steps=sc.steps;
+  const tuneTxt=n?n+"-EDO":"just intonation";
+  let now="";
+  if(e){const L=steps.length-1,ch=e.i===L?latChord({i:0,k:e.k}):latChord({i:e.i,k:e.k}),notes=e.notes,drift=notes[0].c-(notes0||notes[0].c);
+    now=`<div class="lnow"><div class="lbl">Now playing · loop ${Math.min(e.k+1,3)}</div><div class="lnow-h"><b class="c${ch.C.lim}">${ch.C.lab}</b> <span class="muted">${ch.C.name}</span></div>
+      <table class="lnt"><thead><tr><th>Role</th><th>Ratio</th><th class="num">Cents</th></tr></thead><tbody>`+
+      `<tr><td>bass</td><td class="mono">${ch.rootR}</td><td class="num mono">${fmtC(((notes[0].c%1200)+1200)%1200)}</td></tr>`+
+      ch.rows.map((r,ri)=>`<tr><td class="mono">${r.role}</td><td class="mono">${r.ji}</td><td class="num mono">${fmtC(((notes[ri+1].c%1200)+1200)%1200)}</td></tr>`).join("")+
+      `</tbody></table><div class="note">${Math.abs(drift)<0.05?"At home pitch.":`${drift>0?"+":"−"}${fmtC(Math.abs(drift))}¢ from where the loop began.`}</div></div>`}
+  el.innerHTML=now+`<div class="lbl" style="margin-top:${e?10:0}px">Chords in the loop · ${tuneTxt}</div>`+
+    steps.map((st,i)=>{const ch=latChord({i,k:0}),last=i===steps.length-1,on=e&&e.i===i;
+      return `<div class="lchord${on?" now":""}" data-li="${i}"><div><b class="c${ch.C.lim}">${ch.C.lab}</b> <span class="mono">${last?"1/1 "+(sc.info.c<0?"↓":"↑")+sc.info.key:i===0?"1/1":ch.rootR}</span></div><div class="mono lct">${ch.rows.map(r=>`<span title="${r.role} of the chord">${r.ji}</span>`).join(" ")}</div></div>`}).join("");
+}
+let notes0=null;
+function playLattice(){
+  stopAll();const {seq}=voiceSeq(LS.src,latN()),dur=0.95;notes0=seq[0].notes[0].c;
+  seq.forEach((e,j)=>{const amp=0.5/Math.sqrt(e.notes.length+1);
+    e.notes.forEach(x=>tone(S.base*Math.pow(2,x.c/1200),j*dur,dur+0.12,amp));
+    TIMERS.push(vis(()=>{document.querySelectorAll('.ltri[data-on="1"]').forEach(t=>t.classList.toggle("now",+t.dataset.i===e.i));
+      document.querySelectorAll("#latInfo .schip").forEach(c=>c.classList.toggle("now",+c.dataset.li===e.i));renderLatSide(e)},j*dur*1000))});
+  TIMERS.push(vis(()=>{document.querySelectorAll(".ltri.now,#latInfo .schip.now").forEach(t=>t.classList.remove("now"))},seq.length*dur*1000+300));
+}
+
+function playLatScale(){stopAll();const n=latN(),map=new Map();latArms().forEach(a=>stepNodes(a.steps,map));
+  const cs=[...map.values()].map(P=>tunedC(unitM(P),n)).sort((a,b)=>a-b);cs.push(1200);
+  playSeq(cs.map(c=>S.base*Math.pow(2,c/1200)),0.32)}
+function openInLattice(sc){SCH.x={steps:sc.steps,info:sc.info,title:sc.title||null,what:sc.desc?null:null,col:"var(--oto)"};LS.src="x";LS.tune="ji";latReset();
+  renderLatControls();renderLattice();showTab("lattice");try{history.replaceState(null,"","#lattice")}catch(e){}window.scrollTo(0,0)}
+function initLattice(){
+  latReset();renderLatControls();renderLattice();
+  document.getElementById("latSrc").addEventListener("change",e=>{LS.src=e.target.value;latReset();stopAll();renderLatControls();renderLattice()});
+  document.getElementById("latCtl").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||b.disabled)return;
+    if(b.id==="latAll")LS.all=!LS.all;
+    else if(b.dataset.tune)LS.tune=b.dataset.tune;
+    else if(b.id==="latPlay"){playLattice();return}
+    else if(b.id==="latScale"){playLatScale();return}
+    else if(b.id==="latFindGo"){findPumpFor("");return}
+    else return;
+    stopAll();renderLatControls();renderLattice()});
+  document.getElementById("latEdo").addEventListener("change",e=>{LS.edo=+e.target.value;renderLattice()});
+  document.getElementById("latRef").addEventListener("change",e=>{LS.ref=+e.target.value;renderLattice()});
+}
+/* ---------- hexboard: pump realizer ---------- */
+const HX={src:"L0",mode:"drift",shift:1,edo:null,ref:null,loops:2};
+const MODES=[["drift","Free drift"],["shift","Comma shift"],["spread","Spread"],["et","Tempered"]];
+function hxSrc(){return SCH[HX.src]||SCH.L0}
+function hxReset(){const sc=hxSrc();HX.edo=sc.info.def;const r=refEdos(sc.info,sc.steps);HX.ref=r.length?r[0].n:53;
+  const L=sc.steps.length-1;if(HX.shift<1||HX.shift>L)HX.shift=L;if(HX.mode==="et"&&!sc.info.edos.length)HX.mode="drift"}
+function nearestOct(t,target){const P=odd(t);P[0]=Math.round((target-mC(P))/1200);return P}
+function perms(a){if(a.length<=1)return[a.slice()];const out=[];a.forEach((x,i)=>{perms(a.slice(0,i).concat(a.slice(i+1))).forEach(p=>out.push([x].concat(p)))});return out}
+function assignments(tones,k){const seen=new Set(),out=[];
+  const fill=(base,need,from)=>{if(!need){perms(base).forEach(p=>{const key=p.map(oKey).join("|");if(!seen.has(key)){seen.add(key);out.push(p)}});return}
+    for(let i=from;i<tones.length;i++)fill(base.concat([tones[i]]),need-1,i)};
+  fill(tones.slice(),k-tones.length,0);return out}
+function closeVoicing(tones,k){const v=tones.map(t=>{const P=odd(t);P[0]=-Math.floor((mC(P)+50)/1200);return P}).sort((a,b)=>mC(a)-mC(b));
+  let i=0;while(v.length<k){const P=v[i%tones.length].slice();P[0]+=1;v.push(P);i++}return v.sort((a,b)=>mC(a)-mC(b))}
+function voiceLead(sc,loops){loops=loops||HX.loops;const steps=sc.steps,L=steps.length-1,D=sc.info.D,k=Math.max(...steps.map(s=>CH[s.T].m.length));
+  const seq=[];for(let lp=0;lp<loops;lp++)for(let j=0;j<=L;j++){if(j===L&&lp<loops-1)continue;seq.push({j,lp,T:steps[j].T,r:odd(mAdd(steps[j].r,mMul(D,lp)))})}
+  const tonesOf=e=>CH[e.T].m.map(t=>odd(mAdd(e.r,t)));
+  let prev=closeVoicing(tonesOf(seq[0]),k);const center=prev.reduce((q,m)=>q+mC(m),0)/k;
+  seq.forEach((e,idx)=>{
+    if(idx>0){let best=null,bc=1e9;
+      for(const asg of assignments(tonesOf(e),k)){let cost=0;const vv=asg.map((t,i)=>{const P=nearestOct(t,mC(prev[i]));const d=Math.abs(mC(P)-mC(prev[i]));cost+=d<0.01?0:d+40;return P});
+        for(let i=1;i<vv.length;i++)if(mC(vv[i])<mC(vv[i-1])-0.01)cost+=300;
+        cost+=2*Math.max(0,Math.abs(vv.reduce((q,m)=>q+mC(m),0)/k-center)-250);
+        if(cost<bc){bc=cost;best=vv}}
+      prev=best}
+    e.M=prev;
+    e.B=mAdd(mAdd(normM(steps[e.j].r),[-1,0,0,0,0,0]),mMul(D,e.lp));
+    e.roles=prev.map(m=>mStr(unitM(mSub(odd(m),odd(e.r)))))});
+  return{seq,k,L}}
+function hxCols(mode){const sc=hxSrc(),VL=voiceLead(sc),D=sc.info.D,Dc=mC(D),L=VL.L;
+  const n=mode==="et"?HX.edo:0,v=n?patent(n):null;
+  const cols=VL.seq.map(e=>{const pc=m=>{if(mode==="et")return dotV(v,m)*1200/n;const c=mC(m);
+      if(mode==="drift")return c;const base=c-e.lp*Dc;
+      if(mode==="shift")return base-(e.j>=HX.shift?Dc:0);
+      return base-Dc*e.j/L};
+    return{j:e.j,lp:e.lp,T:e.T,M:e.M,bass:pc(e.B),v:e.M.map(pc),roles:e.roles}});
+  return{cols,VL,n}}
+function pivots(VL){const out=[],q=VL.seq;
+  for(let x=0;x<VL.L&&x+1<q.length;x++){const A=q[x],B=q[x+1],held=[];
+    A.M.forEach((m,i)=>{const bi=B.M.findIndex(z=>oKey(z)===oKey(m)&&z[0]===m[0]);if(bi>=0&&!held.some(h=>oKey(h.m)===oKey(m)&&h.m[0]===m[0]))held.push({m,from:A.roles[i],to:B.roles[bi]})});
+    out.push({j:x,held:held.sort((p,r)=>mC(r.m)-mC(p.m))})}
+  return out}
+function renderHxRoll(){
+  const {cols,VL,n}=hxCols(HX.mode),N=cols.length,k=VL.k;
+  const colW=58,gap=10,pl=44,pr=14,pt=30,pb=24;
+  const all=cols.flatMap(c=>[c.bass,...c.v]);const cmin=Math.min(...all)-90,cmax=Math.max(...all)+90,ppc=0.13;
+  const H=pt+pb+(cmax-cmin)*ppc,W=pl+pr+N*colW,Y=c=>pt+(cmax-c)*ppc,X=j=>pl+j*colW;
+  let s=`<svg width="${W}" height="${H.toFixed(0)}" viewBox="0 0 ${W} ${H.toFixed(0)}" class="roll" role="img" aria-label="Voice-led realisation of the pump">`;
+  for(let c=Math.ceil(cmin/100)*100;c<=cmax;c+=100){const oct=c%1200===0;
+    s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)" stroke-width="${oct?1:0.5}" opacity="${oct?1:0.55}"/>`;
+    if(oct){const o=c/1200;s+=`<text x="${pl-6}" y="${Y(c)+3}" font-size="9.5" text-anchor="end">${o===0?"1/1":o>0?(2**o)+"/1":"1/"+(2**-o)}</text>`}}
+  const L=VL.L;for(let lp=0;lp<HX.loops;lp++){const x=X(lp*L);s+=`<line x1="${x}" x2="${x}" y1="${pt-6}" y2="${H-pb+4}" stroke="var(--muted)" opacity=".45"/>`;
+    s+=`<text x="${(X(lp*L)+X((lp+1)*L))/2}" y="${H-7}" font-size="10" text-anchor="middle">loop ${lp+1}</text>`}
+  [cols[0].bass,...cols[0].v].forEach(c=>{s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--oto)" stroke-dasharray="2 4" opacity=".45"/>`});
+  cols.forEach((col,j)=>{const x0=X(j)+gap/2,w=colW-gap,C=CH[col.T],nx=cols[j+1];
+    s+=`<rect class="rcol" data-j="${j}" x="${X(j)}" y="${pt-6}" width="${colW}" height="${H-pt-pb+10}" fill="var(--sel)" opacity="0"/>`;
+    s+=`<text x="${x0+w/2}" y="${pt-14}" font-size="10" text-anchor="middle" style="fill:var(--p${C.lim});font-weight:600">${C.lab}</text>`;
+    if(nx){col.v.forEach((c,i)=>{const c2=nx.v[i],same=oKey(col.M[i])===oKey(nx.M[i])&&col.M[i][0]===nx.M[i][0],y1=Y(c),y2=Y(c2);
+      if(same&&Math.abs(c2-c)<0.01)s+=`<line x1="${x0+w}" x2="${x0+w+gap}" y1="${y1}" y2="${y1}" stroke="var(--oto)" stroke-width="5"/>`;
+      else if(same){s+=`<line x1="${x0+w}" x2="${x0+w+gap}" y1="${y1}" y2="${y2}" stroke="var(--sel)" stroke-width="3"/>`;
+        s+=`<text x="${x0+w+gap/2}" y="${Math.min(y1,y2)-6}" font-size="9" text-anchor="middle" style="fill:var(--sel);font-weight:600">${c2>c?"+":"−"}${Math.abs(c2-c).toFixed(1)}</text>`}
+      else s+=`<line x1="${x0+w}" x2="${x0+w+gap}" y1="${y1}" y2="${y2}" stroke="var(--muted)" stroke-width="1" opacity=".7"/>`})}
+    s+=`<rect x="${x0}" y="${Y(col.bass)-4}" width="${w}" height="8" rx="2" fill="var(--uto)"/>`;
+    col.v.forEach((c,i)=>{s+=`<rect x="${x0}" y="${Y(c)-4}" width="${w}" height="8" rx="2" fill="var(--oto)"/><text x="${x0+3}" y="${Y(c)-6}" font-size="8.5" style="fill:var(--ink)">${col.roles[i]}</text>`});
+    if(col.j===0&&j>0){const d=col.bass-cols[0].bass;s+=`<text x="${x0+w/2}" y="${Y(col.bass)+17}" font-size="10" text-anchor="middle" style="fill:var(--sel);font-weight:600">${Math.abs(d)<0.05?"±0¢":(d>0?"+":"−")+Math.abs(d).toFixed(1)+"¢"}</text>`}
+  });
+  s+=`</svg>`;
+  document.getElementById("hxRoll").innerHTML=s;
+}
+const MODE_TXT={drift:"Every common tone is held exactly, so the whole progression slides by the comma each loop.",
+  shift:"Home stays fixed; on the chosen move one held note jumps by the comma instead of staying put. That jump is where the tension sits.",
+  spread:"The comma is split evenly across every move, so held notes each shift a little and no single jump stands out.",
+  et:"The comma is tempered out, so held notes stay held and the loop closes."};
+function renderHxInfo(){
+  const sc=hxSrc(),inf=sc.info,VL=voiceLead(sc),pv=pivots(VL),L=VL.L;
+  const mv=j=>`${CH[sc.steps[j].T].lab} ${j===0?"1/1":mStr(unitM(sc.steps[j].r))}`;
+  let h=`<p class="note" style="color:var(--ink)"><b>${MODES.find(m=>m[0]===HX.mode)[1]}.</b> ${MODE_TXT[HX.mode]} Comma: <b>${inf.key}</b> (${fmtC(Math.abs(inf.c))}¢${inf.temp?", "+inf.temp:""})${HX.mode==="et"?` · ${HX.edo}-EDO`:""}${HX.mode==="shift"?` · jump on ${mv(HX.shift-1)} → ${HX.shift===L?mv(0):mv(HX.shift)}`:""}.</p>`;
+  document.getElementById("hxStatus").innerHTML=h;
+  let p=`<div class="pv-list">`;
+  pv.forEach(x=>{p+=`<div class="pv-row"><span class="mono">${mv(x.j)} → ${x.j+1===L?CH[sc.steps[0].T].lab+" 1/1":mv(x.j+1)}</span><span>${x.held.length?x.held.map(hh=>`<b class="mono">${mStr(unitM(hh.m))}</b> <span class="muted">${hh.from} → ${hh.to}</span>`).join(" · "):"<span class='muted'>no held tone</span>"}</span></div>`});
+  p+=`</div>`;
+  document.getElementById("hxPivot").innerHTML=p;
+}
+function hxKeysN(){return HX.mode==="et"?HX.edo:HX.ref}
+/* HexBoard key map, same geometry as the Temperament Workbench: from the firmware (HardwareConfig.h, GridState.cpp),
+   row = i/10, odd rows sit half a key to the right, button 65 is the center, buttons 0,20,…,120 are command buttons. */
+const HEX_COLS=10,HEX_ROWS=14,HEX_N=140,HEX_CENTER=65,HEX_CMD=[0,20,40,60,80,100,120];
+const HB={lay:"lattice",a:0,b:0,cdeg:0};
+function hbVec(n){const pv=patent(n),p5=pv[1]-n,m3=pv[2]-2*n;
+  if(HB.lay==="lattice")return[p5,m3];if(HB.lay==="wh")return[2*p5-n,p5];return[HB.a,HB.b]}
+function hbButtons(n){const [a,b]=hbVec(n);
+  const row0=Math.floor(HEX_CENTER/HEX_COLS),col0=HEX_CENTER%HEX_COLS,q0=col0-(row0-(row0&1))/2,btn=[];
+  for(let i=0;i<HEX_N;i++){const row=Math.floor(i/HEX_COLS),col=i%HEX_COLS,q=col-(row-(row&1))/2;
+    btn.push(HEX_CMD.includes(i)?null:a*((q-q0)+(row-row0))+b*(-(row-row0))+HB.cdeg)}
+  return btn}
+let hbEls=[],hbBtn=[],hbN=12;
+function renderHexKeys(lit){
+  const n=hxKeysN();hbN=n;const btn=hbButtons(n);hbBtn=btn;
+  const s=16,w=Math.sqrt(3)*s,mx=12,my=14,W=10.5*w+2*mx,Ht=13*1.5*s+2*s+2*my;
+  let o=`<svg viewBox="0 0 ${W.toFixed(0)} ${Ht.toFixed(0)}" class="hexk" role="group" aria-label="HexBoard key map in ${n}-EDO">`;let cx=0,cy=0;
+  for(let i=0;i<HEX_N;i++){const row=Math.floor(i/HEX_COLS),col=i%HEX_COLS,x=mx+w/2+(col+((row&1)?0.5:0))*w,y=my+s+row*1.5*s;
+    if(i===HEX_CENTER){cx=x;cy=y}
+    if(btn[i]===null)continue;
+    let pts="";for(let k=0;k<6;k++){const an=(60*k-30)*Math.PI/180;pts+=(x+s*Math.cos(an)).toFixed(1)+","+(y+s*Math.sin(an)).toFixed(1)+" "}
+    const deg=((btn[i]%n)+n)%n,L=lit&&lit.pc.get(deg),abs=lit&&lit.abs.has(btn[i]);
+    const fill=L==="b"?"var(--uto)":L==="v"?"var(--oto)":deg===0?"var(--ink)":"var(--sunk)";
+    const tc=L||deg===0?"var(--surface)":"var(--muted)";
+    o+=`<polygon class="hbk" data-i="${i}" points="${pts}" style="fill:${fill}" stroke="${abs?"var(--sel)":"var(--surface)"}" stroke-width="${abs?2.6:1.6}"/><text x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" font-size="8.5" text-anchor="middle" style="fill:${tc};pointer-events:none">${deg}</text>`}
+  o+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${s-1}" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="2 2" pointer-events="none"/></svg>`;
+  const el=document.getElementById("hxKeys");el.innerHTML=o;hbEls=[];el.querySelectorAll(".hbk").forEach(e=>hbEls[+e.dataset.i]=e);
+  const [a,b]=hbVec(n);
+  document.getElementById("hxKeysCap").textContent=`${n}-EDO${HX.mode==="et"?"":" (an EDO that keeps the comma, standing in for just intonation)"}. Across ${a>0?"+":""}${a}, up-right ${b>0?"+":""}${b}, up-left ${b-a>0?"+":""}${b-a} steps; center key = degree ${HB.cdeg}. Lit keys show the sounding pitch classes (plum = bass); an amber outline marks the key at the exact pitch. Same key map as the Temperament Workbench: 133 note keys, command buttons left out. Tap a key to hear it.`;
+  renderHbControls(n);
+}
+function renderHbControls(n){const [a,b]=hbVec(n);
+  document.getElementById("hbLay").innerHTML=[["lattice","Fifths & thirds"],["wh","Wicki–Hayden"],["custom","Custom"]].map(([k,l])=>`<button class="chip" data-hb="${k}" aria-pressed="${HB.lay===k}">${l}</button>`).join("");
+  const set=(id,v)=>{const e=document.getElementById(id);if(document.activeElement!==e)e.value=v};
+  set("hbA",a);set("hbB",b);set("hbC",HB.cdeg)}
+function litFor(col){const n=hxKeysN(),pc=new Map(),abs=new Set(),st=c=>Math.round(c*n/1200),m=s=>((s%n)+n)%n;
+  col.v.forEach(c=>{pc.set(m(st(c)),"v");abs.add(st(c))});pc.set(m(st(col.bass)),"b");abs.add(st(col.bass));return{pc,abs}}
+function initHexBoardKeys(){
+  const el=document.getElementById("hxKeys");
+  el.addEventListener("pointerdown",e=>{const k=e.target.closest(".hbk");if(!k)return;e.preventDefault();const st=hbBtn[+k.dataset.i];
+    const c=st*1200/hbN;tone(S.base*Math.pow(2,c/1200),0,0.9,0.25);k.style.filter="brightness(1.35)";setTimeout(()=>{k.style.filter=""},250)});
+  document.getElementById("hbCtl").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!b.dataset.hb)return;
+    const n=hxKeysN();if(b.dataset.hb==="custom"){const [a,bb]=hbVec(n);HB.a=a;HB.b=bb}HB.lay=b.dataset.hb;renderHexKeys(litFor(hxCols(HX.mode).cols[0]))});
+  const num=(id,f)=>document.getElementById(id).addEventListener("input",e=>{const v=parseInt(e.target.value,10);if(!isFinite(v))return;f(v);renderHexKeys(litFor(hxCols(HX.mode).cols[0]))});
+  num("hbA",v=>{const n=hxKeysN(),[,b]=hbVec(n);HB.lay="custom";HB.a=v;HB.b=b});
+  num("hbB",v=>{const n=hxKeysN(),[a]=hbVec(n);HB.lay="custom";HB.a=a;HB.b=v});
+  num("hbC",v=>{HB.cdeg=v});
+}
+function scheduleCols(cols,t0,dur,withRoll){
+  cols.forEach((col,j)=>{const amp=0.5/Math.sqrt(col.v.length+2);
+    [col.bass,...col.v].forEach(c=>tone(S.base*Math.pow(2,c/1200),t0+j*dur,dur+0.12,amp));
+    TIMERS.push(vis(()=>{renderHexKeys(litFor(col));if(withRoll)document.querySelectorAll("#hxRoll .rcol").forEach(z=>z.setAttribute("opacity",+z.dataset.j===j?"0.16":"0"))},(t0+j*dur)*1000))});
+  return t0+cols.length*dur}
+function hxClear(){TIMERS.push(vis(()=>{document.querySelectorAll("#hxRoll .rcol").forEach(z=>z.setAttribute("opacity","0"));document.getElementById("hxNow").textContent=""},0))}
+function playHx(){stopAll();const {cols}=hxCols(HX.mode);const end=scheduleCols(cols,0,0.95,true);
+  TIMERS.push(vis(()=>{document.querySelectorAll("#hxRoll .rcol").forEach(z=>z.setAttribute("opacity","0"));renderHexKeys(litFor(cols[0]))},end*1000+300))}
+function playHxAll(){stopAll();const sc=hxSrc(),keep=HX.mode;let t=0;const now=document.getElementById("hxNow");
+  MODES.filter(m=>m[0]!=="et"||sc.info.edos.length).forEach(([k,l])=>{const {cols}=hxCols(k);
+    TIMERS.push(vis(()=>{now.textContent="Now playing: "+l+(k==="et"?` (${HX.edo}-EDO)`:"")},t*1000));
+    HX.mode=k;t=scheduleCols(cols,t,0.8,false)+0.9});
+  HX.mode=keep;TIMERS.push(vis(()=>{now.textContent="";renderHexKeys(litFor(hxCols(HX.mode).cols[0]))},t*1000))}
+function playPivot(){stopAll();const sc=hxSrc(),{cols,VL}=hxCols(HX.mode),dur=0.95;
+  // melody: for each column, the highest voice that is held into the next column
+  const notes=[];cols.forEach((col,j)=>{const nx=cols[j+1];if(!nx)return;let best=null;
+    col.M.forEach((m,i)=>{if(nx.M.some(q=>oKey(q)===oKey(m)&&q[0]===m[0])&&(best===null||col.v[i]>col.v[best]))best=i});
+    if(best!==null)notes.push({t:j*dur,c:col.v[best]})});
+  tone(S.base/2,0,cols.length*dur,0.12);
+  notes.forEach(x=>tone(S.base*Math.pow(2,x.c/1200),x.t,dur*1.6,0.28))}
+function renderHxControls(){
+  const sc=hxSrc(),L=sc.steps.length-1;
+  const src=document.getElementById("hxSrc");src.innerHTML=latSourceOptions();src.value=HX.src;
+  document.getElementById("hxMode").innerHTML=MODES.map(([k,l])=>`<button class="chip" data-hm="${k}" aria-pressed="${HX.mode===k}"${k==="et"&&!sc.info.edos.length?" disabled":""}>${l}</button>`).join("");
+  const sh=document.getElementById("hxShiftCtl");sh.hidden=HX.mode!=="shift";
+  const mv=j=>CH[sc.steps[j].T].lab;
+  document.getElementById("hxShift").innerHTML=Array.from({length:L},(_,i)=>i+1).map(p=>`<button class="chip" data-hs="${p}" aria-pressed="${HX.shift===p}">${mv(p-1)}→${mv(p===L?0:p)}</button>`).join("");
+  const e=document.getElementById("hxEdo");e.innerHTML=sc.info.edos.length?sc.info.edos.map(n=>`<option value="${n}"${n===HX.edo?" selected":""}>${n}-EDO</option>`).join(""):"<option>none ≤ 72</option>";
+  document.getElementById("hxEdoCtl").hidden=HX.mode!=="et";
+  document.getElementById("hxLoops").innerHTML=[1,2,3,4].map(k=>`<button class="chip" data-hl="${k}" aria-pressed="${HX.loops===k}">${k}</button>`).join("");
+}
+function renderHX(){renderHxControls();renderHxRoll();renderHxInfo();renderFormula();renderTextures();renderHexKeys(litFor(hxCols(HX.mode).cols[0]))}
+function openInHex(sc){SCH.x={steps:sc.steps,info:sc.info,title:sc.title||null,col:"var(--oto)"};HX.src="x";hxReset();showTab("hex");try{history.replaceState(null,"","#hex")}catch(e){}window.scrollTo(0,0)}
+function initHex(){
+  hxReset();initHexBoardKeys();initFormula();initTextures();renderHX();
+  document.getElementById("hxSrc").addEventListener("change",e=>{HX.src=e.target.value;hxReset();stopAll();renderHX()});
+  document.getElementById("hxEdo").addEventListener("change",e=>{HX.edo=+e.target.value;stopAll();renderHX()});
+  document.getElementById("hxCtl").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||b.disabled)return;
+    if(b.dataset.hm)HX.mode=b.dataset.hm;
+    else if(b.dataset.hs)HX.shift=+b.dataset.hs;
+    else if(b.dataset.hl)HX.loops=+b.dataset.hl;
+    else if(b.id==="hxPlay"){playHx();return}
+    else if(b.id==="hxAll"){playHxAll();return}
+    else if(b.id==="hxPiv"){playPivot();return}
+    else return;
+    stopAll();renderHX()});
+}
+/* ---------- formulae: schematic melodies from a pump ---------- */
+const CSCALE={maj:[[1,1],[9,8],[5,4],[4,3],[3,2],[5,3],[15,8]],min:[[1,1],[9,8],[6,5],[4,3],[3,2],[8,5],[9,5]],
+ h7:[[1,1],[9,8],[5,4],[4,3],[3,2],[5,3],[7,4]],h9:[[1,1],[9,8],[5,4],[4,3],[3,2],[5,3],[7,4]],u7:[[1,1],[8,7],[7,6],[4,3],[7,5],[8,5],[7,4]],
+ sub:[[1,1],[9,8],[7,6],[4,3],[3,2],[14,9],[7,4]],sup:[[1,1],[9,8],[9,7],[4,3],[3,2],[12,7],[27,14]],
+ neu:[[1,1],[12,11],[11,9],[4,3],[3,2],[18,11],[11,6]],h13:[[1,1],[9,8],[5,4],[4,3],[3,2],[13,8],[7,4]]};
+CSCALE.h9=CSCALE.h7;CSCALE.h11=[[1,1],[9,8],[5,4],[11,8],[3,2],[5,3],[7,4]];
+const FIGS=[["plain","Plain"],["pivot","Pivot line"],["passing","Passing tones"],["neighbor","Neighbors"],["arp","Arpeggio"]];
+const HF={fig:"passing",voice:"top",chords:true};
+function realizer(mode,sc){const D=sc.info.D,Dc=mC(D),L=sc.steps.length-1,n=mode==="et"?HX.edo:0,v=n?patent(n):null;
+  return(m,e)=>{if(mode==="et")return dotV(v,m)*1200/n;const c=mC(m);if(mode==="drift")return c;const base=c-e.lp*Dc;
+    if(mode==="shift")return base-(e.j>=HX.shift?Dc:0);return base-Dc*e.j/L}}
+function scaleTones(e,target){return CSCALE[e.T].map(([n,d])=>nearestOct(odd(mAdd(e.r,monzo(n,d))),target))}
+function voiceIdx(k){return HF.voice==="top"?k-1:HF.voice==="bottom"?0:Math.floor((k-1)/2)}
+function formula(VL){const q=VL.seq,vi=voiceIdx(VL.k),ev=[];
+  const same=(a,b)=>oKey(a)===oKey(b)&&a[0]===b[0];
+  q.forEach((e,idx)=>{const nx=q[idx+1],m0=e.M[vi],c0=mC(m0),add=(t,dur,m,tag)=>ev.push({idx,t:idx*2+t,dur,m,tag});
+    if(HF.fig==="plain"||!nx&&HF.fig!=="arp"){add(0,2,m0,"chord");return}
+    if(HF.fig==="pivot"){const held=e.M.filter(z=>nx.M.some(y=>same(y,z))).sort((a,b)=>mC(b)-mC(a));add(0,2,held[0]||m0,held[0]?"held":"chord");return}
+    if(HF.fig==="arp"){const vs=e.M.slice().sort((a,b)=>mC(a)-mC(b)),k=vs.length;vs.forEach((m,i)=>add(i*2/(k+1),2/(k+1),m,"chord"));add(k*2/(k+1),2/(k+1),m0,"chord");return}
+    const c1=mC(nx.M[vi]),sc=scaleTones(e,(c0+c1)/2);
+    if(HF.fig==="passing"&&Math.abs(c1-c0)>140){const lo=Math.min(c0,c1),hi=Math.max(c0,c1);
+      const mid=sc.filter(m=>mC(m)>lo+40&&mC(m)<hi-40).sort((a,b)=>Math.abs(mC(a)-(c0+c1)/2)-Math.abs(mC(b)-(c0+c1)/2))[0];
+      if(mid){add(0,1,m0,"chord");add(1,1,mid,"passing");return}}
+    // neighbor: step away and back (upper by default, lower if the line falls next)
+    const up=c1<c0-20?false:true;
+    const nb=scaleTones(e,c0+(up?150:-150)).filter(m=>up?mC(m)>c0+40&&mC(m)<c0+320:mC(m)<c0-40&&mC(m)>c0-320).sort((a,b)=>Math.abs(mC(a)-c0)-Math.abs(mC(b)-c0))[0];
+    if(nb){add(0,0.75,m0,"chord");add(0.75,0.5,nb,"neighbor");add(1.25,0.75,m0,"chord")}else add(0,2,m0,"chord")});
+  return ev}
+function renderFormula(){
+  const sc=hxSrc(),VL=voiceLead(sc),R=realizer(HX.mode,sc),ev=formula(VL),q=VL.seq,L=VL.L;
+  document.getElementById("hfFig").innerHTML=FIGS.map(([k,l])=>`<button class="chip" data-hf="${k}" aria-pressed="${HF.fig===k}">${l}</button>`).join("");
+  document.getElementById("hfVoice").innerHTML=[["top","Top"],["middle","Middle"],["bottom","Bottom"]].map(([k,l])=>`<button class="chip" data-hv="${k}" aria-pressed="${HF.voice===k}">${l}</button>`).join("");
+  document.getElementById("hfChords").setAttribute("aria-pressed",HF.chords);
+  // stage table for one loop
+  const vi=voiceIdx(VL.k),same=(a,b)=>oKey(a)===oKey(b)&&a[0]===b[0];
+  let t=`<table class="stg"><thead><tr><th>Stage</th>${q.slice(0,L+1).map((e,i)=>`<th>${i===L?"→ "+(i+1):i+1}</th>`).join("")}</tr></thead><tbody>`;
+  t+=`<tr><th>Chord</th>${q.slice(0,L+1).map(e=>`<td><b class="c${CH[e.T].lim}">${CH[e.T].lab}</b></td>`).join("")}</tr>`;
+  t+=`<tr><th>Bass</th>${q.slice(0,L+1).map((e,i)=>`<td class="mono">${i===L?"1/1·"+(sc.info.c<0?"↓":"↑"):mStr(unitM(e.r))}</td>`).join("")}</tr>`;
+  t+=`<tr><th>Melody</th>${q.slice(0,L+1).map(e=>`<td class="mono"><b>${mStr(unitM(e.M[vi]))}</b><br><span class="muted">${e.roles[vi]} of chord</span></td>`).join("")}</tr>`;
+  t+=`<tr><th>Held into next</th>${q.slice(0,L+1).map((e,i)=>{const nx=q[i+1];if(!nx||i===L)return"<td></td>";const h=e.M.filter(z=>nx.M.some(y=>same(y,z)));return`<td class="mono">${h.length?h.map(z=>mStr(unitM(z))).join(", "):"<span class='muted'>—</span>"}</td>`}).join("")}</tr>`;
+  t+=`</tbody></table>`;
+  document.getElementById("hfStages").innerHTML=t;
+  // mini roll
+  const cols=q.map(e=>({e,v:e.M.map(m=>R(m,e)),b:R(e.B,e)})),beats=q.length*2,bw=30,pl=44,pr=12,pt=16,pb=22;
+  const mel=ev.map(x=>({...x,c:R(x.m,q[x.idx])}));
+  const all=mel.map(x=>x.c).concat(HF.chords?cols.flatMap(c=>c.v):[]);
+  const cmin=Math.min(...all)-80,cmax=Math.max(...all)+80,ppc=0.16,H=pt+pb+(cmax-cmin)*ppc,W=pl+pr+beats*bw,Y=c=>pt+(cmax-c)*ppc,X=b=>pl+b*bw;
+  let s=`<svg width="${W}" height="${H.toFixed(0)}" viewBox="0 0 ${W} ${H.toFixed(0)}" class="roll" role="img" aria-label="Melodic formula over the pump">`;
+  for(let c=Math.ceil(cmin/100)*100;c<=cmax;c+=100){const oct=c%1200===0;s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)" stroke-width="${oct?1:0.5}" opacity="${oct?1:0.55}"/>`;
+    if(oct){const o=c/1200;s+=`<text x="${pl-6}" y="${Y(c)+3}" font-size="9.5" text-anchor="end">${o===0?"1/1":o>0?(2**o)+"/1":"1/"+(2**-o)}</text>`}}
+  for(let lp=1;lp<HX.loops;lp++){const x=X(lp*L*2);s+=`<line x1="${x}" x2="${x}" y1="${pt}" y2="${H-pb}" stroke="var(--muted)" opacity=".45"/>`}
+  cols.forEach((c,i)=>{s+=`<rect class="fcol" data-j="${i}" x="${X(i*2)}" y="${pt}" width="${2*bw}" height="${H-pt-pb}" fill="var(--sel)" opacity="0"/>`;
+    s+=`<text x="${X(i*2)+bw}" y="${H-7}" font-size="9.5" text-anchor="middle" style="fill:var(--p${CH[c.e.T].lim})">${CH[c.e.T].lab}</text>`;
+    if(HF.chords)c.v.forEach(x=>{s+=`<rect x="${X(i*2)+2}" y="${Y(x)-3}" width="${2*bw-4}" height="6" rx="2" fill="var(--oto)" opacity=".22"/>`})});
+  mel.forEach((x,i)=>{const nx=mel[i+1];
+    if(nx&&nx.t<=x.t+x.dur+0.01)s+=`<line x1="${X(x.t+x.dur)-1}" y1="${Y(x.c)}" x2="${X(nx.t)+1}" y2="${Y(nx.c)}" stroke="var(--ink)" stroke-width="1" opacity=".5"/>`;
+    const col=x.tag==="passing"||x.tag==="neighbor"?"var(--sel)":x.tag==="held"?"var(--oto)":"var(--ink)";
+    s+=`<rect x="${X(x.t)+1}" y="${Y(x.c)-4}" width="${Math.max(4,x.dur*bw-2)}" height="8" rx="3" fill="${col}"/>`;
+    if(x.dur*bw>=24)s+=`<text x="${X(x.t)+3}" y="${Y(x.c)-7}" font-size="8.5" style="fill:var(--ink)">${mStr(unitM(x.m))}</text>`});
+  s+=`</svg>`;
+  document.getElementById("hfRoll").innerHTML=s;
+}
+function playFormula(){stopAll();const sc=hxSrc(),VL=voiceLead(sc),R=realizer(HX.mode,sc),ev=formula(VL),q=VL.seq,beat=0.45;
+  if(HF.chords)q.forEach((e,i)=>{const a=0.32/Math.sqrt(e.M.length+1);[e.B,...e.M].forEach(m=>tone(S.base*Math.pow(2,R(m,e)/1200),i*2*beat,2*beat+0.1,a))});
+  ev.forEach(x=>tone(S.base*Math.pow(2,R(x.m,q[x.idx])/1200),x.t*beat,x.dur*beat+0.05,0.3));
+  q.forEach((e,i)=>TIMERS.push(vis(()=>document.querySelectorAll("#hfRoll .fcol").forEach(z=>z.setAttribute("opacity",+z.dataset.j===i?"0.14":"0")),i*2*beat*1000)));
+  TIMERS.push(vis(()=>document.querySelectorAll("#hfRoll .fcol").forEach(z=>z.setAttribute("opacity","0")),q.length*2*beat*1000+300))}
+function initFormula(){document.getElementById("hfCtl").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.hf)HF.fig=b.dataset.hf;else if(b.dataset.hv)HF.voice=b.dataset.hv;else if(b.id==="hfChords")HF.chords=!HF.chords;else if(b.id==="hfPlay"){playFormula();return}else return;
+  stopAll();renderFormula()})}
+/* ---------- textures: counterpoint from the loop's chords ---------- */
+const TX={kind:"susp",bass:"root",tempo:"mid"};
+const TX_KINDS=[["chorale","Chorale"],["susp","Suspensions"],["florid","Florid"],["imit","Imitation"],["arp","Broken chords"]];
+const TX_BASS=[["root","Root"],["walk","Walking"],["drone","1/1 drone"],["none","No bass"]];
+const TX_TEMPO={slow:0.5,mid:0.36,fast:0.25};
+const TX_TEXT={
+ chorale:"Block chords, one per bar. Held common tones sound as ties: the pump's pivots, unadorned.",
+ susp:"Fourth-species style. A voice that falls by step to its next chord tone is held over the barline as a suspension and resolves on beat three; a voice that rises by step arrives early as an anticipation. Common tones stay tied.",
+ florid:"Common tones sustain as pedals while the moving voices fill their leaps with passing tones from each chord's scale: the top voice in eighths, the inner voices in quarters.",
+ imit:"One short motif (chord tone, upper neighbour, chord tone, passing tone, chord tone) enters voice by voice from the top, a beat apart. Lower voices change harmony late, so the entries overlap the chord changes like a fugato.",
+ arp:"The chord broken into eighths, rising then falling across the voices, with the bass on the downbeat."};
+function txEvents(){
+  const sc=hxSrc(),VL=voiceLead(sc),q=VL.seq,k=VL.k,R=realizer(HX.mode,sc),N=q.length,ev=[];
+  const same=(a,b)=>oKey(a)===oKey(b)&&a[0]===b[0];
+  const add=(v,t,dur,m,src,tag,fixed)=>{if(dur<=0.001)return;ev.push({v,t,dur,m,src,tag,c:fixed!==undefined?fixed:R(m,q[src])})};
+  const between=(e,a,b)=>{const lo=Math.min(mC(a),mC(b)),hi=Math.max(mC(a),mC(b));
+    const tones=scaleTones(e,(lo+hi)/2).filter(m=>mC(m)>lo+40&&mC(m)<hi-40);
+    const seen=new Set();return tones.filter(m=>{const k=oKey(m)+m[0];if(seen.has(k))return false;seen.add(k);return true}).sort((x,y)=>mC(a)<mC(b)?mC(x)-mC(y):mC(y)-mC(x))};
+  const neighbour=(e,m,up)=>scaleTones(e,mC(m)+(up?150:-150)).filter(x=>up?mC(x)>mC(m)+40&&mC(x)<mC(m)+320:mC(x)<mC(m)-40&&mC(x)>mC(m)-320).sort((x,y)=>Math.abs(mC(x)-mC(m))-Math.abs(mC(y)-mC(m)))[0];
+  for(let i=0;i<N;i++){const e=q[i],nxE=q[i+1],t0=i*4;
+    for(let v=0;v<k;v++){const cur=e.M[v],nx=nxE?nxE.M[v]:null,prev=i>0?q[i-1].M[v]:null;
+      if(TX.kind==="chorale"){add(v,t0,4,cur,i,"ct")}
+      else if(TX.kind==="susp"){
+        let s=0,end=4;
+        if(prev&&!same(prev,cur)){const d=mC(cur)-mC(prev);if(d<0&&d>-260){add(v,t0,2,prev,i-1,"sus");s=2}}
+        if(nx&&!same(nx,cur)){const d=mC(nx)-mC(cur);if(d>0&&d<260&&s<3){end=3;add(v,t0+3,1,nx,i+1,"ant")}}
+        add(v,t0+s,end-s,cur,i,"ct")}
+      else if(TX.kind==="florid"){
+        if(!nx||same(nx,cur)){add(v,t0,4,cur,i,"ct");continue}
+        const top=v===k-1,unit=top?0.5:1,pass=between(e,cur,nx).slice(0,top?3:1);
+        if(pass.length){const len=pass.length*unit;add(v,t0,4-len,cur,i,"ct");pass.forEach((m,j)=>add(v,t0+4-len+j*unit,unit,m,i,"pass"))}
+        else if(top){const nb=neighbour(e,cur,mC(nx)<mC(cur));if(nb){add(v,t0,2,cur,i,"ct");add(v,t0+2,1,nb,i,"nb");add(v,t0+3,1,cur,i,"ct")}else add(v,t0,4,cur,i,"ct")}
+        else add(v,t0,4,cur,i,"ct")}
+      else if(TX.kind==="imit"){
+        const off=k-1-v,st=t0+off;
+        if(i===0&&off>0){}/* rests until the voice enters */
+        const nb=neighbour(e,cur,true)||cur,ps=(nx&&!same(nx,cur))?(between(e,cur,nx)[0]||cur):cur;
+        [[cur,1,"ct"],[nb,0.5,nb===cur?"ct":"nb"],[cur,0.5,"ct"],[ps,1,ps===cur?"ct":"pass"],[cur,1,"ct"]].reduce((t,[m,d,tag])=>{add(v,t,d,m,i,tag);return t+d},st)}
+      else if(TX.kind==="arp"){const pat=[];for(let a=0;a<k;a++)pat.push(a);for(let a=k-2;a>0;a--)pat.push(a);
+        for(let s=0;s<8;s++)if(pat[s%pat.length]===v)add(v,t0+s*0.5,0.5,cur,i,"ct")}
+    }
+    /* bass */
+    const bv=-1,B=e.B;
+    if(TX.bass==="root")add(bv,t0,4,B,i,"ct");
+    else if(TX.bass==="drone"){if(i===0)add(bv,0,N*4,[-1,0,0,0,0,0],0,"drone",-1200)}
+    else if(TX.bass==="walk"){const bc=mC(B),C=CH[e.T];
+      const fifth=nearestOct(odd(mAdd(e.r,monzo(3,2))),bc+500),third=nearestOct(odd(mAdd(e.r,C.m[1])),bc+350);
+      let appr=B;if(nxE){const nb=nxE.B,cands=scaleTones(e,mC(nb)).map(m=>nearestOct(m,mC(nb))).filter(m=>Math.abs(mC(m)-mC(nb))>40).sort((x,y)=>Math.abs(mC(x)-mC(nb))-Math.abs(mC(y)-mC(nb)));if(cands[0])appr=cands[0]}
+      add(bv,t0,1,B,i,"ct");add(bv,t0+1,1,third,i,"ct");add(bv,t0+2,1,fifth,i,"ct");add(bv,t0+3,1,appr,i,appr===B?"ct":"pass")}
+  }
+  /* merge repeated notes into ties */
+  const out=[];const byV=new Map();ev.forEach(x=>{if(!byV.has(x.v))byV.set(x.v,[]);byV.get(x.v).push(x)});
+  for(const [v,list] of byV){list.sort((a,b)=>a.t-b.t);let cur=null;
+    for(const x of list){if(cur&&Math.abs(cur.t+cur.dur-x.t)<0.001&&Math.abs(cur.c-x.c)<0.01&&x.tag==="ct"&&(cur.tag==="ct"||cur.tag==="drone")){cur.dur+=x.dur}else{if(cur)out.push(cur);cur={...x}}}
+    if(cur)out.push(cur)}
+  return{ev:out,N,k,q}}
+const TX_COL=v=>v<0?"var(--uto)":["var(--p5)","var(--p3)","var(--p7)","var(--p11)","var(--p13)"][v%5];
+function renderTextures(){
+  const el=document.getElementById("txRoll");if(!el)return;
+  document.getElementById("txKind").innerHTML=TX_KINDS.map(([k,l])=>`<button class="chip" data-tk="${k}" aria-pressed="${TX.kind===k}">${l}</button>`).join("");
+  document.getElementById("txBass").innerHTML=TX_BASS.map(([k,l])=>`<button class="chip" data-tb="${k}" aria-pressed="${TX.bass===k}">${l}</button>`).join("");
+  document.getElementById("txTempo").innerHTML=[["slow","Slow"],["mid","Medium"],["fast","Fast"]].map(([k,l])=>`<button class="chip" data-tt="${k}" aria-pressed="${TX.tempo===k}">${l}</button>`).join("");
+  document.getElementById("txNote").textContent=TX_TEXT[TX.kind];
+  const {ev,N,k,q}=txEvents(),bw=24,pl=44,pr=12,pt=22,pb=22;
+  const all=ev.map(x=>x.c),cmin=Math.min(...all)-80,cmax=Math.max(...all)+80,ppc=0.15,H=pt+pb+(cmax-cmin)*ppc,W=pl+pr+N*4*bw,Y=c=>pt+(cmax-c)*ppc,X=b=>pl+b*bw;
+  let s=`<svg width="${W}" height="${H.toFixed(0)}" viewBox="0 0 ${W} ${H.toFixed(0)}" class="roll" role="img" aria-label="Contrapuntal texture over the pump">`;
+  for(let c=Math.ceil(cmin/100)*100;c<=cmax;c+=100){const oct=c%1200===0;s+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)" stroke-width="${oct?1:0.5}" opacity="${oct?1:0.5}"/>`;
+    if(oct){const o=c/1200;s+=`<text x="${pl-6}" y="${Y(c)+3}" font-size="9.5" text-anchor="end">${o===0?"1/1":o>0?(2**o)+"/1":"1/"+(2**-o)}</text>`}}
+  q.forEach((e,i)=>{s+=`<rect class="txbar" data-j="${i}" x="${X(i*4)}" y="${pt-4}" width="${4*bw}" height="${H-pt-pb+8}" fill="var(--sel)" opacity="0"/>`;
+    s+=`<line x1="${X(i*4)}" x2="${X(i*4)}" y1="${pt-4}" y2="${H-pb+4}" stroke="var(--muted)" opacity="${e.j===0&&i>0?0.7:0.25}"/>`;
+    s+=`<text x="${X(i*4)+3}" y="${pt-8}" font-size="9.5" style="fill:var(--p${CH[e.T].lim});font-weight:600">${CH[e.T].lab}</text>`});
+  ev.forEach(x=>{const y=Y(x.c),nct=x.tag!=="ct"&&x.tag!=="drone";
+    s+=`<rect x="${X(x.t)+1}" y="${y-3.5}" width="${Math.max(3,x.dur*bw-2)}" height="7" rx="3" fill="${TX_COL(x.v)}" ${nct?`stroke="var(--sel)" stroke-width="2"`:""} opacity="${x.tag==="drone"?0.6:1}"><title>${mStr(unitM(x.m))} · ${x.tag==="ct"?"chord tone":x.tag==="sus"?"suspension":x.tag==="ant"?"anticipation":x.tag==="pass"?"passing tone":x.tag==="nb"?"neighbour tone":"1/1 drone"}</title></rect>`;
+    if(nct&&x.dur*bw>=16)s+=`<text x="${X(x.t)+2}" y="${y-6}" font-size="8" style="fill:var(--sel);font-weight:600">${x.tag==="sus"?"sus":x.tag==="ant"?"ant":x.tag==="pass"?"p":"n"}</text>`});
+  s+=`</svg>`;
+  el.innerHTML=s;
+  const voices=[...Array(k).keys()].reverse().map(v=>`<span><i class="dot" style="background:${TX_COL(v)}"></i>${v===k-1?"top":v===0?"lowest upper":"inner"} voice</span>`).join("")+(TX.bass==="none"?"":`<span><i class="dot" style="background:${TX_COL(-1)}"></i>${TX.bass==="drone"?"1/1 drone":"bass"}</span>`)+`<span><i class="dot" style="background:transparent;box-shadow:inset 0 0 0 2px var(--sel)"></i>suspension, anticipation, passing or neighbour tone</span>`;
+  document.getElementById("txLegend").innerHTML=voices;
+}
+function playTextures(){stopAll();const {ev,N}=txEvents(),beat=TX_TEMPO[TX.tempo];
+  ev.forEach(x=>tone(S.base*Math.pow(2,x.c/1200),x.t*beat,x.dur*beat+0.04,x.v<0?0.2:0.16));
+  for(let i=0;i<N;i++)TIMERS.push(vis(()=>document.querySelectorAll("#txRoll .txbar").forEach(z=>z.setAttribute("opacity",+z.dataset.j===i?"0.13":"0")),i*4*beat*1000));
+  TIMERS.push(vis(()=>document.querySelectorAll("#txRoll .txbar").forEach(z=>z.setAttribute("opacity","0")),N*4*beat*1000+300))}
+function initTextures(){document.getElementById("txCtl").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.tk)TX.kind=b.dataset.tk;else if(b.dataset.tb)TX.bass=b.dataset.tb;else if(b.dataset.tt)TX.tempo=b.dataset.tt;else if(b.id==="txPlay"){playTextures();return}else return;
+  stopAll();renderTextures()})}
+/* ---------- compare: voice-leading across the main pumps ---------- */
+const CMP=[ // classic id, the two melodic steps the comma equates
+ {id:"c0",pair:[[9,8],[10,9]],fam:"whole tones"},
+ {id:"c1",pair:[[16,15],[25,24]],fam:"semitones"},
+ {id:"c2",pair:[[27,25],[25,24]],fam:"semitones"},
+ {id:"c3",pair:[[16,15],[21,20]],fam:"semitones"},
+ {id:"c4",pair:[[21,20],[25,24]],fam:"semitones"},
+ {id:"c5",pair:[[16,15],[15,14]],fam:"semitones"},
+ {id:"c6",pair:[[12,11],[88,81]],fam:"neutral seconds"}];
+const CS={a:"c1",b:"c5"};
+const CMP_EDOS=[12,15,16,17,19,22,24,26,27,31,41,53,72];
+function rk(r){return r[0]+"/"+r[1]}
+function moveData(id){const sc=SCH[id],VL=voiceLead(sc,1),q=VL.seq,out=[];const same=(a,b)=>oKey(a)===oKey(b)&&a[0]===b[0];
+  for(let i=0;i+1<q.length;i++){const A=q[i],B=q[i+1];const mot=[];let held=0,sum=0;
+    A.M.forEach((m,v)=>{const d=mSub(B.M[v],m),c=mC(d);sum+=Math.abs(c);if(Math.abs(c)<0.01){held++;return}
+      const u=c<0?mMul(d,-1):d;mot.push({dir:c>0?"↑":"↓",r:mStr(u),c:Math.abs(c)})});
+    out.push({from:A.T,to:B.T,root:mStr(unitM(mSub(B.r,A.r))),held,mot:mot.sort((x,y)=>x.c-y.c),sum})}
+  return out}
+function stepRuler(){
+  const steps=[...new Map(CMP.flatMap(p=>p.pair).map(r=>[rk(r),r])).values()].map(r=>({r,k:rk(r),c:cents(r[0],r[1])})).sort((a,b)=>a.c-b.c);
+  const W=760,pl=30,pr=30,base=200,X=c=>pl+(c-30)/(240-30)*(W-pl-pr);
+  let s=`<svg viewBox="0 0 ${W} 250" class="sruler" role="img" aria-label="Melodic steps joined by the comma that equates them">`;
+  [[30,"comma-sized"],[90,"semitones"],[147,"neutral"],[205,"whole tones"]].forEach(([c,l])=>s+=`<text x="${X(c)}" y="242" font-size="11" text-anchor="middle">${l}</text>`);
+  s+=`<line x1="${pl}" x2="${W-pr}" y1="${base}" y2="${base}" stroke="var(--line)" stroke-width="1.5"/>`;
+  for(let c=50;c<=225;c+=25)s+=`<line x1="${X(c)}" x2="${X(c)}" y1="${base}" y2="${base+5}" stroke="var(--line)"/><text x="${X(c)}" y="${base+17}" font-size="9" text-anchor="middle">${c}¢</text>`;
+  CMP.forEach((p,i)=>{const sc=SCH[p.id],a=cents(...p.pair[0]),b=cents(...p.pair[1]),x1=X(Math.min(a,b)),x2=X(Math.max(a,b)),hgt=38+Math.abs(x2-x1)*0.9+(i%2)*16;
+    const on=p.id===CS.a||p.id===CS.b,col=p.id===CS.a?"var(--oto)":p.id===CS.b?"var(--uto)":"var(--muted)";
+    s+=`<path d="M${x1} ${base}C${x1} ${base-hgt} ${x2} ${base-hgt} ${x2} ${base}" fill="none" stroke="${col}" stroke-width="${on?2.6:1.3}" opacity="${on?1:0.55}"/>`;
+    s+=`<text x="${(x1+x2)/2}" y="${base-hgt*0.75-4}" font-size="10.5" text-anchor="middle" style="fill:${col};font-weight:${on?700:500};paint-order:stroke;stroke:var(--surface);stroke-width:3px">${sc.info.key}${sc.info.temp?" "+sc.info.temp.split(" ")[0]:""}</text>`});
+  steps.forEach(st=>{s+=`<circle cx="${X(st.c)}" cy="${base}" r="5" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><text x="${X(st.c)}" y="${base-10}" font-size="10.5" text-anchor="middle" style="fill:var(--ink);font-weight:600;paint-order:stroke;stroke:var(--surface);stroke-width:3px">${st.k}</text>`});
+  return s+`</svg>`}
+function edoGrid(){
+  let h=`<table class="cgrid"><thead><tr><th>Pump</th>${CMP_EDOS.map(n=>`<th>${n}</th>`).join("")}</tr></thead><tbody>`;
+  CMP.forEach(p=>{const sc=SCH[p.id],[A,B]=p.pair;
+    h+=`<tr class="${p.id===CS.a?"ra":p.id===CS.b?"rb":""}"><th><span class="mono">${sc.info.key}</span> <span class="muted">${CLASSICS[+p.id.slice(1)].title}</span></th>`;
+    CMP_EDOS.forEach(n=>{const v=patent(n),sa=dotV(v,monzo(...A)),sb=dotV(v,monzo(...B)),cl=dotV(v,sc.info.D)===0;
+      h+=`<td class="${cl?"cl":""}" title="${rk(A)} = ${sa} steps, ${rk(B)} = ${sb} steps">${cl?"●":""}<small>${sa}|${sb}</small></td>`});
+    h+=`</tr>`});
+  return h+`</tbody></table>`}
+function pumpCol(id,cls){const sc=SCH[id],md=moveData(id),p=CMP.find(x=>x.id===id),tot=md.reduce((s,m)=>s+m.sum,0);
+  const steps=new Map();md.forEach(m=>m.mot.forEach(x=>steps.set(x.r,(steps.get(x.r)||0)+1)));
+  return `<div class="ccol ${cls}"><div class="stitle" style="font-size:16px">${CLASSICS[+id.slice(1)].title}</div>
+   <p class="note" style="color:var(--ink)"><b class="mono">${sc.info.key}</b> · ${fmtC(Math.abs(sc.info.c))}¢ · ${sc.info.temp||"—"} · equates <b class="mono">${rk(p.pair[0])}</b> and <b class="mono">${rk(p.pair[1])}</b></p>
+   <div class="mlist">${md.map((m,i)=>`<div class="mrow"><span class="mono">${i+1}. ${CH[m.from].lab}→${CH[m.to].lab} <span class="muted">×${m.root}</span></span><span>${m.held?`<span class="hp">${m.held} held</span>`:`<span class="hp none">none held</span>`} ${m.mot.map(x=>`<span class="mot mono">${x.dir}${x.r}</span>`).join(" ")}</span></div>`).join("")}</div>
+   <p class="note">Voice motion per loop: <b class="mono">${tot.toFixed(0)}¢</b> over ${md.length} moves · steps used: ${[...steps.entries()].map(([r,n])=>`<span class="mono">${r}</span>${n>1?"×"+n:""}`).join(", ")}</p></div>`}
+function compareText(a,b){const A=SCH[a],B=SCH[b],pa=CMP.find(x=>x.id===a),pb=CMP.find(x=>x.id===b),ma=moveData(a),mb=moveData(b);
+  const sig=m=>m.from+m.to+m.root+"|"+m.mot.map(x=>x.dir+x.r).join(",");
+  const L=Math.min(ma.length,mb.length),same=[],diff=[];for(let i=0;i<L;i++)(sig(ma[i])===sig(mb[i])?same:diff).push(i+1);
+  const desc=m=>`${CH[m.from].lab}→${CH[m.to].lab} ×${m.root}, ${m.held?m.held+" held":"nothing held"}, ${m.mot.map(x=>x.dir+x.r).join(" ")}`;
+  const sa=new Set(pa.pair.map(rk)),sharedStep=pb.pair.map(rk).filter(x=>sa.has(x));
+  const both=A.info.edos.filter(n=>B.info.edos.includes(n)),onlyA=A.info.edos.filter(n=>!B.info.edos.includes(n)&&n<=31),onlyB=B.info.edos.filter(n=>!A.info.edos.includes(n)&&n<=31);
+  let t=`<p><b>Shared material.</b> ${same.length?`Move${same.length>1?"s":""} ${same.join(", ")} ${same.length>1?"are":"is"} identical in both loops (same chords, root motion and voice motions).`:"No move is identical at the same position."} `+
+    diff.map(i=>`Move ${i} differs: <span class="mono">${desc(ma[i-1])}</span> against <span class="mono">${desc(mb[i-1])}</span>.`).join(" ")+
+    (ma.length!==mb.length?` The ${ma.length>mb.length?"first":"second"} loop is longer (${Math.max(ma.length,mb.length)} moves against ${L}).`:"")+" ";
+  t+=sharedStep.length?`Both commas involve the step <b class="mono">${sharedStep.join(", ")}</b>: the first equates it with <b class="mono">${pa.pair.map(rk).filter(x=>!sharedStep.includes(x)).join("")}</b>, the second with <b class="mono">${pb.pair.map(rk).filter(x=>!sharedStep.includes(x)).join("")}</b>.</p>`:`Their commas equate different pairs of steps, so they pull the voice-leading in unrelated directions.</p>`;
+  t+=`<p><b>Size.</b> ${A.info.key} drifts ${fmtC(Math.abs(A.info.c))}¢ per loop; ${B.info.key} drifts ${fmtC(Math.abs(B.info.c))}¢.</p>`;
+  t+=`<p><b>Tunings.</b> ${both.length?`Both loops close in ${both.filter(n=>n<=72).slice(0,8).join(", ")}-EDO.`:"No EDO up to 72 closes both."} ${onlyA.length?`Only the first closes in ${onlyA.join(", ")}.`:""} ${onlyB.length?`Only the second closes in ${onlyB.join(", ")}.`:""} Those EDOs are where the two pumps sound most different.</p>`;
+  return t}
+function renderCompare(){
+  const opts=id=>CMP.map(p=>`<option value="${p.id}"${p.id===id?" selected":""}>${CLASSICS[+p.id.slice(1)].title} (${SCH[p.id].info.key})</option>`).join("");
+  document.getElementById("cmpA").innerHTML=opts(CS.a);document.getElementById("cmpB").innerHTML=opts(CS.b);
+  document.getElementById("cmpRuler").innerHTML=stepRuler();
+  document.getElementById("cmpGrid").innerHTML=edoGrid();
+  document.getElementById("cmpPair").innerHTML=pumpCol(CS.a,"ca")+pumpCol(CS.b,"cb");
+  document.getElementById("cmpText").innerHTML=compareText(CS.a,CS.b);
+  const tb=document.getElementById("cmpTable");
+  tb.innerHTML=`<table class="cgrid"><thead><tr><th>Pump</th><th>Comma</th><th>Equates</th><th>Moves</th><th>Held per move</th><th>Motion/loop</th><th>Largest motion</th></tr></thead><tbody>`+
+   CMP.map(p=>{const sc=SCH[p.id],md=moveData(p.id),tot=md.reduce((s,m)=>s+m.sum,0),big=Math.max(...md.flatMap(m=>m.mot.map(x=>x.c)));
+     return `<tr class="${p.id===CS.a?"ra":p.id===CS.b?"rb":""}"><th>${CLASSICS[+p.id.slice(1)].title}</th><td class="mono">${sc.info.key} <span class="muted">${fmtC(Math.abs(sc.info.c))}¢</span></td><td class="mono">${rk(p.pair[0])} ≈ ${rk(p.pair[1])}</td><td class="mono">${md.length}</td><td class="mono">${md.map(m=>m.held).join(" ")}</td><td class="mono">${tot.toFixed(0)}¢</td><td class="mono">${big.toFixed(0)}¢</td></tr>`}).join("")+`</tbody></table>`;
+}
+function playCompare(which,tempered){stopAll();const ids=which==="both"?[CS.a,CS.b]:[CS[which]];let t=0;
+  const common=SCH[CS.a].info.edos.filter(n=>SCH[CS.b].info.edos.includes(n));
+  ids.forEach(id=>{const sc=SCH[id],VL=voiceLead(sc,2),n=tempered?(common[0]&&which==="both"?common.find(x=>x>=12)||common[0]:sc.info.def):0,v=n?patent(n):null;
+    VL.seq.forEach((e,i)=>{const a=0.42/Math.sqrt(e.M.length+1);[e.B,...e.M].forEach(m=>{const c=v?dotV(v,m)*1200/n:mC(m);tone(S.base*Math.pow(2,c/1200),t+i*0.85,0.95,a)})});
+    t+=VL.seq.length*0.85+0.9})}
+function initCompare(){renderCompare();
+  document.getElementById("cmpA").addEventListener("change",e=>{CS.a=e.target.value;renderCompare()});
+  document.getElementById("cmpB").addEventListener("change",e=>{CS.b=e.target.value;renderCompare()});
+  document.getElementById("cmpCtl").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!b.dataset.cp)return;const [w,t]=b.dataset.cp.split(":");playCompare(w,t==="et")})}
+/* ---------- combined harmonics + subharmonics 8–16 ---------- */
+const HU={thr:30,lims:[5,7,11,13]};
+const SEVEN=new Set(["81/80","128/125","648/625","64/63","126/125","225/224","243/242"]);
+const HUN=(()=>{const m=new Map();
+  for(let n=8;n<=16;n++){const o=unitM(monzo(n,8)),u=unitM(monzo(16,n));
+    [[o,"o",n],[u,"u",n]].forEach(([P,kind,h])=>{const k=oKey(P);if(!m.has(k))m.set(k,{m:P,k:mStr(P),c:mC(P),kinds:new Set(),h:[]});const x=m.get(k);x.kinds.add(kind);x.h.push(kind+h)})}
+  return[...m.values()].sort((a,b)=>a.c-b.c)})();
+function huIntervals(){const map=new Map();
+  HUN.forEach(a=>HUN.forEach(b=>{if(a===b)return;let d=unitM(mSub(b.m,a.m));if(mC(d)>600)d=unitM(mMul(d,-1));const k=oKey(d);if(!map.has(k))map.set(k,{m:d,k:mStr(d),c:mC(d)})}));
+  return[...map.values()].sort((a,b)=>a.c-b.c)}
+const HU_IV=huIntervals();
+function huCommas(thr){const out=new Map();
+  for(let i=0;i<HU_IV.length;i++)for(let j=i+1;j<HU_IV.length;j++){const a=HU_IV[i],b=HU_IV[j],c=b.c-a.c;if(c>thr)break;if(c<1e-6)continue;
+    const d=mSub(b.m,a.m),k=oKey(d)+"|"+d[0];if(!out.has(k))out.set(k,{m:d,k:mStr(d),c,pl:pLimitM(d),pairs:[]});out.get(k).pairs.push([a,b])}
+  return[...out.values()].sort((a,b)=>a.c-b.c)}
+function renderHURuler(){
+  const W=900,pl=24,pr=24,base=90,X=c=>pl+c/1200*(W-pl-pr);
+  let s=`<svg viewBox="0 0 ${W} 190" class="sruler" role="img" aria-label="Harmonics and subharmonics 8 to 16 on one octave">`;
+  s+=`<line x1="${pl}" x2="${W-pr}" y1="${base}" y2="${base}" stroke="var(--line)" stroke-width="1.5"/>`;
+  for(let c=0;c<=1200;c+=100)s+=`<line x1="${X(c)}" x2="${X(c)}" y1="${base-4}" y2="${base+4}" stroke="var(--line)"/><text x="${X(c)}" y="${base+18}" font-size="9" text-anchor="middle">${c}</text>`;
+  // near collisions (under 60 cents) between an otonal and a utonal note
+  for(let i=0;i+1<HUN.length;i++){const a=HUN[i],b=HUN[i+1],d=b.c-a.c;if(d<60){const k=mStr(unitM(mSub(b.m,a.m)));
+    s+=`<path d="M${X(a.c)} ${base-26}L${X(a.c)} ${base-34}L${X(b.c)} ${base-34}L${X(b.c)} ${base-26}" fill="none" stroke="var(--sel)" stroke-width="1.5"/><text x="${(X(a.c)+X(b.c))/2}" y="${base-40}" font-size="10" text-anchor="middle" style="fill:var(--sel);font-weight:600">${k}</text>`}}
+  HUN.forEach(n=>{const o=n.kinds.has("o"),u=n.kinds.has("u"),y=o&&u?base:o?base-14:base+38,col=o&&u?"var(--ink)":o?"var(--oto)":"var(--uto)";
+    s+=`<g class="hun" data-m="${n.m.join(",")}" tabindex="0"><title>${n.k} · ${fmtC(n.c)}¢ · ${n.h.join(", ")}</title><circle cx="${X(n.c)}" cy="${o&&u?base:o?base-14:base+30}" r="6" fill="${col}"/>`+
+      `<text x="${X(n.c)}" y="${o&&u?base-12:o?base-46+ (0):base+52}" font-size="10.5" text-anchor="middle" style="fill:${col};font-weight:600">${n.k}</text></g>`});
+  s+=`<text x="${pl}" y="16" font-size="10.5" style="fill:var(--oto)">● harmonics n/8 (above)</text><text x="${pl}" y="184" font-size="10.5" style="fill:var(--uto)">● subharmonics 16/n (below)</text>`;
+  return s+`</svg>`}
+function renderHU(){
+  document.getElementById("huRuler").innerHTML=renderHURuler();
+  document.getElementById("huSum").textContent=`${HUN.length} notes, ${HU_IV.length} interval classes (${HU_IV.length*2} intervals counting inversions). Three pairs of overtone and undertone notes nearly collide: 9/8 and 8/7 (64/63), 5/4 and 16/13 (65/64), 4/3 and 11/8 (33/32), plus their mirror images.`;
+}
+function initHU(){renderHU();
+  document.getElementById("huWrap").addEventListener("click",e=>{const g=e.target.closest(".hun");
+    if(g){const U=g.dataset.m.split(",").map(Number);tone(S.base,0,0.6,0.2);tone(S.base,0.65,1.6,0.2);tone(S.base*Math.pow(2,mC(U)/1200),0.65,1.6,0.2);return}
+    const b=e.target.closest("button");if(b&&b.id==="huToCommas"){CM.src="hu";goTab("commas");renderCommas();window.scrollTo(0,0)}});
+}
+/* ---------- temperament catalog (xen-core, 46 entries, every comma checked) ---------- */
+const CAT=[
+ ["meantone","Meantone","2.3.5",[1,1,0],[0,1,4],"81/80",696.6512],
+ ["dreamtone","Dreamtone","2.3.5.11.13",[1,1,0,4,10],[0,1,4,-1,-11],"33/32 55/54 975/968",690.1826],
+ ["septimal","Septimal meantone","2.3.5.7",[1,1,0,-3],[0,1,4,10],"81/80 126/125",696.6562],
+ ["porcupine","Porcupine (5-limit)","2.3.5",[1,2,3],[0,-3,-5],"250/243",163.6049],
+ ["magic","Magic (5-limit)","2.3.5",[1,0,2],[0,5,1],"3125/3072",380.6188],
+ ["hanson","Hanson (5-limit)","2.3.5",[1,0,1],[0,6,5],"15625/15552",317.1033],
+ ["porcupine11","Porcupine (11-limit)","2.3.5.7.11",[1,2,3,2,4],[0,-3,-5,6,-4],"55/54 64/63 100/99",162.8156],
+ ["porcupine7","Porcupine (7-limit)","2.3.5.7",[1,2,3,2],[0,-3,-5,6],"64/63 250/243",162.9493],
+ ["porkypine","Porkypine (2.3.5.11)","2.3.5.11",[1,2,3,4],[0,-3,-5,-4],"55/54 100/99",163.9951],
+ ["porcupinefowl","Porcupinefowl (13-limit)","2.3.5.7.11.13",[1,2,3,2,4,4],[0,-3,-5,6,-4,-2],"40/39 55/54 64/63 66/65",162.8314],
+ ["porcupinefish","Porcupinefish (13-limit)","2.3.5.7.11.13",[1,2,3,2,4,6],[0,-3,-5,6,-4,-17],"55/54 64/63 91/90 100/99",162.3458],
+ ["magic7","Magic (7-limit)","2.3.5.7",[1,0,2,-1],[0,5,1,12],"225/224 245/243",380.4576],
+ ["magic11","Magic (11-limit)","2.3.5.7.11",[1,0,2,-1,6],[0,5,1,12,-8],"100/99 225/224 245/243",380.7008],
+ ["miracle7","Miracle (7-limit)","2.3.5.7",[1,1,3,3],[0,6,-7,-2],"225/224 1029/1024",116.6756],
+ ["miracle11","Miracle (11-limit)","2.3.5.7.11",[1,1,3,3,2],[0,6,-7,-2,15],"225/224 243/242 385/384",116.6469],
+ ["pajara7","Pajara (7-limit)","2.3.5.7",[2,3,5,6],[0,1,-2,-2],"50/49 64/63",107.3438],
+ ["pajara11","Pajara (11-limit)","2.3.5.7.11",[2,3,5,6,8],[0,1,-2,-2,-6],"50/49 64/63 99/98",107.1826],
+ ["diaschismic","Diaschismic (5-limit)","2.3.5",[2,3,5],[0,1,-2],"2048/2025",104.9585],
+ ["schismic","Schismic (5-limit)","2.3.5",[1,1,7],[0,1,-8],"32805/32768",701.7308],
+ ["garibaldi","Garibaldi (7-limit)","2.3.5.7",[1,1,7,11],[0,1,-8,-14],"32805/32768 225/224",702.0774],
+ ["meanpop","Meanpop (11-limit)","2.3.5.7.11",[1,1,0,-3,11],[0,1,4,10,-13],"81/80 126/125 385/384",696.4509],
+ ["huygens","Huygens (11-limit)","2.3.5.7.11",[1,1,0,-3,-7],[0,1,4,10,18],"81/80 99/98 126/125",697.0315],
+ ["mohajira","Mohajira (11-limit)","2.3.5.7.11",[1,1,0,6,2],[0,2,8,-11,5],"81/80 121/120 176/175",348.491],
+ ["rastmic","Rastmic (2.3.11)","2.3.11",[1,1,2],[0,2,5],"243/242",350.5486],
+ ["mavila","Mavila (5-limit)","2.3.5",[1,1,4],[0,1,-3],"135/128",679.1114],
+ ["superpyth","Superpyth (7-limit)","2.3.5.7",[1,1,-3,4],[0,1,9,-2],"64/63 245/243",710.1193],
+ ["archy","Archy (2.3.7)","2.3.7",[1,1,4],[0,1,-2],"64/63",709.3901],
+ ["augmented","Augmented (5-limit)","2.3.5",[3,4,7],[0,1,0],"128/125",305.0691],
+ ["augene","Augene (7-limit)","2.3.5.7",[3,4,7,10],[0,1,0,-2],"64/63 126/125",309.3249],
+ ["diminished","Diminished (5-limit)","2.3.5",[4,6,9],[0,1,1],"648/625",98.266],
+ ["diminished7","Diminished (7-limit)","2.3.5.7",[4,6,9,11],[0,1,1,1],"36/35 50/49",95.9619],
+ ["blackwood","Blackwood (5-limit)","2.3.5",[5,8,11],[0,0,1],"256/243",155.1255],
+ ["injera","Injera (7-limit)","2.3.5.7",[2,3,4,5],[0,1,4,4],"50/49 81/80",94.7712],
+ ["hedgehog","Hedgehog (7-limit)","2.3.5.7",[2,1,1,2],[0,3,5,5],"50/49 245/243",435.4483],
+ ["catakleismic","Catakleismic (7-limit)","2.3.5.7",[1,0,1,-3],[0,6,5,22],"225/224 4375/4374",316.7705],
+ ["orwell","Orwell (7-limit)","2.3.5.7",[1,0,3,1],[0,7,-3,8],"225/224 1728/1715",271.5097],
+ ["orwell11","Orwell (11-limit)","2.3.5.7.11",[1,0,3,1,3],[0,7,-3,8,2],"99/98 121/120 176/175",271.4552],
+ ["sensi","Sensi (7-limit)","2.3.5.7",[1,-1,-1,-2],[0,7,9,13],"126/125 245/243",443.3493],
+ ["negri","Negri (7-limit)","2.3.5.7",[1,2,2,3],[0,-4,3,-2],"49/48 225/224",125.4347],
+ ["semaphore","Semaphore (2.3.7)","2.3.7",[1,2,3],[0,-2,-1],"49/48",249.311],
+ ["slendric","Slendric (2.3.7)","2.3.7",[1,1,3],[0,3,-1],"1029/1024",233.7474],
+ ["valentine","Valentine (7-limit)","2.3.5.7",[1,1,2,3],[0,9,5,-3],"126/125 1029/1024",77.8673],
+ ["myna","Myna (7-limit)","2.3.5.7",[1,-1,0,1],[0,10,9,7],"126/125 1728/1715",310.088],
+ ["wurschmidt","Würschmidt (5-limit)","2.3.5",[1,-1,2],[0,8,1],"393216/390625",387.7762],
+ ["hemiwurschmidt","Hemiwürschmidt (7-limit)","2.3.5.7",[1,-1,2,2],[0,16,2,5],"2401/2400 3136/3125",193.8883],
+ ["ennealimmal","Ennealimmal (7-limit)","2.3.5.7",[9,13,19,24],[0,2,3,2],"2401/2400 4375/4374",84.3215],
+ ["compton","Compton (7-limit)","2.3.5.7",[12,19,27,32],[0,0,1,2],"225/224 250047/250000",84.1429]
+].map(([k,n,b,r1,r2,cm,G])=>{const basis=b.split(".").map(Number),idx=basis.map(p=>PR.indexOf(p)),v1=Z6(),v2=Z6();
+  idx.forEach((ix,i)=>{v1[ix]=r1[i];v2[ix]=r2[i]});
+  return{k,n,basis,idx,v1,v2,commas:cm.split(" "),P:1200/r1[0],G}});
+const CATK=new Map(CAT.map(t=>[t.k,t]));
+/* tuned cents of a monzo in a catalog temperament: each prime is P·row1 + G·row2 */
+function tCents(k,m){const T=CATK.get(k);let c=0;for(let i=0;i<6;i++)if(m[i])c+=m[i]*(T.P*T.v1[i]+T.G*T.v2[i]);return c}
+function pumpPrimes(steps){const used=new Set([0]);steps.forEach(s=>{s.r.forEach((e,i)=>{if(e)used.add(i)});CH[s.T].m.forEach(t=>t.forEach((e,i)=>{if(e)used.add(i)}))});return used}
+/* catalog temperaments that cover every prime the loop uses and map its comma to zero */
+function closers(steps,D){const used=pumpPrimes(steps);
+  return CAT.filter(T=>[...used].every(i=>T.idx.includes(i))&&dotV(T.v1,D)===0&&dotV(T.v2,D)===0).map(T=>T.k)}
+
+/* ---------- pump library ---------- */
+const LIB=[
+ /* ---- 3- and 5-limit ---- */
+ {g:5,title:"I–IV–ii–V–I",desc:"The syntonic comma pump with IV before ii. F major hands two tones, F and A, to D minor, so D lands a minor whole tone (10/9) above C. G major then hangs from that D, and C returns a syntonic comma (81/80) flat. The comma is the gap between the two whole tones, 9/8 and 10/9.",
+  ear:"Compare with I–vi–ii–V–I: same comma, but here the slip hides inside the smoothest move, where two notes are held.",
+  seq:[["maj",[1,1]],["maj",[4,3]],["min",[5,6]],["maj",[4,3]],["maj",[4,3]]]},
+ {g:5,title:"iii–vi–ii–V–I",desc:"The jazz turnaround, started one chord earlier: C, E minor, A minor, D minor, G, C. E minor takes its root from C's just major third (5/4); four falling fifths then carry that third down to a D a minor whole tone above C, and the G and C that follow are a comma low. The same syntonic comma (81/80) as I–vi–ii–V–I.",
+  ear:"Every move after the first is a perfect fifth down and sounds inevitable, yet home arrives 21.51¢ low.",
+  seq:[["maj",[1,1]],["min",[5,4]],["min",[4,3]],["min",[2,3]],["maj",[4,3]],["maj",[4,3]]]},
+ {g:5,title:"Circle of fifths",desc:"Twelve major triads falling by pure fifths (3/2), each chord's root held as the fifth of the next: C, F, B♭, E♭ and on round the circle. Twelve pure fifths overshoot seven octaves by the Pythagorean comma (531441/524288, 23.46¢), so falling by them lands home flat. Only tunings that split the octave into twelve equal parts close it: 12-EDO, its multiples, and compton.",
+  ear:"No single move sounds wrong; every fifth is perfectly in tune. The comma only shows when you compare the end with the start.",
+  seq:[["maj",[1,1]]].concat(Array(12).fill(["maj",[2,3]]))},
+ {g:5,title:"Hexatonic cycle",desc:"Major and minor triads alternating: C, C minor, A♭, A♭ minor, E, E minor, C. Each move holds two tones and moves the third voice by a semitone, the smoothest possible voice-leading between triads (Richard Cohn's hexatonic cycle, common in late-Romantic and film harmony). The roots fall by three pure major thirds, so the cycle arrives at a C 41.06¢ sharp: the augmented diesis (128/125), the same comma as the major-third cycle.",
+  ear:"Every change moves only one note, and only by a semitone, yet the loop still lands audibly sharp.",
+  seq:[["maj",[1,1]],["min",[1,1]],["maj",[4,5]],["min",[1,1]],["maj",[4,5]],["min",[1,1]],["maj",[4,5]]]},
+ {g:5,title:"Octatonic cycle",desc:"Major and minor triads alternating by parallel and relative moves: C, C minor, E♭, E♭ minor, G♭, G♭ minor, A, A minor, C. Every move holds two tones, and the eight chords all lie in one octatonic scale. The roots rise by four pure minor thirds (6/5), which overshoot the octave by 648/625, so the cycle lands 62.57¢ sharp. Diminished temperament closes it.",
+  ear:"The relative moves (C minor to E♭) sound warm and familiar; it is the four of them in a row that climbs a third of a semitone.",
+  seq:[["maj",[1,1]],["min",[1,1]],["maj",[6,5]],["min",[1,1]],["maj",[6,5]],["min",[1,1]],["maj",[6,5]],["min",[1,1]],["maj",[6,5]]]},
+ {g:5,title:"Three minor whole tones",desc:"Down a minor third, then up a fourth, three times. Each pair works like a small vi–ii step and raises the root by a minor whole tone (10/9): C, A minor, D, B minor, E, and on. Three minor whole tones overshoot a perfect fourth (4/3) by 250/243 (49.17¢), so the final fall of a fourth lands sharp. Porcupine divides the fourth into three equal steps and closes it.",
+  ear:"It sounds like a rising sequence; the overshoot arrives as a home chord nearly a quarter-tone sharp.",
+  seq:[["maj",[1,1]],["min",[5,3]],["maj",[2,3]],["min",[5,3]],["maj",[2,3]],["min",[5,3]],["maj",[2,3]],["maj",[3,4]]]},
+ {g:5,title:"Four minor whole tones",desc:"The same sequence one step further: four rises of a minor whole tone (10/9) overshoot a perfect fifth (3/2) by 20000/19683 (27.66¢), and the final fall of a fifth lands sharp. Set beside Three minor whole tones it shows a family pattern: three 10/9 against a fourth, four against a fifth. No temperament in the catalog closes it; 7-, 34- and 41-EDO do.",
+  ear:"Longer climb, smaller drift than the three-step version: 27.66¢ against 49.17¢ per pass.",
+  seq:[["maj",[1,1]],["min",[5,3]],["maj",[2,3]],["min",[5,3]],["maj",[2,3]],["min",[5,3]],["maj",[2,3]],["min",[5,3]],["maj",[2,3]],["maj",[2,3]]]},
+ {g:5,title:"Five major thirds",desc:"Major triads rising by pure major thirds (5/4), each chord's third held as the next root: five chromatic-mediant moves instead of the three that nearly close an octave. Five major thirds overshoot a perfect twelfth (3/1) by 3125/3072 (29.61¢); a fall of a fifth closes the loop, sharp. Magic makes five major thirds exactly a twelfth, with the major third as its generator.",
+  ear:"The mediant moves sound bright and restless; the 29.61¢ appears on the fall of a fifth home.",
+  seq:[["maj",[1,1]],["maj",[5,4]],["maj",[5,4]],["maj",[5,4]],["maj",[5,4]],["maj",[5,4]],["maj",[2,3]]]},
+ {g:5,title:"Six minor thirds",desc:"Minor triads rising by minor thirds (6/5), each chord's minor third held as the next root, six times. Six minor thirds fall short of a perfect twelfth (3/1) by the kleisma (15625/15552, 8.11¢); a rise of a fourth closes the loop, flat. Hanson tempers the kleisma and uses the minor third as its generator.",
+  ear:"A long chain with a tiny drift: after three passes home is only 24.32¢ flat.",
+  seq:[["min",[1,1]],["min",[6,5]],["min",[6,5]],["min",[6,5]],["min",[6,5]],["min",[6,5]],["min",[6,5]],["min",[4,3]]]},
+ {g:5,title:"Falling thirds and tones",desc:"A major third down, two whole tones down, a major third down. Each new chord is built so the previous root becomes its major third (5/4) or its ninth (9/8). Two major thirds and two major whole tones fall short of an octave by the diaschisma (2048/2025, 19.55¢), so home lands sharp. The diaschisma is the augmented diesis less a syntonic comma; pajara, which divides the octave into two equal halves, closes it.",
+  ear:"The two ninth chords in the middle carry the drift; the outer moves sound like plain mediants.",
+  roots:[["maj","1/1"],["maj","8/5"],["h9","64/45"],["h9","512/405"],["maj","2048/2025"]]},
+ {g:5,title:"Eight fifths and a major third",desc:"Rising fifths C, G, D, A, E, B, F♯, C♯, G♯, then up a major third to B♯, taken as home. Eight pure fifths and a pure major third overshoot five octaves by the schisma (32805/32768, 1.95¢): B♯ reached by fifths is a hair sharp of a just C. Schismic and garibaldi temper it, so their chains of fifths reach near-just major thirds.",
+  ear:"Close to inaudible, under 2¢ per pass. Listen for how long the chain is, not for the drift.",
+  seq:[["maj",[1,1]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[5,4]]]},
+ {g:5,title:"Three fifths and a major third",desc:"Rising fifths C, G, D, A, then up a major third to C♯, taken as home. Three fifths and a major third overshoot two octaves by 135/128 (92.18¢), a whole chromatic semitone. Only a tuning with very flat fifths makes this pun: mavila, whose fifth is 679.11¢ in the catalog tuning, closes it.",
+  ear:"Almost a semitone of drift per pass; in mavila the same moves come straight home.",
+  seq:[["maj",[1,1]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[5,4]]]},
+ {g:5,title:"Five fifths",desc:"Rising fifths C, G, D, A, E, B, with B taken as home. Five pure fifths fall short of three octaves by the Pythagorean limma (256/243, 90.22¢), so home is a semitone low. Blackwood closes it with five equal periods of 240¢, a pentatonic world where the diatonic semitone vanishes.",
+  ear:"The last chord is plainly a semitone flat; in blackwood the loop returns exactly home.",
+  seq:[["maj",[1,1]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]],["maj",[3,2]]]},
+ /* ---- 7-limit ---- */
+ {g:7,title:"German sixth",desc:"C⁷ with a harmonic seventh (7/4), heard as the German sixth of E minor: the B♭ is respelled A♯ and rises a diatonic semitone (16/15) to B, while C falls to B. No tone is held; instead two voices converge on B, and the two Bs disagree, because the harmonic seventh is 7.71¢ flat of the augmented sixth (225/128). Following the B major chord home through E minor and C lands flat by the marvel comma (225/224).",
+  ear:"The classic enharmonic pivot of the dominant seventh. Septimal meantone, miracle and the other marvel temperaments make the pun exact.",
+  roots:[["h7","1/1"],["maj","28/15"],["min","56/45"],["maj","224/225"]]},
+ {g:7,title:"Tritone substitution",desc:"A harmonic seventh chord and its tritone substitute a septimal tritone (7/5) away: the harmonic seventh of each chord becomes the major third of the next, the shared-tone trick behind jazz tritone substitution. Taking the substitution twice should return home, but two septimal tritones fall short of an octave by the jubilisma (50/49, 34.98¢). Pajara and the 7-limit diminished temperament make the tritone exactly half an octave.",
+  ear:"One tone of the tritone is shared exactly; the other half, which a 12-EDO ear expects to be shared too, is off by 50/49.",
+  seq:[["h7",[1,1]],["h7",[7,5]],["h7",[7,5]]]},
+ {g:7,title:"Otonal–utonal swing",desc:"Harmonic seventh chords (4:5:6:7) alternating with utonal ones, each move holding two tones: the tonality diamond in motion. The utonal chord on 1/1 shares its root and harmonic seventh with C⁷; each following move reinterprets a held tone as a different harmonic. After four moves the root has risen by 7/5, 5/4 and 7/6, which lands 49/48 (35.70¢) above home: the slendro diesis. Negri closes it.",
+  ear:"Listen to the colour change on every move, otonal chords fused and bright, utonal ones hollow and dark, while two notes carry over each time.",
+  roots:[["h7","1/1"],["u7","1/1"],["h7","7/5"],["u7","7/4"],["h7","49/48"]]},
+ {g:7,title:"Two septimal whole tones",desc:"Harmonic seventh chords rising by septimal whole tones (8/7): each chord's root is held as the harmonic seventh of the next, the way a root can be reheard as the seventh of the chord a wide whole tone above. Two septimal whole tones fall short of a perfect fourth (4/3) by the slendro diesis (49/48, 35.70¢); the closing fall of a fourth lands flat. Negri closes it.",
+  ear:"Each rise sounds like a wide, warm whole tone; the shortfall appears on the fall of a fourth.",
+  seq:[["h7",[1,1]],["h7",[8,7]],["h7",[8,7]],["h7",[3,4]]]},
+ {g:7,title:"Three septimal whole tones",desc:"The same chain one step longer: three septimal whole tones (8/7) fall short of a perfect fifth (3/2) by the gamelisma (1029/1024, 8.43¢), and the closing fall of a fifth lands flat. Miracle and valentine make three 8/7 exactly a fifth.",
+  ear:"One more rise than Two septimal whole tones, but a much smaller drift: 8.43¢ against 35.70¢.",
+  seq:[["h7",[1,1]],["h7",[8,7]],["h7",[8,7]],["h7",[8,7]],["h7",[4,3]]]},
+ {g:7,title:"Minor third up, subminor third down",desc:"Up a minor third (6/5), then down a subminor third (7/6): the fifth of C⁷ becomes the major third of the next chord, whose fifth then becomes the harmonic seventh of the third. The two minor thirds of septimal harmony differ by the septimal diesis (36/35, 48.77¢), so two moves land almost a quarter-tone sharp. The 7-limit diminished temperament treats them as one minor third.",
+  ear:"Two moves, a quarter-tone of drift: the most direct way to hear 6/5 against 7/6.",
+  seq:[["h7",[1,1]],["h7",[6,5]],["h7",[6,7]]]},
+ {g:7,title:"Two supermajor thirds",desc:"Supermajor triads (14:18:21) rising by supermajor thirds (9/7), each chord's third held as the next root. Two supermajor thirds fall short of a major sixth (5/3) by 245/243 (14.19¢); a minor third up to a major triad, which then turns supermajor again, closes the loop flat. Magic, superpyth and sensi close it.",
+  ear:"The supermajor thirds sound wide and bright; the drift sits on the move into the plain major triad.",
+  seq:[["sup",[1,1]],["sup",[9,7]],["sup",[9,7]],["maj",[6,5]],["sup",[1,1]]]},
+ {g:7,title:"Septimal seesaw",desc:"Supermajor and subminor triads alternating: each supermajor triad's third becomes the root of a subminor triad, which then turns supermajor on the same root. Every move holds two tones, the septimal counterpart of the hexatonic cycle. The roots rise by supermajor thirds (9/7), two of which fall short of a major sixth (5/3) by 245/243, so this is Two supermajor thirds with smoother voice-leading.",
+  ear:"Listen to the flicker between bright and dark on each pair of chords; the comma appears on the move into the major triad.",
+  seq:[["sup",[1,1]],["sub",[9,7]],["sup",[1,1]],["sub",[9,7]],["sup",[1,1]],["maj",[6,5]],["sup",[1,1]]]},
+ {g:7,title:"Three subminor thirds",desc:"Subminor triads (6:7:9) rising by subminor thirds (7/6), each chord's subminor third held as the next root. Three subminor thirds fall short of a minor sixth (8/5) by 1728/1715 (13.07¢); a minor triad a major third up, then subminor again, closes the loop flat. Orwell, superpyth and myna close it.",
+  ear:"The subminor chords sound dark and close; three of them climb almost exactly a minor sixth.",
+  seq:[["sub",[1,1]],["sub",[7,6]],["sub",[7,6]],["sub",[7,6]],["min",[5,4]],["sub",[1,1]]]},
+ /* ---- 11-limit ---- */
+ {g:11,title:"Neutral third as minor third",desc:"C major's fifth is held as the neutral third (11/9) of a neutral triad on an E 31.77¢ below the just one, and that E is then held as the major third of C. With a minor third in place of the neutral one, the same path is simply C to E minor and back; with the neutral third it lands 31.77¢ flat. The neutral and minor thirds differ by 55/54; porcupine and dreamtone treat them as one interval.",
+  ear:"Only two moves: the neutral triad in the middle, neither major nor minor, is the sound to listen for.",
+  roots:[["maj","1/1"],["neu","27/22"],["maj","108/55"]]},
+ {g:11,title:"Superfourth as fourth",desc:"The 11th harmonic of C, the undecimal superfourth (11/8, 551.32¢) of an 8:10:11:12 chord, becomes the root of a major triad, and a fifth above it is taken as home. If the superfourth were a perfect fourth that fifth would be C; instead it is a quarter-tone sharp, because 11/8 exceeds 4/3 by the undecimal quarter-tone (33/32, 53.27¢). Dreamtone closes it.",
+  ear:"A quarter-tone per pass: after three passes the loop is 159.82¢ sharp, most of a whole tone.",
+  seq:[["h11",[1,1]],["maj",[11,8]],["maj",[3,4]],["h11",[1,1]]]},
+ {g:11,title:"Two superfourths",desc:"8:10:11:12 chords rising by superfourths (11/8), each chord's 11th harmonic held as the next root. Two superfourths overshoot a just major seventh (15/8) by the biyatisma (121/120, 14.37¢), which is also the gap between the neighbouring overtone steps 11/10 and 12/11. A fall of a major third and a fifth closes the loop, sharp. Mohajira and porcupine (11-limit) close it.",
+  ear:"The superfourth chords sound open and tense; the drift appears as the chain resolves down to home.",
+  seq:[["h11",[1,1]],["h11",[11,8]],["h11",[11,8]],["maj",[4,5]],["h11",[2,3]]]},
+ {g:11,title:"Two whole tones of the series",desc:"C⁹'s ninth, D, becomes the root of a neutral triad; its neutral third, which is C's 11th harmonic, becomes the major third of a ninth chord on 11/10; that chord's ninth becomes the major third of the last chord. The loop lands flat by the ptolemisma (100/99, 17.40¢), the difference between the minor whole tone (10/9) and the neutral second (11/10), neighbouring steps of the harmonic series.",
+  ear:"Ninth chords and a neutral triad alternate; the 11th harmonic in the middle is the hinge.",
+  roots:[["h9","1/1"],["neu","9/8"],["h9","11/10"],["h9","99/50"]]},
+ {g:11,title:"Supermajor third as 14/11",desc:"C is held as the neutral third of a neutral triad below it, whose root becomes the fifth of a subminor triad; that chord's subminor third (7/6) is then reheard as the supermajor third (9/7) of home. The undecimal major third 14/11 and the supermajor third 9/7 differ by the mothwellsma (99/98, 17.58¢), and the loop lands that much flat. Huygens and the 11-limit pajara and orwell close it.",
+  ear:"Listen to the last move: a subminor third turns into a supermajor third, two septimal colours joined through the 11-limit.",
+  roots:[["sup","1/1"],["neu","18/11"],["sub","12/11"],["sup","196/99"]]},
+ {g:11,title:"Neutral second as 35/32",desc:"C⁷ to A♭ (C held as its major third), A♭ held as the neutral third of a neutral triad, that triad's root held as the fifth of a major triad, and finally that triad's root held as the harmonic seventh of C⁷. Four reinterpretations, and the loop lands 4.50¢ flat: the keenanisma (385/384), the gap between the neutral second (12/11) and 35/32. Miracle (11-limit), meanpop and mohajira close it.",
+  ear:"The drift is barely audible; the interest is the chain of meanings, ending with a root turned into a harmonic seventh.",
+  roots:[["h7","1/1"],["maj","8/5"],["neu","72/55"],["maj","96/55"],["h7","768/385"]]},
+ {g:11,title:"11/10 as 35/32",desc:"C to A♭, A♭'s fifth held as the root of a neutral triad, that triad's neutral third held as the harmonic seventh of the next chord, and that chord's fifth held as C's major third. The loop lands 9.86¢ sharp: the valinorsma (176/175), the gap between the neutral second 11/10 and 35/32. Huygens, mohajira and orwell (11-limit) close it.",
+  ear:"Each move holds one tone and changes its meaning: fifth to root, neutral third to harmonic seventh, fifth to major third.",
+  roots:[["maj","1/1"],["maj","8/5"],["neu","6/5"],["h7","176/105"],["maj","176/175"]]},
+ /* ---- 13-limit ---- */
+ {g:13,title:"Neutral sixth as minor sixth",desc:"C is held as the 13th harmonic (13/8) of a chord on an E 26.84¢ below the just one (16/13), and that E is then held as the major third of C. The 13th harmonic and the minor sixth (8/5) differ by 65/64, so two moves land 26.84¢ flat.",
+  ear:"The 8:10:12:13 chord in the middle has a soft, ambiguous top note; that note is home, reheard.",
+  roots:[["maj","1/1"],["h13","16/13"],["maj","128/65"]]},
+ {g:13,title:"Thirteenth harmonic as major sixth",desc:"The 13th harmonic of C (13/8), an A 43.83¢ below the just major sixth, becomes the root of A minor, and A minor moves to its relative major. Relative major and minor share two tones, so the move sounds entirely ordinary, but the C it reaches is 40/39 flat: the 13th harmonic has stood in for the major sixth (5/3). Porcupinefowl closes it.",
+  ear:"A minor and its relative major share two tones; the 43.83¢ appears only when you compare the final C with the first.",
+  roots:[["h13","1/1"],["min","13/8"],["maj","39/20"],["h13","39/20"]]},
+ {g:13,title:"The two neutral thirds",desc:"A neutral triad's neutral third (11/9) becomes the root of an 8:10:12:13 chord, whose 13th harmonic (13/8) becomes the next root. A neutral third and a neutral sixth should add up to an octave, but 11/9 and 13/8 fall 12.06¢ short: the grossma (144/143), the gap between the harmonic series' two neutral thirds, 11/9 and 16/13.",
+  ear:"Both chords are neutral in colour; the drift is the difference between the 11-limit and 13-limit neutral thirds.",
+  roots:[["neu","1/1"],["h13","11/9"],["neu","143/72"]]},
+ {g:13,title:"14/13 as 13/12",desc:"C⁷'s harmonic seventh (7/4) is held as the 13th harmonic of a chord 14/13 above C; that chord's fifth is then held as the 13th harmonic of the next. The neighbouring overtone steps 14/13 and 13/12 differ by the buzurgisma (169/168, 10.27¢), so the loop lands flat.",
+  ear:"Two 13th-harmonic reinterpretations in a row; the second chord's fifth is the hinge.",
+  roots:[["h7","1/1"],["h13","14/13"],["h13","336/169"],["h7","336/169"]]},
+ {g:13,title:"Semitone as 14/13",desc:"C is held as the fifth of an 8:10:12:13 chord on F; F's 13th harmonic is then held as the harmonic seventh of the next chord, whose root becomes C's major third. The diatonic semitone (16/15) and 14/13 differ by 105/104 (16.57¢), and the loop lands that much flat. Porcupinefowl closes it.",
+  ear:"Listen to the middle move: a 13th harmonic becomes a harmonic seventh, two high harmonics trading meanings.",
+  roots:[["maj","1/1"],["h13","4/3"],["h7","26/21"],["maj","208/105"]]},
+ {g:13,title:"13/12 as 15/14",desc:"C major's fifth is held as the 13th harmonic of a chord on 24/13; that chord's fifth becomes the harmonic seventh of the next chord, whose major third is then heard as home. The steps 13/12 and 15/14 differ by 91/90 (19.13¢), and the loop lands flat. Porcupinefish closes it.",
+  ear:"The second chord's harmonic seventh is borrowed from a 13-limit chord; that is where the 19.13¢ goes.",
+  roots:[["maj","1/1"],["h13","24/13"],["h7","144/91"],["maj","180/91"]]},
+ {g:13,title:"13/12 as 11/10",desc:"A neutral triad's root is held as the fifth of an 8:10:12:13 chord on F; that chord's 13th harmonic becomes the ninth (9/8) of a ninth chord, whose major third is then heard as the neutral third of home. The steps 13/12 and 11/10 differ by 66/65 (26.43¢), and the loop lands flat. Porcupinefowl closes it.",
+  ear:"Three chord types in four chords: the comma hides between a 13th harmonic and a ninth.",
+  roots:[["neu","1/1"],["h13","4/3"],["h9","52/27"],["neu","65/33"]]},
+ {g:13,title:"Neutral third as 39/32",desc:"A neutral triad's fifth becomes the root of an 8:10:12:13 chord, whose 13th harmonic (39/32 above C) is then held as the neutral third of home. The two neutral thirds 11/9 and 39/32 differ by 352/351 (4.93¢), so the loop lands just flat.",
+  ear:"A tiny drift: 13-limit and 11-limit neutral thirds nearly coincide, which is why one can stand in for the other.",
+  roots:[["neu","1/1"],["h13","3/2"],["neu","351/176"]]}
+];
+function stepsFromRoots(roots){return roots.map(([T,r])=>{const [n,d]=r.split("/").map(Number);return{T,r:odd(monzo(n,d))}})}
+const LIBIDS={5:[],7:[],11:[],13:[]};
+function buildLibrary(){
+  CLASSICS.forEach((c,i)=>{const id="c"+i,sc=SCH[id];const g=sc.info.pl<=5?5:sc.info.pl;LIBIDS[g].push(id)});
+  LIB.forEach((e,i)=>{const steps=e.seq?stepsFromSeq(e.seq):stepsFromRoots(e.roots);const id="b"+i;
+    SCH[id]={title:e.title,desc:e.desc,ear:e.ear,steps,info:info(steps)};LIBIDS[e.g].push(id)});
+  Object.keys(SCH).forEach(k=>{const sc=SCH[k];if(sc.steps&&!sc.closers)sc.closers=closers(sc.steps,sc.info.D)});
+}
+
+/* ---------- pump transforms ---------- */
+const sameTone=(a,b)=>oKey(a)===oKey(b);
+function normSteps(steps){const r0=steps[0].r;return steps.map(s=>({T:s.T,r:odd(mSub(s.r,r0))}))}
+function rotateSteps(steps,k){const L=steps.length-1,D=steps[L].r;
+  const out=steps.slice(k,L+1).concat(steps.slice(1,k+1).map(s=>({T:s.T,r:odd(mAdd(s.r,D))})));return normSteps(out)}
+function retroSteps(steps){return normSteps(steps.slice().reverse())}
+function mirrorChord(T,r){const neg=CH[T].m.map(t=>mMul(odd(mAdd(r,t)),-1)),keys=new Set(neg.map(oKey));
+  for(const T2 of Object.keys(CH)){if(CH[T2].m.length!==neg.length)continue;
+    for(const R of neg){if(CH[T2].m.every(t=>keys.has(oKey(odd(mAdd(R,t))))))return{T:T2,r:odd(R)}}}
+  return null}
+function mirrorSteps(steps){const out=[];for(const s of steps){const m=mirrorChord(s.T,s.r);if(!m)return null;out.push(m)}return normSteps(out)}
+function combineSteps(A,B){const out=A.map(s=>({T:s.T,r:s.r.slice()})),end=A[A.length-1].r,T0=A[0].T;
+  if(B[0].T!==T0)out.push({T:B[0].T,r:end.slice()});
+  for(let j=1;j<B.length;j++)out.push({T:B[j].T,r:odd(mAdd(end,B[j].r))});
+  if(B[0].T!==T0)out.push({T:T0,r:out[out.length-1].r.slice()});
+  return out}
+function heldPerMove(steps){const out=[];for(let i=0;i+1<steps.length;i++){const a=CH[steps[i].T].m.map(t=>oKey(odd(mAdd(steps[i].r,t)))),b=new Set(CH[steps[i+1].T].m.map(t=>oKey(odd(mAdd(steps[i+1].r,t)))));out.push(a.filter(x=>b.has(x)).length)}return out}
+
+/* ---------- several pumps for one comma ---------- */
+function pumpsForComma(n,d,max){max=max||8;
+  const M=normM(monzo(n,d)),c=mC(M),can=c<0?mMul(M,-1):M,key=mStr(can);
+  const primes=PR.filter((p,i)=>i>0&&can[i]!==0);
+  const types=Object.keys(CH).filter(k=>CH[k].m.every(t=>PR.every((p,i)=>i===0||t[i]===0||primes.includes(p)||p===3||p===5)));
+  const vocabs=[types.filter(t=>["maj","min"].includes(t)),types.filter(t=>["maj","min","h7","u7","sub","sup"].includes(t)),types];
+  const seen=new Map();
+  for(const voc of vocabs){if(voc.length<1)continue;for(const shared of [2,1])for(const start of voc){
+    const {out}=search({types:voc,start,shared,len:6,thr:Math.abs(c)+0.01});
+    out.filter(o=>o.info.key===key).forEach(o=>{const sig=o.steps.map(x=>x.T+oKey(x.r)).join(">");
+      if(!seen.has(sig)){const held=heldPerMove(o.steps);seen.set(sig,{steps:o.steps,info:o.info,len:o.len,held,minHeld:Math.min(...held)})}})}}
+  const list=[...seen.values()].sort((a,b)=>b.minHeld-a.minHeld||a.len-b.len||b.held.reduce((s,x)=>s+x,0)-a.held.reduce((s,x)=>s+x,0));
+  return{key,c,types,list:list.slice(0,max),total:list.length}
+}
+
+/* ---------- library, finder and builder views ---------- */
+const LB={g:"all",t:"",no12:false};
+function tempName(k){return CATK.get(k).n}
+function renderLibrary(){
+  const el=document.getElementById("classics");
+  const used=new Set();Object.values(LIBIDS).flat().forEach(id=>SCH[id].closers.forEach(k=>used.add(k)));
+  document.getElementById("lbLim").innerHTML=[["all","All"],["5","3- and 5-limit"],["7","7-limit"],["11","11-limit"],["13","13-limit"]].map(([k,l])=>`<button class="chip" data-lg="${k}" aria-pressed="${LB.g===k}">${l}</button>`).join("");
+  const ts=document.getElementById("lbTemp");ts.innerHTML=`<option value="">Any temperament</option>`+CAT.filter(T=>used.has(T.k)).map(T=>`<option value="${T.k}"${LB.t===T.k?" selected":""}>${T.n}</option>`).join("");
+  const groups=(LB.g==="all"?[5,7,11,13]:[+LB.g]);let n=0,h="";
+  groups.forEach(g=>{const ids=LIBIDS[g].filter(id=>(!LB.t||SCH[id].closers.includes(LB.t))&&(!LB.no12||!SCH[id].info.edos.includes(12)));if(!ids.length)return;n+=ids.length;
+    h+=`<h3 class="lbh">${g===5?"3- and 5-limit":g+"-limit"} <span class="muted">· ${ids.length}</span></h3>`+ids.map(id=>cardHTML(id,SCH[id])).join("")});
+  document.getElementById("lb12").setAttribute("aria-pressed",LB.no12);
+  el.innerHTML=h||`<div class="empty">No pump in the library matches these filters.</div>`;
+  document.getElementById("lbCount").textContent=`${n} pump${n===1?"":"s"}`+(LB.t?` that close in ${tempName(LB.t)}`:"")+(LB.no12?`${LB.t?" but":" that"} 12-EDO does not close`:"")+`, out of ${Object.values(LIBIDS).flat().length}.`;
+  el.querySelectorAll(".scard").forEach(c=>renderViz(c.id.slice(3)));
+}
+function pumpOptions(sel){const opt=id=>`<option value="${id}"${id===sel?" selected":""}>${SCH[id].title||"Pump"} (${SCH[id].info.key})</option>`;
+  return [5,7,11,13].map(g=>`<optgroup label="${g===5?"3- and 5-limit":g+"-limit"}">${LIBIDS[g].map(opt).join("")}</optgroup>`).join("")+
+    `<optgroup label="Lattice arms">${ARMS.map((A,i)=>opt("L"+i)).join("")}</optgroup>`+(SCH.x?`<optgroup label="Picked">${opt("x")}</optgroup>`:"")}
+/* finder: several pumps for one comma */
+const FC={text:"225/224"};
+function findPumpFor(text){if(text)FC.text=String(text).trim();goTab("find");window.scrollTo(0,0);document.getElementById("fcComma").value=FC.text;runFinder()}
+function runFinder(){
+  const msg=document.getElementById("fcMsg"),list=document.getElementById("fcList");
+  const m=/^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(FC.text);
+  if(!m){msg.textContent="Type a comma as a ratio, like 225/224.";list.innerHTML="";return}
+  const n=+m[1],d=+m[2];if(!n||!d||n===d){msg.textContent="That ratio is 1/1. Enter a small interval such as 81/80.";list.innerHTML="";return}
+  if(Object.keys(factor(n*d)).some(p=>+p>13)){msg.textContent="Only primes up to 13 are supported.";list.innerHTML="";return}
+  const c=Math.abs(mC(normM(monzo(n,d))));if(c>100){msg.textContent=`${n}/${d} is ${fmtC(c)}¢ from the nearest unison or octave, larger than a comma. Try something under 100¢.`;list.innerHTML="";return}
+  msg.textContent=`Searching for pumps of ${n}/${d}…`;list.innerHTML="";
+  setTimeout(()=>{const r=pumpsForComma(n,d,8);
+    Object.keys(SCH).forEach(k=>{if(/^a\d+$/.test(k))delete SCH[k]});
+    if(!r.list.length){msg.textContent=`No loop of up to 6 moves pumps ${r.key} with these chords (${r.types.map(t=>CH[t].lab).join(", ")}).`;return}
+    msg.textContent=`${r.total} distinct loop${r.total===1?"":"s"} pump ${r.key}${TEMP[r.key]?" ("+TEMP[r.key]+")":""}; showing ${r.list.length}, those that hold the most common tones first.`;
+    list.innerHTML=r.list.map((o,i)=>{const id="a"+i;SCH[id]={steps:o.steps,info:o.info,title:`${o.len}-move pump · holds ${o.minHeld===o.held.reduce((a,b)=>Math.max(a,b),0)?o.minHeld:o.minHeld+"–"+Math.max(...o.held)} per move`,closers:closers(o.steps,o.info.D)};return cardHTML(id,SCH[id])}).join("");
+    r.list.forEach((o,i)=>renderViz("a"+i))},30)}
+/* builder */
+const BT={src:"c0",op:"retro",rot:1},BC={a:"c0",b:"c1",rev:false};
+function setResult(id,steps,title,desc){const inf=info(steps);SCH[id]={steps,info:inf,title,desc,closers:isZero(inf.D)?[]:closers(steps,inf.D)};
+  const box=document.getElementById(id==="bt"?"btOut":"bcOut");box.innerHTML=cardHTML(id,SCH[id]);renderViz(id)}
+const signC=c=>(c<0?"−":"+")+fmtC(Math.abs(c))+"¢";
+function renderBuild(){
+  const src=SCH[BT.src],L=src.steps.length-1;
+  document.getElementById("btSrc").innerHTML=pumpOptions(BT.src);
+  document.getElementById("btOp").innerHTML=[["retro","Retrograde"],["rot","Rotate"],["mirror","Mirror"]].map(([k,l])=>`<button class="chip" data-bo="${k}" aria-pressed="${BT.op===k}">${l}</button>`).join("");
+  const rc=document.getElementById("btRot");rc.hidden=BT.op!=="rot";if(BT.rot<1||BT.rot>=L)BT.rot=1;
+  rc.innerHTML=L<2?`<span class="note">This loop has only ${L} move${L===1?"":"s"}; rotating it changes nothing.</span>`:`<span class="lbl">Start on chord</span><div class="chips">${src.steps.slice(1,L).map((s,i)=>`<button class="chip" data-br="${i+1}" aria-pressed="${BT.rot===i+1}">${i+2}. ${CH[s.T].lab} ${mStr(unitM(s.r))}</button>`).join("")}</div>`;
+  const name=src.title||"Pump";
+  if(BT.op==="retro"){const st=retroSteps(src.steps);setResult("bt",st,`${name}, backwards`,`The same chords in reverse order. The comma is inverted: the loop that drifted ${signC(src.info.c)} now drifts ${signC(info(st).c)} per pass, so playing it after the original walks back home.`)}
+  else if(BT.op==="rot"){if(L<2){setResult("bt",src.steps,name,"Unchanged.")}else{const st=rotateSteps(src.steps,BT.rot);setResult("bt",st,`${name}, from chord ${BT.rot+1}`,`Same chords and same comma, starting elsewhere in the loop. The drift is the same; where it is felt moves, because a different chord now has to return home.`)}}
+  else{const st=mirrorSteps(src.steps);if(!st){document.getElementById("btOut").innerHTML=`<div class="empty">This pump uses a chord with no mirror in the vocabulary (${[...new Set(src.steps.map(s=>s.T))].filter(t=>!mirrorChord(t,Z6())).map(t=>CH[t].name).join(", ")}), so it cannot be mirrored.</div>`;delete SCH.bt}
+    else setResult("bt",st,`${name}, mirrored`,`Every chord turned upside down: otonal chords become utonal ones (major ↔ minor, 4:5:6:7 ↔ its utonal form, subminor ↔ supermajor) and every root motion is inverted. The comma keeps its size and changes direction (${signC(src.info.c)} becomes ${signC(info(st).c)}).`)}
+  document.getElementById("bcA").innerHTML=pumpOptions(BC.a);document.getElementById("bcB").innerHTML=pumpOptions(BC.b);
+  document.getElementById("bcMode").innerHTML=[[false,"A then B"],[true,"A then B backwards"]].map(([k,l])=>`<button class="chip" data-bm="${k}" aria-pressed="${BC.rev===k}">${l}</button>`).join("");
+  const A=SCH[BC.a],B=SCH[BC.b],Bs=BC.rev?retroSteps(B.steps):B.steps,st=combineSteps(A.steps,Bs),inf=info(st),cb=info(Bs).c;
+  const sum=`${A.info.key} (${signC(A.info.c)}) ${BC.rev?"then "+B.info.key+" backwards":"then "+B.info.key} (${signC(cb)}) = ${isZero(inf.D)?"no drift: the loop returns exactly home":inf.key+" ("+signC(inf.c)+")"}.`;
+  setResult("bc",st,`${A.title||"A"} + ${B.title||"B"}${BC.rev?" backwards":""}`,`Comma arithmetic: ${sum}${A.steps[0].T!==Bs[0].T?" The two loops start on different chords, so a chord change on the same root joins them.":""} Any temperament that tempers both commas also tempers the result.`);
+}
+function initPumpViews(){
+  buildLibrary();renderLibrary();
+  bindCards(document.getElementById("classics"));bindCards(document.getElementById("fcList"));bindCards(document.getElementById("btOut"));bindCards(document.getElementById("bcOut"));
+  document.getElementById("lbCtl").addEventListener("click",e=>{const b=e.target.closest("button");if(b&&b.dataset.lg){LB.g=b.dataset.lg;renderLibrary()}else if(b&&b.id==="lb12"){LB.no12=!LB.no12;renderLibrary()}});
+  document.getElementById("lbTemp").addEventListener("change",e=>{LB.t=e.target.value;renderLibrary()});
+  document.getElementById("fcGo").addEventListener("click",()=>{FC.text=document.getElementById("fcComma").value;runFinder()});
+  document.getElementById("fcComma").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();FC.text=e.target.value;runFinder()}});
+  document.getElementById("fcEx").innerHTML=["81/80","225/224","1029/1024","2048/2025","385/384","65/64","144/143"].map(k=>`<button class="chip mono" data-fx="${k}">${k}</button>`).join("");
+  document.getElementById("fcEx").addEventListener("click",e=>{const b=e.target.closest("button");if(b){FC.text=b.dataset.fx;document.getElementById("fcComma").value=FC.text;runFinder()}});
+  document.getElementById("fcComma").value=FC.text;
+  const bt=document.getElementById("btCtl");
+  bt.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.bo)BT.op=b.dataset.bo;else if(b.dataset.br)BT.rot=+b.dataset.br;else if(b.dataset.bm!==undefined)BC.rev=b.dataset.bm==="true";else return;stopAll();renderBuild()});
+  document.getElementById("btSrc").addEventListener("change",e=>{BT.src=e.target.value;BT.rot=1;stopAll();renderBuild()});
+  document.getElementById("bcA").addEventListener("change",e=>{BC.a=e.target.value;stopAll();renderBuild()});
+  document.getElementById("bcB").addEventListener("change",e=>{BC.b=e.target.value;stopAll();renderBuild()});
+  renderBuild();
+}
+/* ---------- dock ---------- */
+let more=false;
+function renderDock(){
+  const [n,d]=S.sel,k=key(n,d),c=cents(n,d),m=monzo(n,d),pl=pLimit(n,d),ol=oLimit(n,d);
+  const iv=MAP.get(k);
+  let h=`<div class="dock-top"><span class="d-ratio c${pl}">${k}</span><span class="mono">${fmtC(c)}¢</span>`+
+    `<span class="badge c${pl}">${pl}-prime</span><span class="badge muted">${ol}-odd</span>`+
+    (NAMES[k]?`<span class="d-name">${NAMES[k]}</span>`:"")+
+    `<span class="d-actions"><button class="btn pri" id="dTog">▶ Together</button><button class="btn" id="dApart">▶ Apart</button>`+
+    `<button class="btn" id="dStop">■ Stop</button><button class="btn" id="dMore" aria-expanded="${more}">${more?"Less":"Details"}</button></span></div>`;
+  if(more){
+    let t=`<table><thead><tr><th>EDO</th><th class="num">Steps</th><th class="num">Error</th></tr></thead><tbody>`;
+    EDO_SHOW.forEach(e=>{const st=Math.round(c*e/1200),err=st*1200/e-c;t+=`<tr style="cursor:default"><td class="mono">${e}</td><td class="num mono">${st}</td><td class="num mono">${err>=0?"+":""}${err.toFixed(1)}¢</td></tr>`});
+    t+="</tbody></table>";
+    const v=c<70?vanishes(m):null;
+    h+=`<div class="d-more"><dl class="kv"><dt>Monzo</dt><dd>${monzoStr(m)}</dd><dt>Primes</dt><dd>2 3 5 7 11 13</dd>`+
+      `<dt>Odd parts</dt><dd>${oddPart(n)} : ${oddPart(d)}</dd>`+
+      (iv?`<dt>In diamond</dt><dd>${iv.cells.map(([a,b])=>a+"÷"+b).join(", ")}</dd>`:`<dt>In set</dt><dd>outside ${S.lim}-odd-limit</dd>`)+
+      (v?`<dt>Vanishes in</dt><dd>${v.length?v.join(" "):"none ≤ 72"}</dd>`:"")+
+      `</dl><div class="scroll-x">${t}</div></div>`;
+  }
+  const el=document.getElementById("dock");el.innerHTML=h;
+  el.querySelector("#dTog").addEventListener("click",()=>playTogether(n,d));
+  el.querySelector("#dApart").addEventListener("click",()=>playApart(n,d));
+  el.querySelector("#dMore").addEventListener("click",()=>{more=!more;renderDock()});
+  el.querySelector("#dStop").addEventListener("click",stopAll);
+}
+
+/* ---------- boot ---------- */
+function rebuild(){
+  build();
+  limChips.querySelectorAll(".chip").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.l===S.lim));
+  renderTable();renderDiamond();renderSteps();renderCommas();renderDock();
+  if(S.tab==="intervals")renderRuler();
+}
+let initial="intervals";try{const h=location.hash.replace("#","");if(TABS.includes(h))initial=h}catch(e){}
+S.tab=initial;build();rebuild();initSchemata();initPumpViews();initLattice();initHex();initCompare();initHU();initCommas();renderCommas();showTab(initial);
+let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{if(S.tab==="intervals")renderRuler()},150)});
+})();
+</script>
+<script>
+/* Nick Vuci light/dark toggle: follows the device until the viewer picks; the choice is kept and set as data-theme on <html>. */
+(function(){
+  var root=document.documentElement, sys=window.matchMedia('(prefers-color-scheme: dark)');
+  var btns=[].slice.call(document.querySelectorAll('.nv-theme'));
+  function cur(){var c=root.dataset.theme;return c==='light'||c==='dark'?c:(sys.matches?'dark':'light')}
+  function sync(){var d=cur()==='dark',l=d?'Switch to light theme':'Switch to dark theme';
+    btns.forEach(function(b){b.classList.toggle('is-dark',d);b.setAttribute('aria-label',l);b.title=l;b.setAttribute('aria-pressed',String(d))});
+    document.dispatchEvent(new CustomEvent('nv-theme',{detail:cur()}))}
+  btns.forEach(function(b){b.addEventListener('click',function(){var t=cur()==='dark'?'light':'dark';root.dataset.theme=t;
+    try{localStorage.setItem('theme',t)}catch(e){}sync()})});
+  if(sys.addEventListener)sys.addEventListener('change',sync);
+  /* the app bar spans the full window, edge to edge, whatever margins the page sets on its container */
+  var bar=document.querySelector('.nv-appbar');
+  function bleed(){if(!bar)return;bar.style.marginLeft=bar.style.marginTop=bar.style.width='';
+    var r=bar.getBoundingClientRect(),w=document.documentElement.clientWidth;
+    bar.style.marginLeft=(-r.left)+'px';bar.style.width=w+'px';bar.style.marginTop=(-(r.top+window.scrollY))+'px';
+    var r2=bar.getBoundingClientRect();if(Math.abs(r2.left)>1){bar.style.marginLeft=(-r.left-r2.left)+'px'}}
+  bleed();addEventListener('resize',bleed);addEventListener('load',bleed);
+  sync();
+})();
+</script>
+
+
+</body></html>

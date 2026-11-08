@@ -1,0 +1,582 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>MOS Melody Engine</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: workbench — the melody roll is the hero; controls sit in a side rail (stacked below on phones). Verdigris = large steps, ochre = small steps. */
+:root{
+  --bg:#ECEFEB; --panel:#F8F9F6; --ink:#18211F; --muted:#5B6A65; --line:#D2D9D4; --soft:#E3E8E4;
+  --accent:#1C7563; --accent-ink:#FFFFFF; --small:#A5660E; --hl:#0F3D34;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1513; --panel:#161F1C; --ink:#E2EAE6; --muted:#8C9E97; --line:#283430; --soft:#1D2824;
+  --accent:#4DBFA3; --accent-ink:#06231C; --small:#E2A94B; --hl:#BDF0E2; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1513; --panel:#161F1C; --ink:#E2EAE6; --muted:#8C9E97; --line:#283430; --soft:#1D2824;
+  --accent:#4DBFA3; --accent-ink:#06231C; --small:#E2A94B; --hl:#BDF0E2; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:16px}
+h1{font-family:var(--f-display);font-weight:750;font-size:clamp(24px,4vw,34px);letter-spacing:-.01em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0;min-width:0}
+.grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.out{order:-1}}
+.rail{display:flex;flex-direction:column;gap:10px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+summary{cursor:pointer;list-style:none;padding:12px 14px;font-family:var(--f-display);font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--muted);font-family:var(--f-mono)}
+details[open] summary::after{content:"−"}
+.body{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
+label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:8px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+input[type=number],input[type=text],select{font:inherit;font-family:var(--f-mono);font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 8px;width:100%;box-sizing:border-box;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pattern{display:flex;flex-wrap:wrap;gap:3px;font-family:var(--f-mono);font-size:12px}
+.pattern span{padding:3px 0;border-radius:4px;text-align:center;font-weight:500}
+.pL{background:var(--accent);color:var(--accent-ink)}
+.pS{background:var(--small);color:var(--bg)}
+.note{font-size:12px;color:var(--muted);margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.wt{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:2px 8px;align-items:center}
+.wt .nm{font-weight:500;font-size:13px}
+.wt .v{font-family:var(--f-mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.wt .v.neg{color:var(--small)}
+.wt input{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.wt .d{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-weight:500;font-size:13px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.out{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar .grow{flex:1 1 auto}
+.scaleTitle{font-family:var(--f-display);font-weight:600;font-size:18px}
+.roll{display:flex;margin-top:12px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
+.roll .lab{flex:0 0 auto}
+.roll .sc{overflow-x:auto;flex:1 1 auto;min-width:0}
+canvas{display:block}
+.stats{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:12px;color:var(--muted)}
+.stats b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.why h3,.exp h3{font-family:var(--f-display);font-weight:600;font-size:15px;margin:0 0 8px}
+.cb{display:grid;grid-template-columns:130px minmax(0,1fr) 48px;gap:4px 10px;align-items:center;font-size:12px}
+.cb .track{height:8px;background:var(--soft);border-radius:4px;position:relative}
+.cb .fill{position:absolute;top:0;bottom:0;border-radius:4px}
+.cb .num{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+pre{font-family:var(--f-mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;margin:8px 0 0;overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:160px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13px}
+.toggle input{accent-color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="nv-brand">
+/* Nick Vuci house style: Ivory (light) and Nocturne (dark, the original nickvuci.com palette).
+   The applet's own variables are mapped onto the design-system tokens below. */
+:root{--nv-ground-start:#f7f4ec;--nv-ground-end:#f7f4ec;--nv-surface:#f7f4ec;--nv-surface-raised:#fffdf8;--nv-surface-sunk:#ece7db;--nv-ink:#121933;--nv-ink-muted:#565c70;--nv-hairline:#dcd5c6;--nv-brand-blue:#1640c8;--nv-blue:#1640c8;--nv-on-blue:#fffdf8;--nv-blue-soft:#dde4f7;--nv-gold:#b8892b;--nv-gold-ink:#7a5a1c;--nv-gold-soft:#efe4cb;--nv-on-gold:#121933;--nv-alert:#b42a12;--nv-focus-ring:#1640c8;--nv-burgundy:#6b1d34;--nv-burgundy-ink:#6b1d34;--nv-burgundy-mid:#7a2c40;--nv-burgundy-soft:#f3e4e8;--nv-burgundy-wash:#faf2f3;--nv-band:#2e0f16;--nv-on-band:#f5ecee;--nv-on-band-muted:#d1b6bd;--nv-band-line:#4f2530;--nv-band-edge:#916a72;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#d1a246;--nv-prime-3:#3d5ba9;--nv-prime-5:#2f7d6b;--nv-prime-7:#a2562e;--nv-prime-11:#6b4f9e;--nv-prime-13:#963c8c;--nv-edge:#8F897C;--nv-grid:#e8e2d5;--nv-font-display:"Cormorant Garamond","EB Garamond",Garamond,"Times New Roman",serif;--nv-font-sans:"Montserrat","Helvetica Neue",Arial,system-ui,sans-serif;--nv-font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--ink:var(--nv-ink);--muted:var(--nv-ink-muted);--line:var(--nv-hairline);--soft:var(--nv-surface-sunk);--accent:var(--nv-blue);--accent-ink:var(--nv-on-blue);--small:var(--nv-gold-ink);--hl:var(--nv-burgundy-ink);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--ink:var(--nv-ink);--muted:var(--nv-ink-muted);--line:var(--nv-hairline);--soft:var(--nv-surface-sunk);--accent:var(--nv-blue);--accent-ink:var(--nv-on-blue);--small:var(--nv-gold-ink);--hl:var(--nv-burgundy-ink);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:dark}}
+:root[data-theme="dark"]{--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--bg:var(--nv-surface);--panel:var(--nv-surface-raised);--ink:var(--nv-ink);--muted:var(--nv-ink-muted);--line:var(--nv-hairline);--soft:var(--nv-surface-sunk);--accent:var(--nv-blue);--accent-ink:var(--nv-on-blue);--small:var(--nv-gold-ink);--hl:var(--nv-burgundy-ink);--f-display:var(--nv-font-display);--f-body:var(--nv-font-sans);--f-mono:var(--nv-font-mono);color-scheme:dark}
+html body{background-color:var(--nv-surface);background-image:linear-gradient(135deg,var(--nv-ground-start),var(--nv-ground-end));background-attachment:fixed;color:var(--nv-ink)}
+.eyebrow{color:var(--nv-gold-ink)}
+h2,h3{color:var(--nv-burgundy-ink)}
+
+.nv-appbar{position:relative;z-index:30;background:var(--nv-surface-raised);border-bottom:1px solid var(--nv-burgundy-soft);
+  padding-top:env(safe-area-inset-top,0px);font-family:var(--nv-font-sans);color:var(--nv-ink)}
+.nv-appbar,.nv-appbar *{box-sizing:border-box}
+.nv-appbar{text-align:left;grid-column:1/-1;align-self:stretch}
+.nv-in{max-width:var(--nv-appbar-max,1200px);margin:0 auto;justify-content:flex-start;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:14px}
+.nv-lock{display:flex;align-items:center;gap:12px;flex:none;text-decoration:none;color:inherit}
+.nv-lock:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-mark{display:block;width:40px;height:auto}
+.nv-wm{font-weight:400;font-size:18px;letter-spacing:.18em;white-space:nowrap;line-height:1}
+.nv-wm .n{color:var(--nv-brand-blue)}.nv-wm .v{color:var(--nv-gold)}
+.nv-name{margin:0;padding-left:14px;border-left:1px solid var(--nv-burgundy-soft);font-family:var(--nv-font-sans);font-weight:400;font-size:18px;
+  line-height:1;letter-spacing:.18em;color:var(--nv-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:640px){.nv-wm{display:none}.nv-mark{width:34px}.nv-name{font-size:15px;letter-spacing:.1em;padding-left:12px}.nv-in{gap:12px;padding-top:10px;padding-bottom:10px}}
+
+.nv-theme{flex:none;display:grid;place-items:center;width:36px;height:36px;padding:0;margin-left:auto;cursor:pointer;
+  color:var(--nv-ink-muted);background:transparent;border:1px solid var(--nv-burgundy-soft);border-radius:2px;
+  transition:color .2s ease,border-color .2s ease,background-color .2s ease}
+.nv-theme:hover{color:var(--nv-gold);border-color:var(--nv-gold)}
+.nv-theme:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-ti{grid-area:1/1;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity .3s ease,transform .3s ease}
+.nv-ti-sun{opacity:0;transform:rotate(-45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-moon{opacity:0;transform:rotate(45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-sun{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.nv-ti,.nv-theme{transition:none}}
+
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nv-appbar{border-bottom-width:2px}
+  :root:not([data-theme="light"]) .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+  :root:not([data-theme="light"]) .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}}
+:root[data-theme="dark"] .nv-appbar{border-bottom-width:2px}
+:root[data-theme="dark"] .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+:root[data-theme="dark"] .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}
+
+</style>
+
+<div class="nv-appbar" role="banner"><div class="nv-in"><a class="nv-lock" href="https://nickvuci.com" target="_blank" rel="noopener" aria-label="Nick Vuci — nickvuci.com"><svg class="nv-mark" viewBox="-7.75 0 205.50 80" role="img" aria-label="Nick Vuci"><defs><clipPath id="nvc"><rect x="-9.75" y="0" width="209.50" height="80"/></clipPath><polyline id="nvz" points="-20.50,106.19 0.00,71.84 38.00,8.16 76.00,71.84 114.00,8.16 152.00,71.84 190.00,8.16 210.50,-26.19" fill="none" stroke-width="7.0" stroke-linejoin="miter" stroke-miterlimit="10"/><clipPath id="nvf0"><polygon points="114.00,16.31 106.69,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf1"><polygon points="114.00,16.31 107.90,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf2"><polygon points="114.00,16.31 109.12,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf3"><polygon points="114.00,16.31 110.34,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf4"><polygon points="114.00,16.31 111.56,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf5"><polygon points="114.00,16.31 112.78,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf6"><polygon points="114.00,16.31 114.00,-43.69 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf7"><polygon points="114.00,16.31 115.22,-43.67 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf8"><polygon points="114.00,16.31 116.44,-43.64 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf9"><polygon points="114.00,16.31 117.66,-43.57 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf10"><polygon points="114.00,16.31 118.88,-43.49 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf11"><polygon points="114.00,16.31 120.10,-43.37 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath><clipPath id="nvf12"><polygon points="114.00,16.31 121.31,-43.24 217.75,-60.00 217.75,100.00 114.00,100.00"/></clipPath></defs><g clip-path="url(#nvc)"><use href="#nvz" style="stroke:var(--nv-brand-blue)"/><g clip-path="url(#nvf0)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 4.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf1)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 12.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf2)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 20.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf3)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 29.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf4)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 37.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf5)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 45.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf6)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 54.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf7)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 62.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf8)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 70.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf9)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 79.2%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf10)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 87.5%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf11)"><use href="#nvz" style="stroke:color-mix(in srgb,var(--nv-gold) 95.8%,var(--nv-brand-blue))"/></g><g clip-path="url(#nvf12)"><use href="#nvz" style="stroke:var(--nv-gold)"/></g></g></svg><span class="nv-wm"><span class="n">Nick</span> <span class="v">Vuci</span></span></a><h1 class="nv-name">MOS Melody Engine</h1><button type="button" class="nv-theme" aria-label="Switch to dark theme" aria-pressed="false" title="Switch to dark theme"><svg class="nv-ti nv-ti-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M19.5 14.2A7.5 7.5 0 0 1 9.8 4.5a7.5 7.5 0 1 0 9.7 9.7Z"/></svg><svg class="nv-ti nv-ti-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button></div></div>
+<div class="wrap">
+  <header>
+    <h2 class="nv-dup" aria-hidden="true" hidden>MOS Melody Engine</h2>
+    <p class="sub">Weighted melodic principles, applied to any moment-of-symmetry scale.</p>
+  </header>
+
+  <div class="grid">
+    <aside class="rail">
+      <details open>
+        <summary>Scale</summary>
+        <div class="body">
+          <div class="field"><label for="preset">Preset</label><select id="preset"></select></div>
+          <div class="row">
+            <div class="field"><label for="na">L count</label><input id="na" type="number" min="1" max="16" value="5"></div>
+            <div class="field"><label for="nb">s count</label><input id="nb" type="number" min="1" max="16" value="2"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="sl">L size</label><input id="sl" type="number" min="0.1" step="0.5" value="2"></div>
+            <div class="field"><label for="ss">s size</label><input id="ss" type="number" min="0.1" step="0.5" value="1"></div>
+            <div class="field"><label for="eq">Equave ¢</label><input id="eq" type="number" min="100" step="0.1" value="1200"></div>
+          </div>
+          <div class="field"><label for="mode">Mode</label><select id="mode"></select></div>
+          <div class="pattern" id="pattern"></div>
+          <p class="note mono" id="scaleInfo"></p>
+        </div>
+      </details>
+
+      <details open>
+        <summary>Principles</summary>
+        <div class="body">
+          <div class="chips" id="styles"></div>
+          <div id="weights" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+      </details>
+
+      <details open>
+        <summary>Form & rhythm</summary>
+        <div class="body">
+          <div class="row">
+            <div class="field"><label for="phr">Phrases</label><input id="phr" type="number" min="1" max="12" value="4"></div>
+            <div class="field"><label for="plen">Notes / phrase</label><input id="plen" type="number" min="3" max="24" value="8"></div>
+            <div class="field"><label for="cell">Motif cell</label><input id="cell" type="number" min="2" max="8" value="4"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label for="rng">Range (equaves)</label><input id="rng" type="number" min="1" max="3" step="0.25" value="1.5"></div>
+            <div class="field"><label for="temp">Randomness</label><input id="temp" type="number" min="0.05" max="3" step="0.05" value="0.6"></div>
+          </div>
+          <div class="wt"><span class="nm">Rhythmic activity</span><span class="v" id="densV">0.50</span>
+            <input id="dens" type="range" min="0" max="1" step="0.05" value="0.5"></div>
+          <label class="toggle"><input id="even" type="checkbox"> Even rhythm (all one beat)</label>
+        </div>
+      </details>
+
+      <details>
+        <summary>Sound</summary>
+        <div class="body">
+          <div class="row">
+            <div class="field"><label for="hz">Tonic Hz</label><input id="hz" type="number" min="20" max="2000" step="0.01" value="261.63"></div>
+            <div class="field"><label for="bpm">Tempo</label><input id="bpm" type="number" min="30" max="300" value="104"></div>
+          </div>
+          <div class="field"><label for="wave">Timbre</label>
+            <select id="wave"><option value="triangle">Triangle</option><option value="sine">Sine</option><option value="square">Reed</option><option value="sawtooth">Bright</option></select></div>
+          <label class="toggle"><input id="drone" type="checkbox" checked> Tonic drone</label>
+        </div>
+      </details>
+    </aside>
+
+    <main class="out">
+      <section class="card">
+        <div class="bar">
+          <div class="grow"><div class="scaleTitle" id="title"></div><div class="note mono" id="subtitle"></div></div>
+          <button class="primary" id="play">Play</button>
+          <button id="newseed">New melody</button>
+        </div>
+        <div class="bar" style="margin-top:10px">
+          <div class="field" style="flex:0 1 160px"><label for="seed">Seed</label><input id="seed" type="text" value="hexboard-1"></div>
+          <p class="note grow" style="align-self:end">Same seed + new weights shows exactly what each principle changes. Tap a note to see why it was chosen.</p>
+        </div>
+        <div class="roll"><canvas class="lab" id="lab"></canvas><div class="sc" id="sc"><canvas id="cv"></canvas></div></div>
+        <div class="stats" id="stats"></div>
+      </section>
+
+      <section class="card why" id="why">
+        <h3 id="whyT">Why this note</h3>
+        <div class="cb" id="whyB"></div>
+      </section>
+
+      <section class="card exp">
+        <h3>Export</h3>
+        <div class="tabs" id="tabs">
+          <button data-k="deg" class="on">Degrees</button>
+          <button data-k="cents">Cents</button>
+          <button data-k="hz">Hz + beats</button>
+          <button data-k="scl">Scala .scl</button>
+          <button data-k="json">JSON</button>
+          <button id="copy">Copy</button>
+        </div>
+        <pre id="exp" tabindex="0"></pre>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const mod=(a,n)=>((a%n)+n)%n;
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+
+/* ---------- MOS ---------- */
+const NAMES={"5L2s":"diatonic","2L5s":"antidiatonic","4L3s":"smitonic","3L4s":"mosh","5L3s":"oneirotonic","3L5s":"checkertonic","4L5s":"gramitonic","5L4s":"semiquartal","2L7s":"balzano","7L2s":"armotonic","6L1s":"archaeotonic","1L6s":"onyx","7L3s":"dicoid","3L7s":"sephiroid","2L3s":"pentic","3L2s":"antipentic"};
+const DIA=["Lydian","Ionian","Mixolydian","Dorian","Aeolian","Phrygian","Locrian"];
+const PRESETS=[
+ ["Diatonic · 12edo",5,2,2,1,1200,1],["Diatonic · 19edo",5,2,3,2,1200,1],["Diatonic · 17edo (hard)",5,2,3,1,1200,1],
+ ["Smitonic · 11edo",4,3,2,1,1200,0],["Mosh · 10edo",3,4,2,1,1200,0],["Oneirotonic · 13edo",5,3,2,1,1200,0],
+ ["Checkertonic · 11edo",3,5,2,1,1200,0],["Gramitonic · 13edo",4,5,2,1,1200,0],["Semiquartal · 14edo",5,4,2,1,1200,0],
+ ["Balzano · 11edo",2,7,2,1,1200,0],["Armotonic · 16edo",7,2,2,1,1200,0],["Antidiatonic · 9edo",2,5,2,1,1200,0],
+ ["Pentic · 12edo",2,3,3,2,1200,0],["Dicoid · 13edo",7,3,3,1,1200,1],["Lambda 4L5s · 13ed3",4,5,2,1,1901.955,0]
+];
+function mosModes(a,b){
+  const n=a+b, base=[];
+  for(let i=0;i<n;i++) base.push(Math.floor((i+1)*a/n)-Math.floor(i*a/n)?'L':'s');
+  const seen=new Set(), out=[];
+  for(let r=0;r<n;r++){
+    const w=base.slice(r).concat(base.slice(0,r)); const k=w.join('');
+    if(seen.has(k)) continue; seen.add(k);
+    let pos=0,br=0; for(const c of w){pos+=c==='L'?1:0;br+=pos;}
+    out.push({word:w,br});
+  }
+  out.sort((x,y)=>y.br-x.br);
+  return out;
+}
+
+/* ---------- consonance (approximate JI fit) ---------- */
+let RATIOS=[], ratioEq=0;
+function buildRatios(eqC){
+  if(ratioEq===eqC) return; ratioEq=eqC; RATIOS=[];
+  const er=Math.pow(2,eqC/1200);
+  for(let q=1;q<=24;q++)for(let p=q;p<=48;p++){
+    if(gcd(p,q)!==1) continue; const r=p/q; if(r>er*1.0001) break;
+    RATIOS.push({c:1200*Math.log2(r),h:Math.log2(p*q),p,q});
+  }
+}
+const consCache=new Map();
+function cons(c,eqC){
+  c=mod(c,eqC); const key=eqC+':'+c.toFixed(2);
+  if(consCache.has(key)) return consCache.get(key);
+  let best=1e9;
+  for(const r of RATIOS){const e=Math.min(Math.abs(c-r.c),Math.abs(c+eqC-r.c),Math.abs(c-eqC-r.c));const pen=r.h+(e/12)**2;if(pen<best)best=pen;}
+  const v=Math.exp(-best/3); consCache.set(key,v); return v;
+}
+function nearestRatio(c,eqC){
+  c=mod(c,eqC); let best=null,bp=1e9;
+  for(const r of RATIOS){const e=c-r.c;const pen=r.h+(e/12)**2;if(pen<bp){bp=pen;best={p:r.p,q:r.q,e}}}
+  return best;
+}
+
+/* ---------- principles ---------- */
+const FEAT=[
+ {id:'step',name:'Stepwise motion',desc:'Prefer moving by one scale step.',def:1.6},
+ {id:'repeat',name:'Repeated notes',desc:'Positive allows repeats; negative avoids them.',def:-1.2},
+ {id:'recover',name:'Leap recovery',desc:'After a leap, step back the other way.',def:1.4},
+ {id:'momentum',name:'Momentum',desc:'Keep moving in the same direction.',def:0.3},
+ {id:'range',name:'Range gravity',desc:'Stay near the middle of the range.',def:0.8},
+ {id:'arch',name:'Arch contour',desc:'Rise toward mid-phrase, settle at the end.',def:0.9},
+ {id:'stable',name:'Harmonic stability',desc:'Land on degrees consonant with the tonic, mostly on strong beats.',def:1.0},
+ {id:'cadence',name:'Cadence pull',desc:'Close inner phrases on the most stable degree, the last on the tonic.',def:2.0},
+ {id:'small',name:'Small-step pull',desc:'Favour s over L steps, strongest when resolving into a cadence.',def:0.4},
+ {id:'leapcons',name:'Consonant leaps',desc:'Leaps should span intervals close to simple ratios.',def:0.8},
+ {id:'motif',name:'Motif repetition',desc:'Repeat the previous cell’s intervals in scale steps, so their sizes shift with the MOS.',def:0.7},
+ {id:'variety',name:'Pitch variety',desc:'Avoid leaning on recently used pitches.',def:0.6},
+];
+const STYLES={
+ Balanced:Object.fromEntries(FEAT.map(f=>[f.id,f.def])),
+ Chant:{step:2.5,repeat:-0.3,recover:1,momentum:0.2,range:1.5,arch:1.6,stable:0.8,cadence:2.5,small:0.6,leapcons:1.2,motif:0.2,variety:0.3,_d:0.2},
+ Baroque:{step:1.2,repeat:-2,recover:1.8,momentum:0.8,range:0.6,arch:0.4,stable:1.2,cadence:2,small:0.3,leapcons:1,motif:2.2,variety:0.5,_d:0.7},
+ Folk:{step:1.4,repeat:0,recover:1,momentum:0.2,range:1,arch:0.8,stable:1.6,cadence:2.2,small:0,leapcons:1.4,motif:1.4,variety:0.2,_d:0.5},
+ Angular:{step:-1,repeat:-2,recover:0.2,momentum:-0.6,range:0.4,arch:0,stable:0.3,cadence:1,small:0,leapcons:1.8,motif:0.3,variety:1.5,_d:0.6},
+ Unweighted:{step:0,repeat:0,recover:0,momentum:0,range:0.5,arch:0,stable:0,cadence:0.5,small:0,leapcons:0,motif:0,variety:0},
+};
+const W={}; FEAT.forEach(f=>W[f.id]=f.def);
+
+/* ---------- rng ---------- */
+function hashStr(s){let h=1779033703^s.length;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),3432918353);h=h<<13|h>>>19}return h>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* ---------- state ---------- */
+let S={}, MEL=[], sel=-1, playIdx=-1;
+
+function readScale(){
+  const a=Math.max(1,Math.min(16,+$('na').value|0)), b=Math.max(1,Math.min(16,+$('nb').value|0));
+  const L=Math.max(0.01,+$('sl').value||2), s=Math.max(0.01,+$('ss').value||1), eq=Math.max(50,+$('eq').value||1200);
+  const modes=mosModes(a,b); let mi=Math.min(+$('mode').value||0,modes.length-1);
+  const word=modes[mi].word, n=a+b, unit=eq/(a*L+b*s);
+  const steps=word.map(c=>(c==='L'?L:s)*unit);
+  const degCents=[0]; for(let i=0;i<n-1;i++) degCents.push(degCents[i]+steps[i]);
+  buildRatios(eq);
+  const stab=degCents.map(c=>cons(c,eq));
+  let cad=1,bv=-1; for(let i=1;i<n;i++) if(stab[i]>bv){bv=stab[i];cad=i}
+  S={a,b,L,s,eq,n,word,steps,degCents,stab,cad,modes,mi,unit,smallC:s*unit,largeC:L*unit};
+}
+function pc(d){return Math.floor(d/S.n)*S.eq+S.degCents[mod(d,S.n)]}
+
+function fillModes(keep){
+  const a=+$('na').value|0,b=+$('nb').value|0, ms=mosModes(Math.max(1,a),Math.max(1,b)), n=a+b, d=gcd(a,b);
+  const key=a+'L'+b+'s', old=+$('mode').value||0;
+  $('mode').innerHTML=ms.map((m,i)=>{
+    const up=(n/d-1-i)*d, dn=i*d;
+    const nm=key==='5L2s'?DIA[i]+' · ':'';
+    return `<option value="${i}">${nm}${up}|${dn}${d>1?'('+d+')':''} · ${m.word.join('')}</option>`;
+  }).join('');
+  $('mode').value=String(keep!=null?Math.min(keep,ms.length-1):Math.min(old,ms.length-1));
+}
+
+/* ---------- generation ---------- */
+function rhythm(rng,P,M,dens,even,wm){
+  if(even){const r=Array(P).fill(1);r[P-1]=2;return r}
+  const pool=[0.5,1,1.5,2], wts=[dens*2,1.5,0.5*(1-dens)+0.15,(1-dens)*1.2];
+  const pick=()=>{let t=wts.reduce((x,y)=>x+y),r=rng()*t;for(let i=0;i<4;i++){r-=wts[i];if(r<=0)return pool[i]}return 1};
+  const cell=Array.from({length:M},pick), keep=Math.max(0,Math.min(0.95,0.35+0.2*wm));
+  const out=[]; for(let j=0;j<P;j++) out.push(rng()<keep?cell[j%M]:pick());
+  return out;
+}
+function beatStrength(t){const f=t%4; if(Math.abs(f)<1e-6) return 1; if(Math.abs(t%2)<1e-6) return 0.7; if(Math.abs(t%1)<1e-6) return 0.45; return 0.15}
+
+function generate(){
+  const rng=mulberry(hashStr($('seed').value||'x'));
+  const {n,eq,stab,cad,steps}=S;
+  const phrases=Math.max(1,Math.min(12,+$('phr').value|0)), P=Math.max(3,Math.min(24,+$('plen').value|0)), M=Math.max(2,Math.min(8,+$('cell').value|0));
+  const R=Math.max(1,Math.min(3,+$('rng').value||1.5)), temp=Math.max(0.05,+$('temp').value||0.6);
+  const dens=+$('dens').value, even=$('even').checked;
+  const span=Math.max(n,Math.round(R*n)), low=-Math.floor((span-n)/2), high=low+span, center=(low+high)/2;
+  const mean=stab.reduce((x,y)=>x+y)/n;
+  const notes=[], iv=[]; let t=0;
+  for(let p=0;p<phrases;p++){
+    const durs=rhythm(rng,P,M,dens,even,W.motif);
+    const final=p===phrases-1, target=final?0:cad;
+    for(let j=0;j<P;j++){
+      const pos=j/(P-1), last=j===P-1;
+      let dur=durs[j];
+      if(last){dur=Math.max(dur,2);const end=t+dur;dur+=(4-end%4)%4;}
+      const bs=beatStrength(t), cur=notes.length?notes[notes.length-1].d:null, prev=iv.length?iv[iv.length-1]:0;
+      const cands=[]; const lo=cur==null?low:Math.max(low,cur-n), hi=cur==null?high:Math.min(high,cur+n);
+      for(let d=lo;d<=hi;d++){
+        const i=cur==null?0:d-cur, ai=Math.abs(i), dm=mod(d,n), f={};
+        // step
+        f.step=cur==null?0:ai===1?1:ai===0?0:ai===2?0.2:-(ai-2)*0.4;
+        f.repeat=cur!=null&&ai===0?1:0;
+        f.recover=0; if(cur!=null&&Math.abs(prev)>=2&&ai>0){const opp=Math.sign(i)!==Math.sign(prev); f.recover=opp&&ai<=2?Math.min(Math.abs(prev)/3,1.5):!opp?-Math.min(Math.abs(prev)/3,1.5):0}
+        f.momentum=cur!=null&&prev&&i?(Math.sign(i)===Math.sign(prev)?1:-1):0;
+        f.range=-1.5*((d-center)/(span/2))**2;
+        const tgt=low+span*(0.3+0.45*Math.sin(Math.PI*pos)); f.arch=-Math.abs(d-tgt)/(n/2);
+        f.stable=(stab[dm]-mean)*2*(0.35+bs);
+        const ramp=last?1:pos>0.6?((pos-0.6)/0.4)**2*0.6:0;
+        let dist=1e9; for(let k=-3;k<=3;k++) dist=Math.min(dist,Math.abs(d-(target+k*n)));
+        f.cadence=ramp?ramp*(dist===0?(last?2.5:1.2):-Math.min(dist,4)*0.5):0;
+        f.small=0;
+        if(ai===1&&S.smallC!==S.largeC){
+          const st=i>0?steps[mod(cur,n)]:steps[mod(cur-1,n)], isS=Math.abs(st-S.smallC)<1e-6;
+          f.small=isS?1:-0.5; if(isS&&ramp&&dist===0) f.small=2.2;
+        }
+        f.leapcons=0; if(cur!=null&&ai>=2){const c=Math.abs(pc(d)-pc(cur)); f.leapcons=(cons(c,eq)-0.3)*2}
+        f.motif=0; const k=iv.length-M+1; if(cur!=null&&k>=0&&iv.length>=M-1&&j>0){const ref=iv[iv.length-(M-1)-1+0]; if(ref!==undefined){f.motif=i===ref?1:(Math.sign(i)===Math.sign(ref)&&Math.abs(i-ref)===1?0.3:-0.25)}}
+        let cnt=0; for(let q=Math.max(0,notes.length-6);q<notes.length;q++) if(notes[q].d===d) cnt++; f.variety=-cnt*0.5;
+        let sc=0; const contrib={}; for(const ft of FEAT){const v=W[ft.id]*f[ft.id]; contrib[ft.id]=v; sc+=v}
+        cands.push({d,sc,contrib});
+      }
+      const mx=Math.max(...cands.map(c=>c.sc)); let tot=0; cands.forEach(c=>{c.p=Math.exp((c.sc-mx)/temp);tot+=c.p});
+      let r=rng()*tot, ch=cands[cands.length-1]; for(const c of cands){r-=c.p;if(r<=0){ch=c;break}}
+      if(cur!=null) iv.push(ch.d-cur);
+      notes.push({d:ch.d,t,dur,phrase:p,contrib:ch.contrib,prob:ch.p/tot,alts:cands.length});
+      t+=dur;
+    }
+  }
+  MEL=notes; S.low=low; S.high=high; S.total=t;
+}
+
+/* ---------- drawing ---------- */
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let geo={};
+function draw(){
+  const lab=$('lab'), cv=$('cv'), sc=$('sc');
+  const dpr=window.devicePixelRatio||1, H=window.innerWidth<600?300:380, LW=58, pad=16;
+  const avail=sc.clientWidth||600, ppb=Math.max(avail/(S.total+0.5),22), W2=Math.ceil((S.total+0.5)*ppb);
+  const lowC=pc(S.low), highC=pc(S.high), y=c=>pad+(highC-c)/(highC-lowC)*(H-pad*2);
+  geo={ppb,y,H};
+  const C={ink:css('--ink'),muted:css('--muted'),line:css('--line'),soft:css('--soft'),acc:css('--accent'),small:css('--small'),hl:css('--hl'),bg:css('--bg')};
+  // labels
+  lab.width=LW*dpr; lab.height=H*dpr; lab.style.width=LW+'px'; lab.style.height=H+'px';
+  let g=lab.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,LW,H);
+  g.font='500 11px "IBM Plex Mono", monospace'; g.textBaseline='middle';
+  for(let d=S.low;d<=S.high;d++){
+    const yy=y(pc(d)), dm=mod(d,S.n), oc=Math.floor(d/S.n);
+    g.fillStyle=dm===0?C.acc:C.ink; g.textAlign='left';
+    g.fillText(dm+(oc>0?"'".repeat(oc):oc<0?','.repeat(-oc):''),8,yy-5);
+    g.fillStyle=C.muted; g.font='400 9px "IBM Plex Mono", monospace';
+    g.fillText(S.degCents[dm].toFixed(0)+'¢',8,yy+6); g.font='500 11px "IBM Plex Mono", monospace';
+  }
+  g.strokeStyle=C.line; g.beginPath(); g.moveTo(LW-0.5,0); g.lineTo(LW-0.5,H); g.stroke();
+  // roll
+  cv.width=W2*dpr; cv.height=H*dpr; cv.style.width=W2+'px'; cv.style.height=H+'px';
+  g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W2,H);
+  // step bands: shade small steps
+  for(let d=S.low;d<S.high;d++){
+    const st=S.steps[mod(d,S.n)]; if(Math.abs(st-S.smallC)<1e-6&&S.smallC!==S.largeC){
+      g.fillStyle=C.small; g.globalAlpha=0.07; g.fillRect(0,y(pc(d+1)),W2,y(pc(d))-y(pc(d+1))); g.globalAlpha=1;}
+  }
+  for(let d=S.low;d<=S.high;d++){const yy=Math.round(y(pc(d)))+0.5; g.strokeStyle=mod(d,S.n)===0?C.acc:C.line; g.globalAlpha=mod(d,S.n)===0?0.55:1; g.lineWidth=1; g.beginPath(); g.moveTo(0,yy); g.lineTo(W2,yy); g.stroke(); g.globalAlpha=1}
+  for(let b=0;b<=S.total;b+=1){const x=Math.round(b*ppb)+0.5; g.strokeStyle=C.line; g.globalAlpha=b%4===0?0.9:0.3; g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke()} g.globalAlpha=1;
+  // phrase marks
+  MEL.forEach((m,i)=>{ if(i&&m.phrase!==MEL[i-1].phrase){const x=Math.round(m.t*ppb)+0.5; g.strokeStyle=C.muted; g.setLineDash([3,3]); g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); g.setLineDash([])}});
+  // contour
+  g.strokeStyle=C.muted; g.globalAlpha=0.5; g.lineWidth=1.2; g.beginPath();
+  MEL.forEach((m,i)=>{const x=m.t*ppb+4, yy=y(pc(m.d)); i?g.lineTo(x,yy):g.moveTo(x,yy)}); g.stroke(); g.globalAlpha=1;
+  // notes
+  MEL.forEach((m,i)=>{
+    const x=m.t*ppb+2, w=Math.max(6,m.dur*ppb-4), yy=y(pc(m.d)), h=9;
+    const on=i===sel||i===playIdx;
+    g.fillStyle=on?C.hl:(mod(m.d,S.n)===0?C.acc:C.ink);
+    g.globalAlpha=on?1:(mod(m.d,S.n)===0?1:0.82);
+    rr(g,x,yy-h/2,w,h,3); g.fill(); g.globalAlpha=1;
+    if(i===sel){g.strokeStyle=C.acc;g.lineWidth=2;rr(g,x-2,yy-h/2-2,w+4,h+4,4);g.stroke()}
+  });
+}
+function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+
+$('cv').addEventListener('click',e=>{
+  const r=$('cv').getBoundingClientRect(), x=e.clientX-r.left, yy=e.clientY-r.top;
+  let best=-1,bd=1e9; MEL.forEach((m,i)=>{const nx=m.t*geo.ppb, nw=m.dur*geo.ppb, ny=geo.y(pc(m.d)); const dx=x<nx?nx-x:x>nx+nw?x-nx-nw:0; const dd=dx*dx+(yy-ny)**2; if(dd<bd){bd=dd;best=i}});
+  if(bd<900){sel=best; draw(); why()}
+});
+
+/* ---------- panels ---------- */
+function why(){
+  if(sel<0||!MEL[sel]){sel=0}
+  const m=MEL[sel]; if(!m) return;
+  const dm=mod(m.d,S.n), c=pc(m.d), nr=nearestRatio(S.degCents[dm],S.eq);
+  let iv='opening note';
+  if(sel>0){const p=MEL[sel-1], st=m.d-p.d, ic=c-pc(p.d); iv=`${st>0?'+':''}${st} steps (${ic>0?'+':''}${ic.toFixed(1)}¢) from previous`}
+  $('whyT').textContent=`Note ${sel+1} · degree ${dm} · ${c.toFixed(1)}¢`;
+  const ent=Object.entries(m.contrib).filter(([,v])=>Math.abs(v)>0.005).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+  const mx=Math.max(0.5,...ent.map(e=>Math.abs(e[1])));
+  const nm=Object.fromEntries(FEAT.map(f=>[f.id,f.name]));
+  $('whyB').innerHTML=`<div style="grid-column:1/-1;color:var(--muted);margin-bottom:4px">${iv} · beat ${(m.t+1).toFixed(1)} · nearest ratio ${nr.p}/${nr.q} (${nr.e>=0?'+':''}${nr.e.toFixed(1)}¢) · chosen with p=${m.prob.toFixed(2)} of ${m.alts} options</div>`+
+    (ent.length?ent.map(([k,v])=>`<span>${nm[k]}</span><div class="track"><div class="fill" style="${v>=0?'left:50%':'right:50%'};width:${Math.abs(v)/mx*50}%;background:${v>=0?'var(--accent)':'var(--small)'}"></div></div><span class="num">${v>=0?'+':''}${v.toFixed(2)}</span>`).join(''):'<span style="grid-column:1/-1">No principle had an opinion; pure chance.</span>');
+}
+function stats(){
+  let st=0,lp=0,Ls=0,ss=0,rp=0;
+  for(let i=1;i<MEL.length;i++){const d=MEL[i].d-MEL[i-1].d,a=Math.abs(d); if(a===1){st++; const s=d>0?S.steps[mod(MEL[i-1].d,S.n)]:S.steps[mod(MEL[i].d,S.n)]; Math.abs(s-S.smallC)<1e-6?ss++:Ls++} else if(a===0) rp++; else lp++}
+  const mv=Math.max(1,MEL.length-1), ds=MEL.map(m=>m.d), lo=Math.min(...ds), hi=Math.max(...ds);
+  $('stats').innerHTML=`<span>notes <b>${MEL.length}</b></span><span>beats <b>${S.total}</b></span><span>stepwise <b>${Math.round(st/mv*100)}%</b></span><span>leaps <b>${Math.round(lp/mv*100)}%</b></span><span>repeats <b>${rp}</b></span><span>L / s steps <b>${Ls} / ${ss}</b></span><span>ambitus <b>${(pc(hi)-pc(lo)).toFixed(0)}¢</b></span>`;
+}
+let expK='deg';
+function exportText(){
+  const nm=`${S.a}L${S.b}s`;
+  if(expK==='deg') return MEL.map((m,i)=>(i&&m.phrase!==MEL[i-1].phrase?'| ':'')+m.d).join(' ');
+  if(expK==='cents') return MEL.map(m=>pc(m.d).toFixed(2)).join(' ');
+  if(expK==='hz'){const hz=+$('hz').value||261.63; return MEL.map(m=>`${(hz*Math.pow(2,pc(m.d)/1200)).toFixed(3)}\t${m.dur}`).join('\n')}
+  if(expK==='scl') return `! ${nm}_mode${S.mi}.scl\n!\n${nm} ${NAMES[nm]||'MOS'}, L:s = ${S.L}:${S.s}, ${S.word.join('')}\n ${S.n}\n!\n`+S.degCents.slice(1).map(c=>' '+c.toFixed(5)).join('\n')+`\n ${S.eq.toFixed(5)}`;
+  return JSON.stringify({mos:nm,mode:S.word.join(''),L:S.L,s:S.s,equave:S.eq,seed:$('seed').value,weights:W,notes:MEL.map(m=>({degree:m.d,cents:+pc(m.d).toFixed(3),beat:m.t,dur:m.dur,phrase:m.phrase}))});
+}
+function showExport(){$('exp').textContent=exportText()}
+$('tabs').addEventListener('click',e=>{const k=e.target.dataset&&e.target.dataset.k; if(!k) return; expK=k; [...$('tabs').querySelectorAll('[data-k]')].forEach(b=>b.classList.toggle('on',b.dataset.k===k)); showExport()});
+$('copy').addEventListener('click',async()=>{const t=exportText(); try{await navigator.clipboard.writeText(t); $('copy').textContent='Copied'}catch(_){const r=document.createRange(); r.selectNodeContents($('exp')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $('copy').textContent='Selected'} setTimeout(()=>$('copy').textContent='Copy',1400)});
+
+function header(){
+  const key=`${S.a}L${S.b}s`, nm=NAMES[key];
+  const isInt=Number.isInteger(S.L)&&Number.isInteger(S.s), ed=S.a*S.L+S.b*S.s;
+  const edo=isInt?(Math.abs(S.eq-1200)<0.01?`${ed}edo`:Math.abs(S.eq-1901.955)<0.1?`${ed}ed3`:`${ed} equal divisions`):'non-equal';
+  const modeName=key==='5L2s'?DIA[S.mi]:`mode ${S.mi+1} of ${S.modes.length}`;
+  $('title').textContent=`${key}${nm?' '+nm:''} · ${modeName}`;
+  $('subtitle').textContent=`${S.word.join('')} · ${edo} · L ${S.largeC.toFixed(1)}¢  s ${S.smallC.toFixed(1)}¢ · hardness ${(S.L/S.s).toFixed(2)}`;
+  $('pattern').innerHTML=S.word.map(c=>`<span class="p${c}" style="flex:${(c==='L'?S.L:S.s)} 1 0">${c}</span>`).join('');
+  $('scaleInfo').textContent=`Degrees ${S.degCents.map(c=>c.toFixed(0)).join(' ')} ${S.eq.toFixed(0)}¢ · inner cadences aim at degree ${S.cad} (${S.degCents[S.cad].toFixed(0)}¢)`+(S.L<=S.s?' · L should exceed s for a proper MOS':'');
+}
+
+function run(){readScale(); generate(); header(); if(sel>=MEL.length) sel=MEL.length-1; if(sel<0) sel=0; draw(); why(); stats(); showExport()}
+
+/* ---------- controls ---------- */
+$('preset').innerHTML='<option value="">Custom</option>'+PRESETS.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('');
+$('preset').addEventListener('change',()=>{const p=PRESETS[+$('preset').value]; if(!p) return; [$('na').value,$('nb').value,$('sl').value,$('ss').value,$('eq').value]=[p[1],p[2],p[3],p[4],p[5]]; fillModes(p[6]); run()});
+['na','nb'].forEach(id=>$(id).addEventListener('change',()=>{$('preset').value='';fillModes(0);run()}));
+['sl','ss','eq'].forEach(id=>$(id).addEventListener('change',()=>{$('preset').value='';run()}));
+$('mode').addEventListener('change',run);
+['phr','plen','cell','rng','temp','seed','even'].forEach(id=>$(id).addEventListener('change',run));
+$('dens').addEventListener('input',()=>{$('densV').textContent=(+$('dens').value).toFixed(2);run()});
+$('newseed').addEventListener('click',()=>{$('seed').value=Math.random().toString(36).slice(2,8);sel=0;run()});
+
+function buildWeights(){
+  $('weights').innerHTML=FEAT.map(f=>`<div class="wt"><span class="nm">${f.name}</span><span class="v mono" id="v_${f.id}"></span>
+  <input type="range" id="w_${f.id}" min="-3" max="3" step="0.1" value="${W[f.id]}" aria-label="${f.name} weight"><span class="d">${f.desc}</span></div>`).join('');
+  FEAT.forEach(f=>{const el=$('w_'+f.id); const upd=()=>{W[f.id]=+el.value; const v=$('v_'+f.id); v.textContent=(W[f.id]>0?'+':'')+W[f.id].toFixed(1); v.classList.toggle('neg',W[f.id]<0)}; upd(); el.addEventListener('input',()=>{upd(); markStyle(null); run()})});
+}
+function markStyle(name){[...$('styles').children].forEach(b=>b.classList.toggle('on',b.textContent===name))}
+$('styles').innerHTML=Object.keys(STYLES).map(k=>`<button type="button">${k}</button>`).join('');
+$('styles').addEventListener('click',e=>{const k=e.target.textContent, st=STYLES[k]; if(!st||e.target.tagName!=='BUTTON') return;
+  FEAT.forEach(f=>{W[f.id]=st[f.id]??0; $('w_'+f.id).value=W[f.id]; const v=$('v_'+f.id); v.textContent=(W[f.id]>0?'+':'')+W[f.id].toFixed(1); v.classList.toggle('neg',W[f.id]<0)});
+  if(st._d!=null){$('dens').value=st._d;$('densV').textContent=st._d.toFixed(2)}
+  markStyle(k); run()});
+
+/* ---------- audio ---------- */
+let AC=null, stopAt=0, raf=0, voices=[];
+function stop(){voices.forEach(v=>{try{v.stop()}catch(_){}}); voices=[]; cancelAnimationFrame(raf); playIdx=-1; $('play').textContent='Play'; $('play').classList.remove('on'); draw()}
+$('play').addEventListener('click',()=>{
+  if(voices.length){stop();return}
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)(); AC.resume();
+  const hz=+$('hz').value||261.63, spb=60/(+$('bpm').value||104), wave=$('wave').value, t0=AC.currentTime+0.08;
+  const master=AC.createGain(); master.gain.value=wave==='sawtooth'||wave==='square'?0.12:0.25;
+  const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=3200; master.connect(lp); lp.connect(AC.destination);
+  MEL.forEach(m=>{
+    const o=AC.createOscillator(), g=AC.createGain(); o.type=wave; o.frequency.value=hz*Math.pow(2,pc(m.d)/1200);
+    const s=t0+m.t*spb, e=s+m.dur*spb*0.92;
+    g.gain.setValueAtTime(0,s); g.gain.linearRampToValueAtTime(1,s+0.015); g.gain.exponentialRampToValueAtTime(0.55,s+0.15); g.gain.setValueAtTime(0.55,e-0.04); g.gain.linearRampToValueAtTime(0,e);
+    o.connect(g); g.connect(master); o.start(s); o.stop(e+0.02); voices.push(o);
+  });
+  const end=t0+S.total*spb;
+  if($('drone').checked){[0,S.cad].forEach((dg,k)=>{const o=AC.createOscillator(),g=AC.createGain(); o.type='sine'; o.frequency.value=hz/2*Math.pow(2,S.degCents[dg]/1200); g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(k?0.12:0.22,t0+0.6); g.gain.setValueAtTime(k?0.12:0.22,end-0.3); g.gain.linearRampToValueAtTime(0,end); o.connect(g); g.connect(master); o.start(t0); o.stop(end+0.05); voices.push(o)})}
+  $('play').textContent='Stop'; $('play').classList.add('on');
+  const tick=()=>{const b=(AC.currentTime-t0)/spb; if(AC.currentTime>end){stop();return}
+    let k=-1; MEL.forEach((m,i)=>{if(b>=m.t&&b<m.t+m.dur)k=i}); if(k!==playIdx){playIdx=k;draw();
+      if(k>=0){const x=MEL[k].t*geo.ppb, sc=$('sc'); if(x<sc.scrollLeft||x>sc.scrollLeft+sc.clientWidth-40) sc.scrollLeft=x-20}}
+    raf=requestAnimationFrame(tick)}; raf=requestAnimationFrame(tick);
+});
+
+/* ---------- init ---------- */
+buildWeights(); markStyle('Balanced');
+$('preset').value='0'; fillModes(1); run();
+let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(draw,120)});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw)}catch(_){}
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+})();
+</script>
+<script>
+/* Nick Vuci light/dark toggle: follows the device until the viewer picks; the choice is kept and set as data-theme on <html>. */
+(function(){
+  var root=document.documentElement, sys=window.matchMedia('(prefers-color-scheme: dark)');
+  var btns=[].slice.call(document.querySelectorAll('.nv-theme'));
+  function cur(){var c=root.dataset.theme;return c==='light'||c==='dark'?c:(sys.matches?'dark':'light')}
+  function sync(){var d=cur()==='dark',l=d?'Switch to light theme':'Switch to dark theme';
+    btns.forEach(function(b){b.classList.toggle('is-dark',d);b.setAttribute('aria-label',l);b.title=l;b.setAttribute('aria-pressed',String(d))});
+    document.dispatchEvent(new CustomEvent('nv-theme',{detail:cur()}))}
+  btns.forEach(function(b){b.addEventListener('click',function(){var t=cur()==='dark'?'light':'dark';root.dataset.theme=t;
+    try{localStorage.setItem('theme',t)}catch(e){}sync()})});
+  if(sys.addEventListener)sys.addEventListener('change',sync);
+  /* the app bar spans the full window, edge to edge, whatever margins the page sets on its container */
+  var bar=document.querySelector('.nv-appbar');
+  function bleed(){if(!bar)return;bar.style.marginLeft=bar.style.marginTop=bar.style.width='';
+    var r=bar.getBoundingClientRect(),w=document.documentElement.clientWidth;
+    bar.style.marginLeft=(-r.left)+'px';bar.style.width=w+'px';bar.style.marginTop=(-(r.top+window.scrollY))+'px';
+    var r2=bar.getBoundingClientRect();if(Math.abs(r2.left)>1){bar.style.marginLeft=(-r.left-r2.left)+'px'}}
+  bleed();addEventListener('resize',bleed);addEventListener('load',bleed);
+  sync();
+})();
+</script>
+
+</body></html>
