@@ -298,6 +298,7 @@
     .cellActions button { min-height: 28px; padding: 4px 8px; font-size: 11.5px; }
     .loopCell.playing .playCell { background: var(--blue); color: var(--on-blue); border-color: var(--blue); }
 
+    .sendStatus { margin-top: 8px; min-height: 40px; }
     @media (max-width: 760px) { .loopGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 520px) {
       .panel { padding: 10px; gap: 10px; }
@@ -389,6 +390,14 @@
             <span>4 bars · 90 BPM</span>
           </div>
           <div class="loopGrid" id="loopGrid"></div>
+        </section>
+
+        <section class="card" aria-label="Workstation">
+          <div class="cardHeader">
+            <span>Take it further</span>
+          </div>
+          <button class="primaryButton" id="sendButton" type="button">Send the scale and loops to the workstation</button>
+          <div class="status sendStatus" id="sendStatus" aria-live="polite">The workstation opens with this scale, the first chord loop and the first melody loop.</div>
         </section>
       </div>
     </details>
@@ -1047,6 +1056,31 @@
       media.addEventListener("change", sync);
       sync();
     })();
+    // Hand the scale and loops to the workstation. Locked notes travel as exact ratios,
+    // unlocked ones as cents; the shared handoff module does the conversion.
+    document.getElementById("sendButton").addEventListener("click", async () => {
+      const sendStatus = document.getElementById("sendStatus");
+      try {
+        const handoff = await import("../shared/xen/handoff.js");
+        const payload = handoff.fromJiLab({ rootHz: baseFrequency(), scaleNotes, cells, bpm, beatsPerLoop });
+        if (!handoff.send(payload)) {
+          sendStatus.textContent = "The browser would not store the handoff. Check that site storage is allowed.";
+          return;
+        }
+        audioGeneration += 1;
+        stopDrone();
+        stopLoop();
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: "lesson-handoff" }, window.location.origin);
+          sendStatus.textContent = "Sent to the workstation.";
+        } else {
+          window.location.href = "../workstation/index.html";
+        }
+      } catch (error) {
+        sendStatus.textContent = `Could not send: ${error.message}`;
+      }
+    });
+
     window.addEventListener("lesson-audio-stop", () => {
       audioGeneration += 1;
       stopDrone();

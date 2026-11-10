@@ -1818,3 +1818,35 @@ html { color-scheme: dark !important; }
   max-height: none;
   padding-top: 0.8rem;
 }
+
+/* ----- exercises linked to the workstation ----- */
+.exerciseWrap { width: min(1040px, 100%); display: grid; gap: 0.6rem; min-height: 0; max-height: 100%; }
+.exerciseItem .exerciseOpen {
+  justify-self: start;
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  background: rgba(233, 196, 106, 0.2);
+  color: var(--gold);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.exerciseItem .exerciseOpen:hover { background: var(--gold); color: #1e1f26; }
+/* the verdict keeps its line whether or not it has anything to say */
+.exerciseVerdict {
+  min-height: 1.6rem;
+  margin: 0;
+  text-align: center;
+  font: italic 600 1.35rem/1.6rem "Cormorant Garamond", Garamond, serif;
+}
+.exerciseVerdict.earned {
+  background: linear-gradient(115deg, #b8892b 0%, #e9c46a 22%, #fff1c4 40%, #e9c46a 56%, #b8892b 78%, #e9c46a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.exerciseItem .exerciseOpen { grid-column: 2; }

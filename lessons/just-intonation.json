@@ -55,18 +55,41 @@
       "label": "Exercises",
       "items": [
         {
+          "kind": "make",
+          "task": "ji-scale",
+          "criteria": {
+            "minScale": 5
+          },
           "title": "Create a JI scale",
-          "body": "Choose a root and build a scale from just-intonation ratios."
+          "body": "Choose a root and build a scale of at least five just-intonation ratios, counting 1/1."
         },
         {
+          "kind": "find",
+          "task": "ji-chord",
+          "criteria": {
+            "minChord": 3
+          },
           "title": "Find a chord in a JI scale",
-          "body": "Pick three or more notes from your JI scale and describe the ratios they form above the root."
+          "body": "On the Chords lane, sound three or more notes of your scale together and read the ratios they form above the root."
         },
         {
+          "kind": "make",
+          "task": "ji-melody",
+          "criteria": {
+            "minMelodyNotes": 6,
+            "minMelodyIntervals": 3
+          },
           "title": "Make a melody in a JI scale",
-          "body": "Use notes from your JI scale to write a short melody that emphasizes one or two clear ratios."
+          "body": "On the Melody lane, write a melody of at least six notes over the drone that returns to one or two clear ratios."
         }
       ]
+    },
+    "compose": {
+      "enabled": true,
+      "label": "Compose",
+      "file": "workstation/index.html?embed=1&lesson=just-intonation",
+      "ariaLabel": "Workstation"
     }
-  }
+  },
+  "node": "just-intonation"
 }
