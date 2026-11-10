@@ -76,6 +76,45 @@ test('edits made while playing are heard on the next pass', () => {
   assert.equal(audio.log.notes.filter(n => n.hz === 302.5).length, 1);
 });
 
+test('a tempo change never moves, skips or repeats a note', () => {
+  // Eighth notes on 1/1 at 240 BPM, slowed to 30 BPM a tenth of a second in.
+  let p = P.createProject({ id: 'p1', bars: 1, tempo: 240, tuning: { referenceHz: 220, scale: ['1/1'] } });
+  const melody = P.trackOf(p, 'melody').id;
+  for (let i = 0; i < 8; i += 1) p = P.addNote(p, { trackId: melody, pitch: { degree: 0, equaveOffset: 0 }, startTick: i * 480, durationTick: 240 });
+  p = { ...p, loop: false };
+  const audio = fakeAudio(), timer = manualTimer();
+  const transport = createTransport({ getProject: () => p, audio, timer });
+  transport.play();                                    // audio clock starts at 10; first note at 10.06
+  const queuedEarly = audio.log.notes.map(n => n.when);
+  assert.deepEqual(queuedEarly.map(t => Number((t - 10).toFixed(4))), [0.06, 0.185], 'two notes are queued inside the first lookahead');
+  audio.advance(0.1); p = P.setTempo(p, 30); timer.tick();
+  for (let i = 0; i < 400 && transport.playing; i += 1) { audio.advance(0.05); timer.tick(); }
+  const times = audio.log.notes.map(n => n.when - 10);
+  assert.equal(times.length, 8, 'every note is scheduled exactly once');
+  assert.deepEqual(times.slice(0, 2).map(t => Number(t.toFixed(4))), [0.06, 0.185], 'queued notes keep their times');
+  // The first lookahead reached tick 730 at 240 BPM (0.06 + 730/3840 s); 30 BPM runs from there.
+  const boundary = 0.06 + 730 / 3840;
+  times.slice(2).forEach((t, i) => assert.ok(Math.abs(t - (boundary + ((i + 2) * 480 - 730) / 480)) < 1e-9, `note ${i + 2} at ${t}`));
+  for (let i = 1; i < times.length; i += 1) assert.ok(times[i] > times[i - 1], 'times only move forward');
+  assert.ok(Math.abs((times[3] - times[2]) - 1) < 1e-9, 'after the change, eighth notes are one second apart');
+});
+
+test('two quick tempo changes keep the playhead and the notes continuous', () => {
+  let p = chordAndMelody();
+  const audio = fakeAudio(), timer = manualTimer(), seen = [];
+  const transport = createTransport({ getProject: () => p, audio, timer, onState: s => seen.push(s.tick + s.pass * p.lengthTick) });
+  transport.play();
+  audio.advance(0.05); p = P.setTempo(p, 200); timer.tick();
+  audio.advance(0.05); p = P.setTempo(p, 45); timer.tick();
+  for (let i = 0; i < 300; i += 1) { audio.advance(0.05); timer.tick(); }
+  for (let i = 1; i < seen.length; i += 1) assert.ok(seen[i] >= seen[i - 1] - 1e-6, `playhead went backwards at pump ${i}`);
+  const melodyStarts = audio.log.notes.filter(n => n.kind === 'melody').map(n => n.when);
+  for (let i = 1; i < melodyStarts.length; i += 1) assert.ok(melodyStarts[i] > melodyStarts[i - 1]);
+  const perPass = p.notes.length, passes = Math.floor(audio.log.notes.length / perPass);
+  assert.ok(passes >= 1);
+  assert.equal(new Set(audio.log.notes.slice(0, passes * perPass).map(n => n.when + '|' + n.hz + '|' + n.kind)).size, passes * perPass, 'no note is scheduled twice');
+});
+
 test('a JI chord and ratio melody over a drone reach the real synth with exact frequencies', async () => {
   const { XenAudio, clock, mains } = loadXenAudio();
   const adapter = createXenAudioAdapter(XenAudio), timer = manualTimer();

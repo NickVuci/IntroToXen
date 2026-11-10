@@ -75,8 +75,17 @@ export function validateProject(p) {
     unique(track.id);
     if (!TRACK_KINDS.includes(track.kind)) throw new Error(`Unknown track kind "${track.kind}".`);
     if (!(track.level >= 0 && track.level <= 1)) throw new Error('Track level must be from 0 to 1.');
-    if (track.kind === 'drone') validatePitch(tuning, track.drone?.pitch, 'Drone');
+    if (typeof track.voice !== 'string' || typeof track.mute !== 'boolean') throw new Error(`Track "${track.id}" is missing its voice or mute setting.`);
+    if (track.kind === 'drone') {
+      if (typeof track.drone?.on !== 'boolean') throw new Error('The drone track is missing its on/off setting.');
+      validatePitch(tuning, track.drone.pitch, 'Drone');
+    }
     tracks.set(track.id, track);
+  }
+  // The workstation writes to exactly one track of each kind, so a project must have all three.
+  for (const kind of TRACK_KINDS) {
+    const count = p.tracks.filter(track => track.kind === kind).length;
+    if (count !== 1) throw new Error(`A project needs exactly one ${kind} track; this one has ${count}.`);
   }
   for (const note of p.notes) {
     unique(note.id);

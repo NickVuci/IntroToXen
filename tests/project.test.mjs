@@ -103,3 +103,15 @@ test('undo and redo', () => {
   h.push(P.setTempo(h.present, 60));
   assert.equal(h.canRedo, false);
 });
+
+test('projects without the three required tracks are refused', () => {
+  const good = JSON.parse(P.serializeProject(make()));
+  assert.throws(() => P.parseProject({ ...good, tracks: [] }), /exactly one drone track; this one has 0/);
+  assert.throws(() => P.parseProject({ ...good, tracks: good.tracks.filter(t => t.kind !== 'melody') }), /exactly one melody track/);
+  assert.throws(() => P.parseProject({ ...good, tracks: [...good.tracks, { ...good.tracks[1], id: 't9' }] }), /exactly one chords track; this one has 2/);
+  const noDrone = JSON.parse(JSON.stringify(good)); delete noDrone.tracks[0].drone;
+  assert.throws(() => P.parseProject(noDrone), /drone track is missing/);
+  const noVoice = JSON.parse(JSON.stringify(good)); delete noVoice.tracks[2].voice;
+  assert.throws(() => P.parseProject(noVoice), /missing its voice/);
+  assert.deepEqual(P.parseProject(good), make());
+});

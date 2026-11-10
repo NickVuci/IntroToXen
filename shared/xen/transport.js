@@ -56,18 +56,28 @@ export function createTransport({
   let anchorTick = 0;      // virtual tick the anchor refers to
   let scheduledTo = 0;     // virtual tick up to which notes are already handed to the audio engine
   let tempo = 0;
+  let previous = null;     // the mapping in force before the last tempo change, for times before the anchor
 
   const secondsPerTick = () => 60 / (tempo * PPQ);
-  const tickAt = seconds => anchorTick + (seconds - anchorSeconds) / secondsPerTick();
   const secondsAt = tick => anchorSeconds + (tick - anchorTick) * secondsPerTick();
+  const tickAt = seconds => (previous && seconds < anchorSeconds
+    ? previous.anchorTick + (seconds - previous.anchorSeconds) * previous.tempo * PPQ / 60
+    : anchorTick + (seconds - anchorSeconds) / secondsPerTick());
+
+  // A tempo change takes effect at the edge of what is already queued. Notes handed to the audio
+  // engine keep the times they were given; everything after `scheduledTo` is timed at the new
+  // tempo, starting exactly where the old timeline reaches that tick. Nothing is skipped, played
+  // twice or moved, and the change is heard within one lookahead (a quarter of a second).
+  function changeTempo(next, now) {
+    const boundarySeconds = secondsAt(scheduledTo);
+    if (now >= anchorSeconds) previous = { anchorSeconds, anchorTick, tempo };   // else the older mapping still covers "now"
+    anchorSeconds = boundarySeconds; anchorTick = scheduledTo; tempo = next;
+  }
 
   function pump() {
     if (!playing) return;
     const project = getProject(), now = audio.now();
-    if (project.tempo !== tempo) {           // tempo edits take effect from the present moment
-      const here = Math.max(anchorTick, tickAt(now));
-      anchorTick = here; anchorSeconds = now; tempo = project.tempo;
-    }
+    if (project.tempo !== tempo) changeTempo(project.tempo, now);
     const horizon = Math.ceil(tickAt(now + lookahead));
     for (const note of windowNotes(project, scheduledTo, horizon)) {
       audio.schedule({ hz: note.hz, when: secondsAt(note.tick), duration: note.durationTick * secondsPerTick(),
@@ -88,7 +98,7 @@ export function createTransport({
   function play() {
     if (playing) return;
     const project = getProject();
-    playing = true; tempo = project.tempo;
+    playing = true; tempo = project.tempo; previous = null;
     anchorTick = 0; scheduledTo = 0; anchorSeconds = audio.now() + START_DELAY_SECONDS;
     pump();
     handle = timer.set(pump, pumpMs);
