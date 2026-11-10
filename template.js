@@ -1,5 +1,5 @@
 ﻿(() => {
-  const SECTION_ORDER = ["title", "animation", "lab", "exercises", "qa"];
+  const SECTION_ORDER = ["title", "animation", "lab", "exercises", "compose", "qa"];
   const DEFAULT_LESSON_PATH = "lessons/example.json";
   const SVG_NS = "http://www.w3.org/2000/svg";
   const shell = document.getElementById("lessonShell");
@@ -43,8 +43,20 @@
       enabled: true,
       label: "Exercises",
       items: []
+    },
+    // The workstation, embedded for the lesson's "make" exercises. Shown only when a lesson defines it.
+    compose: {
+      enabled: false,
+      label: "Compose",
+      file: ""
     }
   };
+
+  // Lesson state for exercises and completion (see shared/xen/progress.js).
+  let lessonId = "";
+  let progress = null;
+  let composeReady = false;
+  let pendingForCompose = [];
 
   let sections = [];
   let navDots = [];
@@ -302,14 +314,36 @@
       const checkbox = el("input");
       checkbox.type = "checkbox";
       checkbox.setAttribute("aria-label", asText(item?.title, `Exercise ${index + 1}`));
+      // Every exercise remembers its tick. One with a "task" is also ticked by the workstation.
+      checkbox.dataset.exercise = asText(item?.task, `exercise-${index + 1}`);
       const text = el("span", "exerciseText");
       appendText(text, "strong", item?.title ?? `Exercise ${index + 1}`);
       appendText(text, "p", item?.body ?? "");
       row.append(checkbox, text);
+      if (item?.task) {
+        checkbox.dataset.task = asText(item.task);
+        row.dataset.taskTitle = asText(item.title);
+        row.dataset.taskBody = asText(item.body);
+        row.dataset.taskCriteria = JSON.stringify(item.criteria && typeof item.criteria === "object" ? item.criteria : {});
+        const open = button("Open in the workstation", "exerciseOpen");
+        open.dataset.openTask = asText(item.task);
+        row.append(open);
+      }
       checklist.appendChild(row);
     });
-    inner.append(header(config.label), stage(checklist), emptyNote());
+    const verdict = el("p", "exerciseVerdict");
+    verdict.setAttribute("aria-live", "polite");
+    const wrap = el("div", "exerciseWrap");
+    wrap.append(checklist, verdict);
+    inner.append(header(config.label), stage(wrap), emptyNote());
     return section("exercises", config.label, inner);
+  }
+
+  // The workstation takes the lab's frame and styles; data-role tells the two apart.
+  function renderCompose(config) {
+    const rendered = renderLab({ ...config, label: asText(config.label, defaults.compose.label) });
+    rendered.dataset.role = "compose";
+    return rendered;
   }
 
   const renderers = {
@@ -317,8 +351,106 @@
     animation: renderAnimation,
     lab: renderLab,
     qa: renderQa,
-    exercises: renderExercises
+    exercises: renderExercises,
+    compose: renderCompose
   };
+
+  // ----- exercises, the workstation and completion -----
+
+  function composeFrame() {
+    return document.querySelector('.sectionLayer[data-role="compose"] iframe');
+  }
+
+  function composeIndex() {
+    return sections.findIndex(item => item.dataset.role === "compose");
+  }
+
+  function postToCompose(message) {
+    const frame = composeFrame();
+    if (!frame) return;
+    if (!composeReady) { pendingForCompose.push(message); return; }
+    frame.contentWindow?.postMessage(message, window.location.origin);
+  }
+
+  function exerciseBoxes() {
+    return Array.from(document.querySelectorAll(".exerciseItem input[data-exercise]"));
+  }
+
+  function taskIds() {
+    return exerciseBoxes().filter(box => box.dataset.task).map(box => box.dataset.task);
+  }
+
+  function refreshCompletion() {
+    const verdict = document.querySelector(".exerciseVerdict");
+    if (!verdict || !progress) return;
+    const ids = taskIds();
+    const done = progress.allDone(lessonId, ids);
+    if (done) progress.complete(lessonId);
+    verdict.textContent = done ? "Complete." : "";
+    verdict.classList.toggle("earned", done);
+  }
+
+  function recordExercise(box, extra = {}) {
+    if (!progress) return;
+    progress.setTask(lessonId, box.dataset.exercise, { done: box.checked, ...extra });
+    refreshCompletion();
+  }
+
+  function openTask(taskId) {
+    const row = document.querySelector(`.exerciseItem input[data-task="${CSS.escape(taskId)}"]`)?.closest(".exerciseItem");
+    const index = composeIndex();
+    if (!row || index < 0) return;
+    let criteria = {};
+    try { criteria = JSON.parse(row.dataset.taskCriteria || "{}"); } catch (_) { /* no criteria */ }
+    postToCompose({
+      type: "lesson-task", lessonId, taskId,
+      title: row.dataset.taskTitle, body: row.dataset.taskBody, criteria,
+      done: Boolean(progress?.tasks(lessonId)[taskId]?.done)
+    });
+    goTo(index);
+  }
+
+  function bindExercises() {
+    const record = progress ? progress.tasks(lessonId) : {};
+    exerciseBoxes().forEach(box => {
+      box.checked = record[box.dataset.exercise]?.done === true;
+      box.addEventListener("change", () => recordExercise(box));
+    });
+    document.querySelectorAll(".exerciseOpen").forEach(open => {
+      open.addEventListener("click", event => {
+        event.preventDefault();
+        openTask(open.dataset.openTask);
+      });
+    });
+    refreshCompletion();
+  }
+
+  // Messages from the lab and the workstation (same origin only).
+  window.addEventListener("message", event => {
+    if (event.origin !== window.location.origin) return;
+    const message = event.data || {};
+    const compose = composeFrame();
+    if (compose && event.source === compose.contentWindow) {
+      if (message.type === "lesson-lab-ready") {
+        composeReady = true;
+        pendingForCompose.splice(0).forEach(postToCompose);
+      } else if (message.type === "lesson-lab-goal" && message.goal) {
+        const box = exerciseBoxes().find(item => item.dataset.task === message.goal);
+        if (box) {
+          box.checked = true;
+          recordExercise(box, { projectId: message.projectId });
+        }
+      }
+      return;
+    }
+    // The lab has left a handoff for the workstation: show the workstation and tell it to collect.
+    if (message.type === "lesson-handoff" && compose) {
+      const fromLab = Array.from(document.querySelectorAll(".sectionLayer iframe")).some(frame => frame !== compose && frame.contentWindow === event.source);
+      if (!fromLab) return;
+      postToCompose({ type: "lesson-handoff" });
+      goTo(composeIndex());
+    }
+  });
 
   function lessonPath() {
     const params = new URLSearchParams(window.location.search);
@@ -696,6 +828,7 @@
       window.addEventListener("resize", fitAllQa);
     }
 
+    bindExercises();
     updateNavigation();
     activateSection(current);
   }
@@ -740,6 +873,13 @@
       const response = await fetch(path, { cache: "no-store" });
       if (!response.ok) throw new Error(`Could not load ${path} (${response.status}).`);
       const lesson = await response.json();
+      // The concept this lesson belongs to: named in the file, else the file's own name.
+      lessonId = asText(lesson.node, path.split("/").pop().replace(/\.json.*$/, ""));
+      try {
+        progress = (await import("./shared/xen/progress.js")).createProgress();
+      } catch (error) {
+        console.warn("Progress is not being saved.", error);
+      }
       renderLesson(lesson);
       bindRenderedControls();
     } catch (error) {

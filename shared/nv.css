@@ -1,0 +1,113 @@
+/* Nick Vuci design system: tokens and the app frame shared by playground pages.
+   Ivory (light) and Nocturne (the original nickvuci.com palette), written for both
+   routes: the device setting and data-theme on <html>. */
+:root {
+  --ground-start: #f7f4ec; --ground-end: #f7f4ec; --surface: #f7f4ec;
+  --surface-raised: #fffdf8; --surface-sunk: #ece7db;
+  --ink: #121933; --ink-muted: #565c70; --hairline: #dcd5c6;
+  --brand-blue: #1640c8; --blue: #1640c8; --on-blue: #fffdf8; --blue-soft: #dde4f7;
+  --gold: #b8892b; --gold-ink: #7a5a1c; --gold-soft: #efe4cb; --on-gold: #121933;
+  --gold-lo: #7a5a1c; --gold-hi: #e9cf8a;
+  --alert: #b42a12;
+  --burgundy: #6b1d34; --burgundy-ink: #6b1d34; --burgundy-mid: #7a2c40;
+  --burgundy-soft: #f3e4e8; --burgundy-wash: #faf2f3;
+  --font-display: "Cormorant Garamond", "EB Garamond", Garamond, "Times New Roman", serif;
+  --font-sans: "Montserrat", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --radius-sm: 2px;
+  --foil: linear-gradient(115deg, var(--gold-lo) 0%, var(--gold) 22%, var(--gold-hi) 40%, var(--gold) 56%, var(--gold-lo) 78%, var(--gold) 100%);
+  /* buttons: Ivory is a quiet outline; Nocturne is the original site's gold edge on a gold tint */
+  --btn-bg: transparent; --btn-fg: var(--ink); --btn-edge: var(--ink-muted);
+  --btn-hover-bg: transparent; --btn-hover-fg: var(--gold-ink); --btn-hover-edge: var(--gold);
+  --bar-line: 1px solid var(--burgundy-soft);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground-start: #1e1f26; --ground-end: #283c63; --surface: #232d44;
+    --surface-raised: #1e1f26; --surface-sunk: #181920;
+    --ink: #f0f0f0; --ink-muted: #a8dadc; --hairline: #e9c56a5b;
+    --brand-blue: #86a3ff; --blue: #a8dadc; --on-blue: #1e1f26; --blue-soft: #a8dadc26;
+    --gold: #e9c46a; --gold-ink: #e9c46a; --gold-soft: #e9c46a33; --on-gold: #1e1f26;
+    --gold-lo: #b8892b; --gold-hi: #fff1c4;
+    --alert: #ff8a6a;
+    --burgundy: #f4a261; --burgundy-ink: #e9c46a; --burgundy-mid: #f4a261;
+    --burgundy-soft: #e9c56a5b; --burgundy-wash: #ffffff0a;
+    --btn-bg: var(--gold-soft); --btn-fg: var(--gold); --btn-edge: var(--gold);
+    --btn-hover-bg: var(--gold); --btn-hover-fg: var(--on-gold); --btn-hover-edge: var(--gold);
+    --bar-line: 2px solid var(--hairline);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground-start: #1e1f26; --ground-end: #283c63; --surface: #232d44;
+  --surface-raised: #1e1f26; --surface-sunk: #181920;
+  --ink: #f0f0f0; --ink-muted: #a8dadc; --hairline: #e9c56a5b;
+  --brand-blue: #86a3ff; --blue: #a8dadc; --on-blue: #1e1f26; --blue-soft: #a8dadc26;
+  --gold: #e9c46a; --gold-ink: #e9c46a; --gold-soft: #e9c46a33; --on-gold: #1e1f26;
+  --gold-lo: #b8892b; --gold-hi: #fff1c4;
+  --alert: #ff8a6a;
+  --burgundy: #f4a261; --burgundy-ink: #e9c46a; --burgundy-mid: #f4a261;
+  --burgundy-soft: #e9c56a5b; --burgundy-wash: #ffffff0a;
+  --btn-bg: var(--gold-soft); --btn-fg: var(--gold); --btn-edge: var(--gold);
+  --btn-hover-bg: var(--gold); --btn-hover-fg: var(--on-gold); --btn-hover-edge: var(--gold);
+  --bar-line: 2px solid var(--hairline);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { width: 100%; min-height: 100%; margin: 0; color: var(--ink); font: 400 15px/1.5 var(--font-sans); -webkit-font-smoothing: antialiased; }
+body { background: var(--surface); background-image: linear-gradient(135deg, var(--ground-start), var(--ground-end)); background-attachment: fixed; overflow-x: hidden; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* inside a lesson the page sits directly on the lesson page, which is Nocturne */
+html:not(.standalone), html:not(.standalone)[data-theme] { color-scheme: dark !important; }
+html:not(.standalone) body { background: transparent; }
+
+/* ----- app bar ----- */
+.appBar { background: var(--surface-raised); border-bottom: var(--bar-line); }
+.appBarTop { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
+html:not(.standalone) .appBarTop { display: none; }   /* the lesson page carries the brand and the toggle */
+.home { display: flex; align-items: center; gap: 10px; flex: none; color: inherit; text-decoration: none; }
+.home svg { display: block; }
+.wordmark { font: 400 15px/1 var(--font-sans); letter-spacing: 0.18em; white-space: nowrap; }
+.wordmark .n { color: var(--brand-blue); }
+.wordmark .v { color: var(--gold); }
+.appName { min-width: 0; padding-left: 12px; border-left: 1px solid var(--burgundy-soft); font: 400 15px/1 var(--font-sans); letter-spacing: 0.18em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.standing { display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-top: 1px solid var(--hairline); font-size: 13px; color: var(--ink-muted); }
+html:not(.standalone) .standing { border-top: 0; }
+@media (max-width: 420px) { .wordmark { display: none; } .appName { font-size: 15px; letter-spacing: .1em; } }
+
+.themeToggle { flex: none; display: grid; place-items: center; width: 36px; height: 36px; min-height: 0; padding: 0; margin-left: auto; cursor: pointer; color: var(--ink-muted); background: transparent; border: 1px solid var(--burgundy-soft); border-radius: var(--radius-sm); transition: color .2s ease, border-color .2s ease, background-color .2s ease; }
+.themeToggle:hover { color: var(--gold); border-color: var(--gold); background: transparent; }
+.themeToggle .ti { grid-area: 1 / 1; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: opacity .3s ease, transform .3s ease; }
+.themeToggle .ti-sun { opacity: 0; transform: rotate(-45deg) scale(.8); }
+.themeToggle.isDark .ti-moon { opacity: 0; transform: rotate(45deg) scale(.8); }
+.themeToggle.isDark .ti-sun { opacity: 1; transform: none; }
+.themeToggle.isDark { color: var(--gold); background: var(--gold-soft); border-color: var(--gold); }
+.themeToggle.isDark:hover { color: var(--on-gold); background: var(--gold); }
+@media (max-width: 420px) { .themeToggle { width: 32px; height: 32px; } }
+
+/* ----- buttons and fields ----- */
+button, .button { font: 600 13px/1.2 var(--font-sans); letter-spacing: 0.04em; min-height: 36px; padding: 8px 14px; border: 1px solid var(--btn-edge); border-radius: var(--radius-sm); background: var(--btn-bg); color: var(--btn-fg); cursor: pointer; transition: background-color .25s, color .25s, border-color .25s; }
+button:disabled { opacity: .4; cursor: default; }
+@media (hover: hover) { button:hover:not(:disabled) { background: var(--btn-hover-bg); color: var(--btn-hover-fg); border-color: var(--btn-hover-edge); } }
+button.main { background: var(--blue); color: var(--on-blue); border-color: var(--blue); }
+@media (hover: hover) { button.main:hover:not(:disabled) { background: var(--blue); color: var(--on-blue); border-color: var(--blue); filter: brightness(1.08); } }
+button.main.playing { background: transparent; color: var(--blue); filter: none; }
+input[type="text"], input[type="number"], select { font: 500 13px/1.2 var(--font-mono); min-height: 36px; padding: 6px 8px; color: var(--ink); background: var(--surface-raised); border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+label { font-size: 12.5px; color: var(--ink-muted); }
+
+/* ----- panels ----- */
+.card { background: var(--surface-raised); border: 1px solid var(--hairline); border-radius: var(--radius-sm); padding: 12px; }
+.cardHeader { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; font: 600 12px/16px var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--burgundy-ink); }
+.eyebrow { font: 600 11px/16px var(--font-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-ink); }
+.verdict { font: italic 600 20px/24px var(--font-display); }
+
+/* ----- control bar: three buttons shared by every mode ----- */
+.controlBar { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 10px; padding: 10px 16px; background: var(--surface-raised); border-top: var(--bar-line); }
+.controlBar button { width: 100%; min-height: 42px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
