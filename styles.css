@@ -1822,6 +1822,8 @@ html { color-scheme: dark !important; }
 /* ----- exercises linked to the workstation ----- */
 .exerciseWrap { width: min(1040px, 100%); display: grid; gap: 0.6rem; min-height: 0; max-height: 100%; }
 .exerciseItem .exerciseOpen {
+  display: inline-block;
+  text-decoration: none;
   justify-self: start;
   margin-top: 0.6rem;
   padding: 0.5rem 0.9rem;
