@@ -3,7 +3,7 @@
 //
 // Notes store scale degrees (or exact interval text), never frequencies. Time is integer
 // ticks, 960 per quarter note, so nothing accumulates float error.
-import { normalizeTuning, parseInterval, pitchInterval, compare, classify, isExact } from './tuning.js';
+import { normalizeTuning, parseInterval, pitchInterval, pitchFromInterval, compare, classify, isExact } from './tuning.js';
 
 export const FORMAT = 'xen-project';
 export const VERSION = 1;
@@ -154,24 +154,32 @@ export const setBars = (project, bars, now) => commit(project, p => {
 }, now);
 
 /**
- * Replaces the scale. Notes keep their *interval*, not their degree number: a note on 5/4 stays
- * on 5/4 wherever it now sits in the scale. Notes whose interval has left the scale are kept as
- * direct-interval notes, so no pitch is ever lost or silently changed.
+ * Replaces the whole tuning: reference frequency, equave, scale and name. Notes keep their
+ * *interval* above 1/1, not their degree number: a note on 5/4 stays on 5/4 wherever it now sits
+ * in the scale. Notes whose interval is not in the new scale (in any equave) are kept as
+ * direct-interval notes, so no pitch is ever lost or silently changed. (A new reference frequency
+ * moves every note with 1/1, which is what changing the reference means.)
  */
-export const setScale = (project, scale, now) => commit(project, p => {
+export const setTuning = (project, tuning, now) => commit(project, p => {
   const old = p.tuning;
-  const next = normalizeTuning({ ...old, scale });
+  const next = normalizeTuning(tuning);
   const remap = pitch => {
     if (pitch.interval !== undefined) return pitch;
-    const step = old.scale[pitch.degree];
-    const degree = next.scale.indexOf(step);
-    return degree >= 0 ? { degree, equaveOffset: pitch.equaveOffset } : { interval: pitchInterval(old, pitch) };
+    if (next.equave === old.equave) {
+      const degree = next.scale.indexOf(old.scale[pitch.degree]);
+      if (degree >= 0) return { degree, equaveOffset: pitch.equaveOffset };
+      return { interval: pitchInterval(old, pitch) };
+    }
+    return pitchFromInterval(next, pitchInterval(old, pitch));
   };
   for (const note of p.notes) note.pitch = remap(note.pitch);
   const drone = trackOf(p, 'drone');
   if (drone) drone.drone.pitch = remap(drone.drone.pitch);
   p.tuning = next;
 }, now);
+
+/** Replaces the scale's intervals, keeping the reference frequency, equave and name. */
+export const setScale = (project, scale, now) => setTuning(project, { ...project.tuning, scale }, now);
 
 // ----- reading a project -------------------------------------------------------
 

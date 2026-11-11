@@ -514,11 +514,15 @@ $('presetSelect').addEventListener('change', () => {
   const [kind, id] = $('presetSelect').value.split(':');
   const source = kind === 'preset' ? S.PRESETS.find(item => item.id === id) : store.loadScale(id);
   if (!source) return;
-  const scale = kind === 'preset' ? source.scale : source.tuning.scale;
+  // A preset brings intervals only, on the current 1/1 and equave. A saved scale brings back its
+  // whole tuning (1/1 in Hz, equave and intervals), so saving it again changes nothing by accident.
+  const tuning = kind === 'preset'
+    ? { ...project().tuning, scale: source.scale, name: source.name }
+    : { ...source.tuning, name: source.name };
   // In the scale exercise there is one lesson scale; elsewhere a preset starts a new scale and a saved one is reopened.
   if (!(mode.task && mode.view === 'scale')) ui.scaleId = kind === 'saved' ? source.id : null;
-  apply(p => P.setScaleName(P.setScale(p, scale, nowIso()), source.name, nowIso()),
-    kind === 'preset' ? `${source.name}. ${source.note} Change it as you like.` : `Opened ${source.name}.`, $('scaleStatus'));
+  apply(p => P.setTuning(p, tuning, nowIso()),
+    kind === 'preset' ? `${source.name}. ${source.note} Change it as you like.` : `Opened ${source.name}, 1/1 at ${source.tuning.referenceHz} Hz.`, $('scaleStatus'));
 });
 $('scaleName').addEventListener('change', () => apply(p => P.setScaleName(p, $('scaleName').value, nowIso()), undefined, $('scaleStatus')));
 $('referenceHz').addEventListener('change', () => {

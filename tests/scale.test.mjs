@@ -96,3 +96,31 @@ test('a scale name travels with a project and survives scale edits', () => {
   assert.equal(P.parseProject(P.serializeProject(p)).tuning.name, 'My scale');
   assert.equal(P.setScaleName(p, '').tuning.name, undefined);
 });
+
+test('reopening a saved scale restores its reference and equave, and saving it again keeps them', () => {
+  const store = createStore(memoryStorage());
+  const saved = S.createScale({ id: 's440', name: 'A at 440', tuning: { referenceHz: 440, scale: ['1/1', '5/4', '3/2'] } });
+  store.saveScale(saved);
+  // the default workstation project is at 220 Hz; reopen the saved scale into it, as the page does
+  let p = P.createProject({ id: 'p1', tuning: { referenceHz: 220, scale: ['1/1', '9/8', '5/4'] } });
+  p = P.addNote(p, { trackId: P.trackOf(p, 'melody').id, pitch: { degree: 2, equaveOffset: 0 }, startTick: 0, durationTick: 480 });   // 5/4
+  const loaded = store.loadScale('s440');
+  p = P.setTuning(p, { ...loaded.tuning, name: loaded.name });
+  assert.deepEqual(p.tuning, { referenceHz: 440, equave: '2/1', scale: ['1/1', '5/4', '3/2'], name: 'A at 440' });
+  assert.deepEqual(p.notes[0].pitch, { degree: 1, equaveOffset: 0 });
+  assert.equal(T.pitchHz(p.tuning, p.notes[0].pitch), 550);
+  store.saveScale(S.createScale({ id: 's440', name: p.tuning.name, tuning: p.tuning }));
+  assert.equal(store.loadScale('s440').tuning.referenceHz, 440);
+});
+
+test('a new equave keeps every note on its interval', () => {
+  let p = P.createProject({ id: 'p1', tuning: { referenceHz: 220, scale: ['1/1', '5/4', '3/2', '7/4'] } });
+  const melody = P.trackOf(p, 'melody').id;
+  for (const [degree, equaveOffset] of [[1, 0], [2, 1], [3, 0], [0, 1]]) p = P.addNote(p, { trackId: melody, pitch: { degree, equaveOffset }, startTick: p.notes.length * 480, durationTick: 480 });
+  const before = p.notes.map(n => T.pitchInterval(p.tuning, n.pitch));          // 5/4, 3/1, 7/4, 2/1
+  const q = P.setTuning(p, { referenceHz: 220, equave: '3/1', scale: ['1/1', '5/4', '3/2', '7/4', '2/1'] });
+  assert.deepEqual(q.notes.map(n => T.pitchInterval(q.tuning, n.pitch)), before);
+  assert.deepEqual(q.notes.map(n => n.pitch), [{ degree: 1, equaveOffset: 0 }, { degree: 0, equaveOffset: 1 }, { degree: 3, equaveOffset: 0 }, { degree: 4, equaveOffset: 0 }]);
+  assert.deepEqual(P.trackOf(q, 'drone').drone.pitch, { degree: 2, equaveOffset: -1 }, 'the drone, 1/2, is 3/2 one 3/1 equave down');
+  assert.equal(T.pitchHz(q.tuning, P.trackOf(q, 'drone').drone.pitch), 110);
+});
