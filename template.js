@@ -321,12 +321,12 @@
       appendText(text, "p", item?.body ?? "");
       row.append(checkbox, text);
       if (item?.task) {
+        // The exercise opens the part of the workstation it needs, set up for this task.
+        // The workstation records the tick; this page reads it on return.
         checkbox.dataset.task = asText(item.task);
-        row.dataset.taskTitle = asText(item.title);
-        row.dataset.taskBody = asText(item.body);
-        row.dataset.taskCriteria = JSON.stringify(item.criteria && typeof item.criteria === "object" ? item.criteria : {});
-        const open = button("Open in the workstation", "exerciseOpen");
-        open.dataset.openTask = asText(item.task);
+        const view = item.workstation?.view === "scale" ? "scale" : "roll";
+        const open = el("a", "exerciseOpen", view === "scale" ? "Open the scale builder" : "Open the piano roll");
+        open.href = `workstation/index.html?lesson=${encodeURIComponent(lessonId)}&task=${encodeURIComponent(asText(item.task))}`;
         row.append(open);
       }
       checklist.appendChild(row);
@@ -396,31 +396,11 @@
     refreshCompletion();
   }
 
-  function openTask(taskId) {
-    const row = document.querySelector(`.exerciseItem input[data-task="${CSS.escape(taskId)}"]`)?.closest(".exerciseItem");
-    const index = composeIndex();
-    if (!row || index < 0) return;
-    let criteria = {};
-    try { criteria = JSON.parse(row.dataset.taskCriteria || "{}"); } catch (_) { /* no criteria */ }
-    postToCompose({
-      type: "lesson-task", lessonId, taskId,
-      title: row.dataset.taskTitle, body: row.dataset.taskBody, criteria,
-      done: Boolean(progress?.tasks(lessonId)[taskId]?.done)
-    });
-    goTo(index);
-  }
-
   function bindExercises() {
     const record = progress ? progress.tasks(lessonId) : {};
     exerciseBoxes().forEach(box => {
       box.checked = record[box.dataset.exercise]?.done === true;
       box.addEventListener("change", () => recordExercise(box));
-    });
-    document.querySelectorAll(".exerciseOpen").forEach(open => {
-      open.addEventListener("click", event => {
-        event.preventDefault();
-        openTask(open.dataset.openTask);
-      });
     });
     refreshCompletion();
   }
@@ -443,12 +423,17 @@
       }
       return;
     }
-    // The lab has left a handoff for the workstation: show the workstation and tell it to collect.
-    if (message.type === "lesson-handoff" && compose) {
+    // The lab has left a handoff for the workstation. With the workstation embedded, show it and
+    // tell it to collect; otherwise open the full workstation, which collects on load.
+    if (message.type === "lesson-handoff") {
       const fromLab = Array.from(document.querySelectorAll(".sectionLayer iframe")).some(frame => frame !== compose && frame.contentWindow === event.source);
       if (!fromLab) return;
-      postToCompose({ type: "lesson-handoff" });
-      goTo(composeIndex());
+      if (compose) {
+        postToCompose({ type: "lesson-handoff" });
+        goTo(composeIndex());
+      } else {
+        window.location.href = `workstation/index.html?lesson=${encodeURIComponent(lessonId)}`;
+      }
     }
   });
 
@@ -831,6 +816,11 @@
     bindExercises();
     updateNavigation();
     activateSection(current);
+
+    // ?section=exercises (on the way back from the workstation) opens that section directly.
+    const wanted = new URLSearchParams(window.location.search).get("section");
+    const start = wanted ? sections.findIndex(section => (section.dataset.role || section.dataset.sectionType) === wanted) : -1;
+    if (start > 0) goTo(start, true);
   }
 
   // Shrink each Q&A until the question, choices and (revealed) answer fit the frame, so it never scrolls.

@@ -57,38 +57,47 @@
         {
           "kind": "make",
           "task": "ji-scale",
+          "title": "Make a JI scale",
+          "body": "Build a scale from the intervals of the 15-odd-limit, or start from a preset such as Ptolemy's intense diatonic and change it. It needs at least five notes, counting 1/1. Save the scale when it sounds right; the next exercises use it.",
           "criteria": {
             "minScale": 5
           },
-          "title": "Create a JI scale",
-          "body": "Choose a root and build a scale of at least five just-intonation ratios, counting 1/1."
-        },
-        {
-          "kind": "find",
-          "task": "ji-chord",
-          "criteria": {
-            "minChord": 3
-          },
-          "title": "Find a chord in a JI scale",
-          "body": "On the Chords lane, sound three or more notes of your scale together and read the ratios they form above the root."
+          "workstation": {
+            "view": "scale"
+          }
         },
         {
           "kind": "make",
           "task": "ji-melody",
+          "title": "Write a melody in a JI scale",
+          "body": "The piano roll holds your saved scale over a 1/1 drone, eight bars of 4/4. Write a melody of at least eight notes that uses at least four different pitches and comes to rest on one or two clear ratios. Export it to finish.",
           "criteria": {
-            "minMelodyNotes": 6,
-            "minMelodyIntervals": 3
+            "minMelodyNotes": 8,
+            "minMelodyIntervals": 4
           },
-          "title": "Make a melody in a JI scale",
-          "body": "On the Melody lane, write a melody of at least six notes over the drone that returns to one or two clear ratios."
+          "workstation": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 8,
+            "completeOn": "export"
+          }
+        },
+        {
+          "kind": "find",
+          "task": "ji-chord",
+          "title": "Find a chord in a JI scale",
+          "body": "On the Chords lane, sound three or more notes of your scale together over the drone and read the ratios they form above 1/1. A still, beatless chord such as 4:5:6 (1/1, 5/4, 3/2) is the sound to look for. Save to finish.",
+          "criteria": {
+            "minChord": 3
+          },
+          "workstation": {
+            "view": "roll",
+            "lane": "chords",
+            "bars": 4,
+            "completeOn": "save"
+          }
         }
       ]
-    },
-    "compose": {
-      "enabled": true,
-      "label": "Compose",
-      "file": "workstation/index.html?embed=1&lesson=just-intonation",
-      "ariaLabel": "Workstation"
     }
   },
   "node": "just-intonation"

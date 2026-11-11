@@ -119,7 +119,7 @@ export function nearestJi(cents, { oddLimit = 15 } = {}) {
 export const formatCents = cents => `${cents.toFixed(2)}¢`;
 
 // ----- tunings and pitches ---------------------------------------------------
-// tuning: { referenceHz, equave, scale: [interval text, ascending, first "1/1", all below the equave] }
+// tuning: { referenceHz, equave, scale: [interval text, ascending, first "1/1", all below the equave], name? }
 // pitch:  { degree, equaveOffset }  or  { interval }
 
 export function normalizeTuning(tuning) {
@@ -135,6 +135,7 @@ export function normalizeTuning(tuning) {
   if (scale.some(text => compare(text, '1/1') < 0 || compare(text, equave) >= 0)) throw new Error('Every scale interval must lie from 1/1 up to, but not including, the equave.');
   if (scale.length > 64) throw new Error('A scale may hold at most 64 intervals.');
   const out = { referenceHz, equave, scale };
+  if (typeof tuning.name === 'string' && tuning.name.trim()) out.name = tuning.name.trim().slice(0, 80);
   if (Array.isArray(tuning.subgroup)) out.subgroup = tuning.subgroup.map(Number);
   return out;
 }

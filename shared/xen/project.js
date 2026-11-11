@@ -143,6 +143,7 @@ export function toggleNote(project, spec, now) {
 export const clearTrack = (project, trackId, now) => commit(project, p => { p.notes = p.notes.filter(note => note.trackId !== trackId); }, now);
 export const setName = (project, name, now) => commit(project, p => { p.name = String(name).trim().slice(0, LIMITS.nameMax) || 'Untitled'; }, now);
 export const setTempo = (project, tempo, now) => commit(project, p => { p.tempo = Math.round(Math.min(LIMITS.tempoMax, Math.max(LIMITS.tempoMin, tempo))); }, now);
+export const setScaleName = (project, name, now) => commit(project, p => { const text = String(name).trim().slice(0, 80); if (text) p.tuning.name = text; else delete p.tuning.name; }, now);
 export const setReferenceHz = (project, hz, now) => commit(project, p => { p.tuning.referenceHz = hz; }, now);
 export const setDrone = (project, drone, now) => commit(project, p => { const track = trackOf(p, 'drone'); track.drone = { ...track.drone, ...clone(drone) }; }, now);
 export const setTrack = (project, trackId, patch, now) => commit(project, p => { Object.assign(p.tracks.find(track => track.id === trackId), clone(patch)); }, now);

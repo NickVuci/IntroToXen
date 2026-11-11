@@ -1,9 +1,11 @@
 // Project persistence. localStorage by default; any object with getItem/setItem/removeItem works
 // (tests pass a Map-backed one). Every call survives blocked or full storage and says so.
 import { parseProject, serializeProject } from './project.js';
+import { validateScale } from './scale.js';
 
 const INDEX = 'nv:workstation:index';
 const key = id => `nv:workstation:project:${id}`;
+const SCALES = 'nv:workstation:scales';
 const browserStorage = () => { try { return globalThis.localStorage ?? null; } catch { return null; } };
 
 export function createStore(storage = browserStorage()) {
@@ -30,9 +32,23 @@ export function createStore(storage = browserStorage()) {
       try { storage?.removeItem(key(id)); } catch { /* nothing to remove */ }
       return write(INDEX, JSON.stringify(readIndex().filter(item => item.id !== id)));
     },
+    // ----- saved scales: one small list, newest first -----
+    listScales() {
+      try {
+        const list = JSON.parse(read(SCALES) || '[]');
+        return (Array.isArray(list) ? list : []).filter(item => { try { validateScale(item); return true; } catch { return false; } });
+      } catch { return []; }
+    },
+    loadScale(id) { return this.listScales().find(item => item.id === id) ?? null; },
+    /** Returns true when the scale was written. Saving under an existing id replaces it. */
+    saveScale(scale) {
+      validateScale(scale);
+      return write(SCALES, JSON.stringify([scale, ...this.listScales().filter(item => item.id !== scale.id)]));
+    },
+    removeScale(id) { return write(SCALES, JSON.stringify(this.listScales().filter(item => item.id !== id))); },
     /** A project id that is not in use. `seed` (a time, say) keeps this module free of clocks and randomness. */
     newId(seed) {
-      const taken = new Set(readIndex().map(item => item.id));
+      const taken = new Set([...readIndex(), ...this.listScales()].map(item => item.id));
       let n = 0, id;
       do { id = `p${seed}${n ? `-${n}` : ''}`; n += 1; } while (taken.has(id));
       return id;
