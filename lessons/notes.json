@@ -1,0 +1,87 @@
+{
+  "title": "Notes",
+  "description": "A pitch given a place in time and in a tuning.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Notes",
+      "body": "A pitch given a place in time and in a tuning.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Pitch",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/pitch.json"
+        },
+        {
+          "label": "Intervals",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/intervals.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Notes",
+      "word": "notes",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Notes",
+      "prompt": "The Notes lab will go here.",
+      "ariaLabel": "Notes lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What turns a pitch into a note?",
+      "choices": [
+        {
+          "text": "Placing it in time and in a tuning, with a start and a length.",
+          "correct": true
+        },
+        {
+          "text": "Making it louder.",
+          "correct": false
+        },
+        {
+          "text": "Raising it an octave.",
+          "correct": false
+        },
+        {
+          "text": "Playing it on a piano.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "notes-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "notes"
+}

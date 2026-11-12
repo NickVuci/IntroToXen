@@ -1,92 +1,208 @@
 (() => {
   const STORAGE_KEY = "intro-to-xen-map-progress";
-  const POSITION_KEY = "intro-to-xen-map-positions";
+  const POSITION_KEY = "intro-to-xen-map-positions-mvp"; // new key: the MVP map has a new layout
   const nodes = [
     {
-      id: "harmonic-series",
-      title: "Harmonic Series",
-      x: 50,
-      y: 12,
-      topics: ["Overtones", "Whole-number ratios", "3/2 and 5/4", "Timbre and tuning"],
-      lesson: "harmonic-series.html"
+      id: "pitch",
+      title: "Pitch",
+      x: 40,
+      y: 7,
+      topics: ["Frequency", "Hertz", "Higher and lower", "Hearing a pitch"],
+      lesson: "template.html?lesson=lessons/pitch.json"
     },
     {
-      id: "just-intonation",
-      title: "Just Intonation",
-      x: 72,
-      y: 32,
-      topics: ["Simple ratios", "Consonant intervals", "5/4 and 6/5", "JI triads"],
-      lesson: "template.html?lesson=lessons/just-intonation.json"
+      id: "notes",
+      title: "Notes",
+      x: 40,
+      y: 18,
+      topics: ["A pitch placed in time", "Start and length", "Notes in a tuning"],
+      lesson: "template.html?lesson=lessons/notes.json"
     },
     {
-      id: "subharmonic-series",
-      title: "Subharmonic Series",
-      x: 18,
-      y: 32,
-      topics: ["Undertones", "8:n ratios", "Inversional color", "Octave reduction"],
-      lesson: "template.html?lesson=lessons/subharmonic-series.json"
-    },
-    {
-      id: "tonality-diamond",
-      title: "Tonality Diamond",
-      x: 22,
-      y: 56,
-      topics: ["Odd-limit harmony", "Ratio grids", "Otonal and utonal sets", "Chord families"],
-      lesson: "template.html?lesson=lessons/tonality-diamond.json"
-    },
-    {
-      id: "equal-tuning",
-      title: "Equal Tuning",
-      x: 82,
-      y: 84,
-      topics: ["Equal divisions", "Step size", "EDO and EDx", "Approximation"],
-      lesson: "template.html?lesson=lessons/equal-tuning.json"
-    },
-    {
-      id: "period",
-      title: "Period",
-      x: 50,
-      y: 88,
-      topics: ["Equivalence interval", "Octaves and non-octaves", "Repeat span", "Scale frame"],
-      lesson: "template.html?lesson=lessons/period.json"
+      id: "intervals",
+      title: "Intervals",
+      x: 40,
+      y: 29,
+      topics: ["Distance between pitches", "Frequency ratios", "Cents"],
+      lesson: "template.html?lesson=lessons/intervals.json"
     },
     {
       id: "generated-collection",
-      title: "Generated Collection",
-      x: 18,
-      y: 84,
-      topics: ["Generator", "Stacking", "Modulo period", "Scale ordering"],
+      title: "Generator",
+      x: 62,
+      y: 23,
+      topics: ["Generator", "Stacking", "Modulo period", "Generated collections"],
       lesson: "template.html?lesson=lessons/generated-collection.json"
     },
     {
       id: "moments-of-symmetry",
-      title: "Moments of Symmetry",
-      x: 50,
-      y: 67,
+      title: "MOS",
+      x: 85,
+      y: 14,
       topics: ["MOS scales", "Large and small steps", "Well-formedness", "Generator chains"],
       lesson: "template.html?lesson=lessons/moments-of-symmetry.json"
     },
     {
+      id: "chords",
+      title: "Chords",
+      x: 13,
+      y: 40,
+      topics: ["Notes at once", "Stacked intervals", "Chord ratios such as 4:5:6"],
+      lesson: "template.html?lesson=lessons/chords.json"
+    },
+    {
+      id: "scales",
+      title: "Scales",
+      x: 57,
+      y: 40,
+      topics: ["Ordered pitches", "Steps", "Repeating at a period"],
+      lesson: "template.html?lesson=lessons/scales.json"
+    },
+    {
+      id: "period",
+      title: "Period",
+      x: 85,
+      y: 38,
+      topics: ["Equivalence interval", "Octaves and non-octaves", "Repeat span", "Scale frame"],
+      lesson: "template.html?lesson=lessons/period.json"
+    },
+    {
+      id: "harmonies",
+      title: "Harmonies",
+      x: 13,
+      y: 52,
+      topics: ["Chords in succession", "Progressions", "Voice leading"],
+      lesson: "template.html?lesson=lessons/harmonies.json"
+    },
+    {
+      id: "just-intonation",
+      title: "Just Intonation",
+      x: 37,
+      y: 52,
+      topics: ["Simple ratios", "Consonant intervals", "JI limits", "JI triads"],
+      lesson: "template.html?lesson=lessons/just-intonation.json"
+    },
+    {
+      id: "melodies",
+      title: "Melodies",
+      x: 66,
+      y: 52,
+      topics: ["Notes in succession", "Contour", "Steps and leaps"],
+      lesson: "template.html?lesson=lessons/melodies.json"
+    },
+    {
+      id: "harmonic-series",
+      title: "Harmonic Series",
+      x: 24,
+      y: 64,
+      topics: ["Overtones", "Whole-number ratios", "3/2 and 5/4", "Timbre and tuning"],
+      lesson: "harmonic-series.html"
+    },
+    {
+      id: "commas",
+      title: "Commas",
+      x: 52,
+      y: 64,
+      topics: ["Small intervals", "81/80", "Where JI routes disagree", "Tempering out"],
+      lesson: "template.html?lesson=lessons/commas.json"
+    },
+    {
+      id: "neji",
+      title: "NEJI",
+      x: 87,
+      y: 62,
+      topics: ["Near-equal JI", "JI approximating an EDO", "Harmonics over a shared fundamental"],
+      lesson: "template.html?lesson=lessons/neji.json"
+    },
+    {
       id: "temperaments",
-      title: "Temperaments",
-      x: 78,
-      y: 56,
-      topics: ["Commas", "Tempering", "Mappings", "Consistent approximation"],
+      title: "Temperament",
+      x: 63,
+      y: 75,
+      topics: ["Tempering", "Commas tempered out", "Mappings", "Consistent approximation"],
       lesson: "template.html?lesson=lessons/temperaments.json"
+    },
+    {
+      id: "otonal-utonal",
+      title: "Otonal and Utonal",
+      x: 11,
+      y: 78,
+      topics: ["Harmonic-series chords", "Subharmonic chords", "Mirror images"],
+      lesson: "template.html?lesson=lessons/otonal-utonal.json"
+    },
+    {
+      id: "subharmonic-series",
+      title: "Subharmonic Series",
+      x: 35,
+      y: 78,
+      topics: ["Undertones", "8:n ratios", "Inversional color", "Octave reduction"],
+      lesson: "template.html?lesson=lessons/subharmonic-series.json"
+    },
+    {
+      id: "equal-tuning",
+      title: "Equal Tunings",
+      x: 87,
+      y: 80,
+      topics: ["Equal divisions", "Step size", "EDO and EDx", "Approximation"],
+      lesson: "template.html?lesson=lessons/equal-tuning.json"
+    },
+    {
+      id: "tonality-diamond",
+      title: "Tonality Diamond",
+      x: 11,
+      y: 93,
+      topics: ["Odd-limit harmony", "Ratio grids", "Otonal and utonal sets", "Chord families"],
+      lesson: "template.html?lesson=lessons/tonality-diamond.json"
+    },
+    {
+      id: "rtt",
+      title: "Regular Temperament Theory",
+      x: 42,
+      y: 93,
+      topics: ["Commas tempered out", "Mappings", "Generators", "Temperament families"],
+      lesson: "template.html?lesson=lessons/rtt.json"
+    },
+    {
+      id: "well-temperament",
+      title: "Well-Temperament",
+      x: 68,
+      y: 93,
+      topics: ["Unequal tempering", "Every key usable", "Key colour", "Historical tunings"],
+      lesson: "template.html?lesson=lessons/well-temperament.json"
     }
   ];
 
+  // The MVP concept map (PROJECT_GUIDE.md). "required" = suggested order, "related" = related idea.
   const links = [
-    { from: "harmonic-series", to: "just-intonation", type: "required" },
-    { from: "harmonic-series", to: "subharmonic-series", type: "related" },
-    { from: "just-intonation", to: "tonality-diamond", type: "required" },
-    { from: "just-intonation", to: "temperaments", type: "required" },
-    { from: "period", to: "equal-tuning", type: "required" },
-    { from: "period", to: "generated-collection", type: "required" },
+    { from: "pitch", to: "notes", type: "required" },
+    { from: "notes", to: "intervals", type: "required" },
+    { from: "intervals", to: "chords", type: "required" },
+    { from: "intervals", to: "scales", type: "required" },
+    { from: "intervals", to: "just-intonation", type: "required" },
+    { from: "intervals", to: "generated-collection", type: "required" },
+    { from: "intervals", to: "period", type: "required" },
     { from: "generated-collection", to: "moments-of-symmetry", type: "required" },
-    { from: "temperaments", to: "equal-tuning", type: "related" },
-    { from: "temperaments", to: "moments-of-symmetry", type: "related" },
-    { from: "tonality-diamond", to: "subharmonic-series", type: "related" }
+    { from: "period", to: "moments-of-symmetry", type: "required" },
+    { from: "scales", to: "moments-of-symmetry", type: "required" },
+    { from: "chords", to: "harmonies", type: "required" },
+    { from: "scales", to: "melodies", type: "required" },
+    { from: "just-intonation", to: "harmonic-series", type: "required" },
+    { from: "just-intonation", to: "commas", type: "required" },
+    { from: "just-intonation", to: "neji", type: "required" },
+    { from: "harmonic-series", to: "subharmonic-series", type: "required" },
+    { from: "harmonic-series", to: "otonal-utonal", type: "required" },
+    { from: "subharmonic-series", to: "otonal-utonal", type: "required" },
+    { from: "otonal-utonal", to: "tonality-diamond", type: "required" },
+    { from: "commas", to: "temperaments", type: "required" },
+    { from: "temperaments", to: "rtt", type: "required" },
+    { from: "temperaments", to: "well-temperament", type: "required" },
+    { from: "equal-tuning", to: "rtt", type: "required" },
+    { from: "equal-tuning", to: "well-temperament", type: "required" },
+    { from: "equal-tuning", to: "neji", type: "required" },
+    { from: "chords", to: "just-intonation", type: "related" },
+    { from: "scales", to: "just-intonation", type: "related" },
+    { from: "harmonies", to: "just-intonation", type: "related" },
+    { from: "just-intonation", to: "melodies", type: "related" }
   ];
 
   /* ------------------------------------------------------------------ *
@@ -453,12 +569,12 @@
       eyebrow.className = "eyebrow";
       eyebrow.textContent = "Where to begin";
       const text = document.createElement("p");
-      text.textContent = "Start with the harmonic series. Choose any concept on the map to see its key ideas and open its lesson.";
+      text.textContent = "Start with pitch, or jump to whatever you already know. Choose any concept on the map to see its key ideas and open its lesson.";
       const start = document.createElement("button");
       start.type = "button";
       start.className = "btn primary";
-      start.textContent = "Harmonic Series";
-      start.addEventListener("click", () => selectNode("harmonic-series"));
+      start.textContent = "Pitch";
+      start.addEventListener("click", () => selectNode("pitch"));
       const actions = document.createElement("div");
       actions.className = "inspectorActions";
       actions.appendChild(start);

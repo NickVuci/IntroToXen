@@ -23,7 +23,7 @@ await page.goto(`${base}/template.html?lesson=lessons/just-intonation.json&secti
 await page.waitForSelector('.exerciseOpen', { state: 'attached' }); await page.waitForTimeout(1500);
 check('?section=exercises opens the Exercises section', await page.evaluate(() => document.querySelector('.sectionLayer.active').dataset.sectionType) === 'exercises');
 check('exercises in the new order with their own links', JSON.stringify(await page.locator('.exerciseOpen').allTextContents()) === JSON.stringify(['Open the scale builder', 'Open the piano roll', 'Open the piano roll']));
-await Promise.all([page.waitForURL('**/workstation/index.html?lesson=just-intonation&task=ji-scale'), page.locator('.exerciseOpen').first().click()]);
+await Promise.all([page.waitForURL('**/studio/index.html?lesson=just-intonation&task=ji-scale'), page.locator('.exerciseOpen').first().click()]);
 await page.waitForSelector('#palette button');
 
 // --- scale builder
@@ -105,7 +105,7 @@ check('scale exercise reopens the saved scale', (await page.inputValue('#scaleNa
 await page.goto(`${base}/template.html?lesson=lessons/just-intonation.json&section=lab`); await page.waitForTimeout(1600);
 const lab = page.frameLocator('.sectionLayer.active iframe');
 await lab.locator('summary').click(); await lab.locator('.genMelody').first().click();
-await Promise.all([page.waitForURL('**/workstation/index.html?lesson=just-intonation'), lab.locator('#sendButton').click()]);
+await Promise.all([page.waitForURL('**/studio/index.html?lesson=just-intonation'), lab.locator('#sendButton').click()]);
 await page.waitForSelector('.cell');
 check('lab handoff opens the full workstation with the loop', await page.locator('.noteBar').count() === 16 && await page.locator('#scaleCard').isVisible() && await page.locator('#rollCard').isVisible());
 check('full workstation from a lesson: Back to the lesson', (await page.textContent('#barLeft')) === 'Back to the lesson' && await page.locator('#openProjects').isVisible());
@@ -113,7 +113,7 @@ check('full workstation from a lesson: Back to the lesson', (await page.textCont
 // --- standalone full workstation, phone width, ivory
 const p2 = await browser.newPage({ viewport: { width: 380, height: 800 }, colorScheme: 'light' });
 p2.on('pageerror', e => errors.push(String(e)));
-await p2.goto(`${base}/workstation/index.html?lesson=just-intonation&task=ji-scale`); await p2.waitForSelector('#palette button');
+await p2.goto(`${base}/studio/index.html?lesson=just-intonation&task=ji-scale`); await p2.waitForSelector('#palette button');
 check('scale builder fits a phone', await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
 await p2.screenshot({ path: `${shots}/scale-phone.png`, fullPage: true });
 check('no console or page errors', errors.length === 0, errors.join(' | '));

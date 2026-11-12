@@ -1,0 +1,87 @@
+{
+  "title": "Melodies",
+  "description": "Single notes moving one after another in time.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Melodies",
+      "body": "Single notes moving one after another in time.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Scales",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/scales.json"
+        },
+        {
+          "label": "Just Intonation",
+          "body": "Related idea",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Melodies",
+      "word": "melodies",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Melodies",
+      "prompt": "The Melodies lab will go here.",
+      "ariaLabel": "Melodies lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is a melody?",
+      "choices": [
+        {
+          "text": "A line of single notes moving one after another in time.",
+          "correct": true
+        },
+        {
+          "text": "Several notes sounding at the same moment.",
+          "correct": false
+        },
+        {
+          "text": "A tuning system.",
+          "correct": false
+        },
+        {
+          "text": "A drone held under a piece.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "melodies-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "melodies"
+}

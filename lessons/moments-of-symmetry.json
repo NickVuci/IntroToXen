@@ -1,11 +1,11 @@
 {
-  "title": "Moments of Symmetry",
+  "title": "MOS",
   "description": "Generated scales with two step sizes and balanced structure.",
   "backHref": "index.html",
   "sections": {
     "title": {
       "label": "Title",
-      "heading": "Moments of Symmetry",
+      "heading": "MOS",
       "body": "A moment of symmetry, or MOS, is a generated scale where the notes divide the period into only two step sizes. MOS scales are important because they balance regular construction with musically useful variety.",
       "startButton": "Start lesson",
       "prerequisites": [
@@ -17,23 +17,37 @@
       ],
       "relatedConcepts": [
         {
-          "label": "Temperaments",
-          "body": "MOS patterns often appear in temperament-based scale design.",
-          "href": "template.html?lesson=lessons/temperaments.json"
+          "label": "Generator",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/generated-collection.json"
+        },
+        {
+          "label": "Period",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/period.json"
+        },
+        {
+          "label": "Scales",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/scales.json"
         }
       ]
     },
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/example.html",
-      "word": "symmetry",
+      "file": "animations/placeholder.html?concept=MOS",
+      "word": "mos",
       "durationMs": 7800,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
     "lab": {
-      "enabled": false
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=MOS",
+      "prompt": "The MOS lab will go here.",
+      "ariaLabel": "MOS lab placeholder"
     },
     "qa": {
       "enabled": true,
@@ -70,8 +84,24 @@
         {
           "title": "Connect to a generator",
           "body": "Explain how stacking one interval can produce a scale with only two step sizes."
+        },
+        {
+          "kind": "make",
+          "task": "moments-of-symmetry-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
         }
       ]
     }
-  }
+  },
+  "node": "moments-of-symmetry"
 }

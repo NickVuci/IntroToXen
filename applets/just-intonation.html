@@ -396,8 +396,8 @@
           <div class="cardHeader">
             <span>Take it further</span>
           </div>
-          <button class="primaryButton" id="sendButton" type="button">Send the scale and loops to the workstation</button>
-          <div class="status sendStatus" id="sendStatus" aria-live="polite">The workstation opens with this scale, the first chord loop and the first melody loop.</div>
+          <button class="primaryButton" id="sendButton" type="button">Send the scale and loops to the studio</button>
+          <div class="status sendStatus" id="sendStatus" aria-live="polite">The studio opens with this scale, the first chord loop and the first melody loop.</div>
         </section>
       </div>
     </details>
@@ -1072,9 +1072,9 @@
         stopLoop();
         if (window.parent !== window) {
           window.parent.postMessage({ type: "lesson-handoff" }, window.location.origin);
-          sendStatus.textContent = "Sent to the workstation.";
+          sendStatus.textContent = "Sent to the studio.";
         } else {
-          window.location.href = "../workstation/index.html";
+          window.location.href = "../studio/index.html";
         }
       } catch (error) {
         sendStatus.textContent = `Could not send: ${error.message}`;

@@ -1,0 +1,87 @@
+{
+  "title": "Well-Temperament",
+  "description": "Unequal temperaments that spread the Pythagorean comma unevenly, so every key is usable and each keeps its own colour.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Well-Temperament",
+      "body": "Unequal temperaments that spread the Pythagorean comma unevenly, so every key is usable and each keeps its own colour.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Temperament",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/temperaments.json"
+        },
+        {
+          "label": "Equal Tunings",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/equal-tuning.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Well-Temperament",
+      "word": "well-temperament",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Well-Temperament",
+      "prompt": "The Well-Temperament lab will go here.",
+      "ariaLabel": "Well-Temperament lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is a well-temperament?",
+      "choices": [
+        {
+          "text": "An unequal temperament in which every key is usable but keys keep different colours.",
+          "correct": true
+        },
+        {
+          "text": "Another name for 12-EDO.",
+          "correct": false
+        },
+        {
+          "text": "Pure JI with no tempering.",
+          "correct": false
+        },
+        {
+          "text": "A tuning that uses only fifths.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "well-temperament-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "well-temperament"
+}

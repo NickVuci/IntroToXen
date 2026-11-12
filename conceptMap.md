@@ -1,22 +1,25 @@
-XENHARMONIC MUSIC
-│
-├── 1. Harmonic Series
-│   │
-│   ├── Overtones
-│   ├── Whole-number ratios
-│   ├── 3/2 and 5/4
-│   └── Timbre and tuning
-│
-├── 2. Just Intonation
-│   │
-│   ├── Simple ratios
-│   ├── Consonant intervals
-│   ├── 5/4 and 6/5
-│   └── JI triads
-│
-└── 3. Subharmonic Series
-    │
-    ├── Undertones
-    ├── 8:n ratios
-    ├── Inversional color
-    └── Octave reduction
+# Concept map (MVP)
+
+Generated from the MVP concept map in PROJECT_GUIDE.md. `->` = suggested order, `~` = related idea.
+
+- **Pitch** -> Notes
+- **Notes** -> Intervals
+- **Intervals** -> Chords, Scales, Just Intonation, Generator, Period
+- **Generator** -> MOS
+- **MOS**
+- **Chords** -> Harmonies ~ Just Intonation
+- **Scales** -> MOS, Melodies ~ Just Intonation
+- **Period** -> MOS
+- **Harmonies** ~ Just Intonation
+- **Just Intonation** -> Harmonic Series, Commas, NEJI ~ Chords, Scales, Harmonies, Melodies
+- **Melodies** ~ Just Intonation
+- **Harmonic Series** -> Subharmonic Series, Otonal and Utonal
+- **Commas** -> Temperament
+- **NEJI**
+- **Temperament** -> Regular Temperament Theory, Well-Temperament
+- **Otonal and Utonal** -> Tonality Diamond
+- **Subharmonic Series** -> Otonal and Utonal
+- **Equal Tunings** -> Regular Temperament Theory, Well-Temperament, NEJI
+- **Tonality Diamond**
+- **Regular Temperament Theory**
+- **Well-Temperament**

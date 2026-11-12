@@ -1,0 +1,1643 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>Practice Room · Odd-Limit Ear Trainer · Nick Vuci</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Nick Vuci house style — Odd-Limit Ear Trainer, single pathway. Ivory: burgundy; Nocturne: the original nickvuci.com palette.
+   App bar (lockup + app name, path progress) → the path → the stage → a three-button control bar. */
+:root{
+  --ground-start:#f7f4ec;--ground-end:#f7f4ec;--surface:#f7f4ec;--surface-raised:#fffdf8;--surface-sunk:#ece7db;
+  --ink:#121933;--ink-muted:#565c70;--hairline:#dcd5c6;
+  --brand-blue:#1640c8;--blue:#1640c8;--on-blue:#fffdf8;--blue-soft:#dde4f7;
+  --gold:#b8892b;--gold-ink:#7a5a1c;--gold-soft:#efe4cb;--on-gold:#121933;
+  --alert:#b42a12;
+  --burgundy:#6b1d34;--burgundy-ink:#6b1d34;--burgundy-mid:#7a2c40;--burgundy-soft:#f3e4e8;--burgundy-wash:#faf2f3;
+  --prime-3:#3d5ba9;--prime-5:#2f7d6b;--prime-7:#a2562e;--prime-11:#6b4f9e;--prime-13:#963c8c;
+  --font-display:"Cormorant Garamond","EB Garamond",Garamond,"Times New Roman",serif;
+  --font-sans:"Montserrat","Helvetica Neue",Arial,system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --edge:#8F897C;color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  /* Nocturne = the original nickvuci.com palette */
+  --ground-start:#1e1f26;--ground-end:#283c63;--surface:#232d44;--surface-raised:#1e1f26;--surface-sunk:#181920;
+  --ink:#f0f0f0;--ink-muted:#a8dadc;--hairline:#e9c56a5b;
+  --brand-blue:#86a3ff;--blue:#a8dadc;--on-blue:#1e1f26;--blue-soft:#a8dadc26;
+  --gold:#e9c46a;--gold-ink:#e9c46a;--gold-soft:#e9c46a33;--on-gold:#1e1f26;
+  --alert:#ff8a6a;
+  --burgundy:#f4a261;--burgundy-ink:#e9c46a;--burgundy-mid:#f4a261;--burgundy-soft:#e9c56a5b;--burgundy-wash:#ffffff0a;
+  --prime-3:#8aa2f0;--prime-5:#6cc0a8;--prime-7:#e0976a;--prime-11:#b49be6;--prime-13:#d98bd0;
+  --edge:#e9c46a;color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  /* Nocturne = the original nickvuci.com palette */
+  --ground-start:#1e1f26;--ground-end:#283c63;--surface:#232d44;--surface-raised:#1e1f26;--surface-sunk:#181920;
+  --ink:#f0f0f0;--ink-muted:#a8dadc;--hairline:#e9c56a5b;
+  --brand-blue:#86a3ff;--blue:#a8dadc;--on-blue:#1e1f26;--blue-soft:#a8dadc26;
+  --gold:#e9c46a;--gold-ink:#e9c46a;--gold-soft:#e9c46a33;--on-gold:#1e1f26;
+  --alert:#ff8a6a;
+  --burgundy:#f4a261;--burgundy-ink:#e9c46a;--burgundy-mid:#f4a261;--burgundy-soft:#e9c56a5b;--burgundy-wash:#ffffff0a;
+  --prime-3:#8aa2f0;--prime-5:#6cc0a8;--prime-7:#e0976a;--prime-11:#b49be6;--prime-13:#d98bd0;
+  --edge:#e9c46a;color-scheme:dark;
+}
+:root{
+  --gold-hi:color-mix(in srgb,var(--gold) 38%,#fff8e6);
+  --gold-lo:color-mix(in srgb,var(--gold) 62%,#2a1a00);
+  --foil:linear-gradient(115deg,var(--gold-lo) 0%,var(--gold) 18%,var(--gold-hi) 34%,var(--gold) 46%,var(--gold-lo) 62%,var(--gold) 78%,var(--gold-hi) 92%,var(--gold) 100%);
+  --foil-ink:linear-gradient(115deg,var(--gold-ink) 0%,color-mix(in srgb,var(--gold-ink) 55%,var(--gold)) 40%,var(--gold-ink) 60%,color-mix(in srgb,var(--gold-ink) 70%,var(--gold)) 85%,var(--gold-ink) 100%);
+  --gut:max(16px,env(safe-area-inset-left,0px));
+}
+*{box-sizing:border-box}
+html{height:100%;background:var(--surface)}
+body{margin:0;height:100%;display:flex;flex-direction:column;overflow:hidden;color:var(--ink);font-family:var(--font-sans);font-size:15px;line-height:1.55;
+  background:var(--surface);background-image:linear-gradient(135deg,var(--ground-start),var(--ground-end));background-attachment:fixed;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+[hidden]{display:none!important}
+.eyebrow{font-size:11px;line-height:16px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.label{font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-muted)}
+
+/* app bar */
+.hud{flex:none;background:var(--surface-raised);border-bottom:1px solid var(--burgundy-soft);padding-top:env(safe-area-inset-top,0px)}
+/* the host wrapper also pads the safe areas on :root; the bars pad them themselves, so remove the outer padding (it doubled the gap above the header) */
+html:root{padding-top:0!important;padding-bottom:0!important}
+.hud-in{max-width:760px;margin:0 auto;padding:0 var(--gut)}
+.top{display:flex;align-items:center;gap:16px;padding:10px 0}
+.hudlock{display:flex;align-items:center;gap:12px;flex:none;text-decoration:none;color:inherit}
+.hudlock:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.hudmark{display:block;width:52px;height:auto}
+.wm{font-weight:400;font-size:18px;letter-spacing:.18em;white-space:nowrap;line-height:1}
+.wm .n{color:var(--brand-blue)}.wm .v{color:var(--gold)}
+.appname{margin:0;padding-left:16px;border-left:1px solid var(--burgundy-soft);font-weight:400;font-size:18px;line-height:1;letter-spacing:.18em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.standing{display:flex;align-items:center;gap:12px;padding:0 0 10px}
+.standing .label{flex:none}
+.pbar{flex:1;height:3px;background:var(--hairline);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--foil);background-size:260% 100%;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.pcount{flex:none;font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);font-variant-numeric:tabular-nums;min-width:7ch;text-align:right}
+
+/* main */
+.main{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.wrap{max-width:760px;margin:0 auto;padding:14px var(--gut) 20px;display:flex;flex-direction:column;gap:14px}
+
+/* the path */
+.path{position:relative;display:flex;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;padding:6px 18px 8px;margin:0 calc(-1 * var(--gut));scroll-behavior:smooth;-webkit-mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent)}
+.path::-webkit-scrollbar{display:none}
+.node{position:relative;flex:none;border:0;background:none;padding:0;cursor:pointer;display:grid;place-items:center;color:var(--burgundy-mid)}
+.node:disabled{cursor:default}
+.node.r{width:42px;height:48px}
+.node.r svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.node.r polygon{fill:var(--burgundy-wash);stroke:var(--burgundy-soft);stroke-width:1.5;vector-effect:non-scaling-stroke;transition:fill .2s,stroke .2s}
+.node.r b{position:relative;font-family:var(--font-mono);font-weight:500;font-size:11.5px;letter-spacing:-.02em;line-height:1}
+.node.r.done polygon{fill:var(--gold-soft);stroke:var(--gold)}
+.node.r.done b{color:var(--gold-ink)}
+.node.r.open polygon{fill:var(--surface-raised);stroke:var(--burgundy-mid)}
+.node.r.open b{color:var(--burgundy-ink)}
+.node.r.cur polygon{fill:var(--blue);stroke:var(--blue)}
+.node.r.cur b{color:var(--on-blue)}
+.node.r.cur{transform:scale(1.1)}
+.node.l{width:62px;display:flex;flex-direction:column;gap:3px;padding:0}
+.node.l .lat{width:62px;height:62px;display:grid;place-items:center;border:1px solid var(--burgundy-soft);border-radius:2px;background:var(--burgundy-wash);color:var(--burgundy-mid)}
+.node.l .lat svg{width:48px;height:48px}
+.node.l small{font-family:var(--font-mono);font-size:10px;line-height:1;color:var(--burgundy-mid);letter-spacing:0}
+.node.l.done .lat{background:var(--gold-soft);border-color:var(--gold);color:var(--gold-ink)}
+.node.l.done small{color:var(--gold-ink)}
+.node.l.open .lat{background:var(--surface-raised);border-color:var(--burgundy-mid);color:var(--burgundy-ink)}
+.node.l.cur .lat{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.node.l.cur small{color:var(--blue)}
+.node.locked{opacity:.7}
+.lat svg line,.lat svg polygon{vector-effect:non-scaling-stroke}
+.node.just polygon,.node.just .lat{animation:earned 1.2s ease-out}
+@keyframes earned{0%{transform:scale(1)}30%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+
+/* path progress slider: under the path; the fill is what is mastered, the ball is where you are */
+.pslide{display:flex;align-items:center;gap:12px;margin-top:-6px}
+.pslide .label{flex:none}
+.strack{position:relative;flex:1;height:28px;min-width:0}
+.strack::before{content:"";position:absolute;left:9px;right:9px;top:50%;height:4px;margin-top:-2px;background:var(--burgundy-soft)}
+.strack .sfill{position:absolute;left:9px;top:50%;height:4px;margin-top:-2px;width:0;background:var(--foil);background-size:260% 100%;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.sticks{position:absolute;left:9px;right:9px;top:0;bottom:0;pointer-events:none}
+.sticks i{position:absolute;top:50%;width:2px;height:12px;margin:-6px 0 0 -1px;background:var(--burgundy-mid);opacity:.55}
+.sticks i.done{background:var(--gold);opacity:1}
+.strack input{position:absolute;inset:0;width:100%;height:28px;margin:0;background:none;-webkit-appearance:none;appearance:none;cursor:pointer;touch-action:pan-y}
+.strack input::-webkit-slider-runnable-track{background:none;height:28px}
+.strack input::-moz-range-track{background:none}
+.strack input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;margin-top:5px;border-radius:50%;background:var(--burgundy);border:2px solid var(--surface-raised);box-shadow:0 0 0 1px var(--burgundy);cursor:grab}
+.strack input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--burgundy);border:2px solid var(--surface-raised);box-shadow:0 0 0 1px var(--burgundy);cursor:grab}
+.strack input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+/* stage */
+.panel{background:var(--surface-raised);border:1px solid var(--burgundy-soft);border-radius:2px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.shead{display:flex;gap:16px;align-items:center;height:128px}
+.bighex{position:relative;flex:none;width:96px;height:110px;display:grid;place-items:center}
+.bighex,.biglat{border:0;background:none;padding:0;margin:0;cursor:pointer;color:inherit;font:inherit;transition:transform .12s}
+.bighex:hover,.biglat:hover{transform:scale(1.03)}
+.bighex:active,.biglat:active{transform:scale(.97)}
+.bighex:hover polygon{stroke-width:2.5}
+.bighex:focus-visible,.biglat:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.bighex svg{position:absolute;inset:0;width:100%;height:100%}
+.bighex polygon{fill:var(--surface-raised);stroke:var(--burgundy-mid);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.bighex b{position:relative;font-family:var(--font-mono);font-weight:500;font-size:22px;line-height:1;color:var(--ink)}
+.bighex.done polygon{fill:var(--gold-soft);stroke:var(--gold)}
+.bighex.done b{color:var(--gold-ink)}
+.bighex polygon,.bighex b{transition:fill .12s,stroke .12s,color .12s}
+.bighex.lit polygon,.bighex.lit.done polygon{fill:var(--blue);stroke:var(--blue)}
+.bighex.lit b,.bighex.lit.done b{color:var(--on-blue)}
+.biglat{position:relative;flex:none;width:118px;height:118px;color:color-mix(in srgb,var(--burgundy-mid) 35%,transparent)}
+.biglat svg{position:absolute;inset:0;width:100%;height:100%}
+.biglat .gold{position:absolute;inset:0;color:var(--gold);transition:clip-path .7s cubic-bezier(.2,.8,.2,1)}
+.biglat svg line,.biglat svg polygon{vector-effect:non-scaling-stroke;stroke-width:1.6}
+.sinfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sinfo h2{margin:0;font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.1;color:var(--burgundy-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sinfo h2.long{font-size:22px}
+.meta{margin:0;font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desc{margin:4px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.prog{display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid var(--burgundy-soft)}
+.pips{display:flex;gap:6px;flex:1}
+.pips i{width:16px;height:18px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--burgundy-soft);transition:background .2s}
+.pips i.on{background:var(--foil);background-size:260% 100%}
+.mbar{flex:1;height:4px;background:var(--burgundy-soft);overflow:hidden}
+.mbar i{display:block;height:100%;width:0;background:var(--foil);background-size:260% 100%;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.prog b{font-family:var(--font-mono);font-weight:500;font-size:13px;font-variant-numeric:tabular-nums;min-width:6ch;text-align:right}
+
+.choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.choice{position:relative;text-align:left;background:color-mix(in srgb,var(--pc) 16%,var(--surface-raised));border:1px solid color-mix(in srgb,var(--pc) 50%,var(--hairline));border-radius:2px;padding:13px 11px 9px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden;animation:pop .3s ease-out backwards;animation-delay:calc(var(--i,0) * 30ms);transition:transform .12s,border-color .15s}
+.choice .r{font-family:var(--font-mono);font-weight:500;font-size:19px;line-height:1.2}
+.choice .c{font-family:var(--font-mono);font-size:10.5px;color:color-mix(in srgb,var(--pc) 55%,var(--ink));font-variant-numeric:tabular-nums}
+.choice:hover:not(.done){border-color:var(--pc);transform:translateY(-1px)}
+.choice.done:not(.right):not(.wrong){opacity:.5}
+.choice.done{cursor:pointer}
+.choice.wrong{border-color:var(--alert);background:color-mix(in srgb,var(--alert) 12%,var(--surface-raised))}
+.choice.right{border-color:transparent;background:linear-gradient(115deg,var(--gold-soft) 20%,color-mix(in srgb,var(--gold-soft) 78%,var(--gold-hi)) 45%,var(--gold-soft) 70%) padding-box,var(--foil) border-box;background-size:100% 100%,260% 100%;animation:sheenb 1.1s ease-out 1}
+.choice.right .c{color:var(--gold-ink)}
+.choice.idle{opacity:.55;cursor:default}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}}
+@keyframes sheenb{from{background-position:0 0,100% 0}to{background-position:0 0,0 0}}
+.shake{animation:shake .4s!important}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+
+.status{height:64px;overflow:hidden;font-size:14px;line-height:1.45;background:var(--burgundy-wash);border:1px solid var(--burgundy-soft);border-radius:2px;padding:10px 14px;color:var(--ink-muted)}
+.status .verdict{font-family:var(--font-display);font-style:italic;font-weight:600;font-size:22px;margin-right:6px;color:var(--ink)}
+.status .ok{background:var(--foil-ink);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 1.1s ease-out 1}
+.status .no{color:var(--alert)}
+.status .won{color:var(--burgundy-ink)}
+.status .m{font-family:var(--font-mono);font-weight:500;color:var(--ink)}
+@keyframes sheen{from{background-position:100% 0}to{background-position:0 0}}
+
+/* control bar */
+.ctrlbar{flex:none;background:var(--surface-raised);border-top:1px solid var(--burgundy-soft);padding-bottom:env(safe-area-inset-bottom,0px)}
+.ctrlbar-in{max-width:760px;margin:0 auto;padding:10px var(--gut);display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.ghost{height:52px;min-width:0;border:1px solid var(--edge);background:transparent;border-radius:2px;font-weight:500;font-size:13px;line-height:1.2;padding:4px 8px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ghost:hover:not(:disabled){background:var(--surface-sunk)}
+.ghost:disabled{opacity:.4;cursor:default}
+.ghost .m{font-family:var(--font-mono);font-weight:500}
+.playbtn{position:relative;height:52px;min-width:0;display:flex;align-items:center;gap:10px;border:0;border-radius:2px;background:var(--blue);color:var(--on-blue);font-weight:600;font-size:14px;letter-spacing:.06em;padding:6px 14px 6px 7px;cursor:pointer;transition:filter .15s}
+.playbtn:hover{filter:brightness(1.08)}
+.playbtn .disc{width:38px;height:38px;border-radius:50%;background:var(--on-blue);color:var(--blue);display:grid;place-items:center;flex:none}
+.playbtn .disc svg{width:13px;height:13px;margin-left:2px}
+.playbtn span{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.playbtn.next{background:var(--foil);background-size:260% 100%;color:var(--on-gold);animation:sheen 1.1s ease-out 1}
+.playbtn.next .disc{background:var(--on-gold);color:var(--gold-hi)}
+.playbtn.playing::after{content:"";position:absolute;inset:-5px;border-radius:3px;border:1px solid var(--blue);animation:ring 1.2s ease-out infinite;pointer-events:none}
+.playbtn.next.playing::after{border-color:var(--gold)}
+@keyframes ring{from{opacity:.8;transform:scale(1)}to{opacity:0;transform:scale(1.06)}}
+
+/* toast */
+#toasts{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 96px);z-index:45;display:flex;flex-direction:column;gap:8px;width:min(360px,calc(100% - 32px));pointer-events:none}
+.toast{background:var(--surface-raised);border:1px solid var(--gold);border-radius:2px;padding:11px 14px 11px 50px;position:relative;animation:tin .35s ease-out;transition:opacity .35s,transform .35s}
+.toast::before{content:"";position:absolute;left:16px;top:50%;width:20px;height:23px;transform:translateY(-50%);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--foil);background-size:260% 100%;animation:sheen 1.1s ease-out 1}
+.toast b{display:block;font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--burgundy-ink);line-height:1.2}
+.toast span{font-size:12.5px;color:var(--ink-muted)}
+.toast.out{opacity:0;transform:translateY(-6px)}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+
+
+/* Nocturne: the original nickvuci.com look — 2px gold border-accent lines on the charcoal bars,
+   gold-edged buttons on a gold tint that fill solid gold on hover */
+@media (prefers-color-scheme:dark){
+:root:not([data-theme="light"]) .hud{border-bottom-width:2px}
+:root:not([data-theme="light"]) .ctrlbar{border-top-width:2px}
+:root:not([data-theme="light"]) .ghost{color:var(--gold);background:var(--gold-soft);border-color:var(--gold);transition:background .3s,color .3s}
+:root:not([data-theme="light"]) .ghost:hover:not(:disabled){background:var(--gold);color:var(--on-gold)}
+}
+:root[data-theme="dark"] .hud{border-bottom-width:2px}
+:root[data-theme="dark"] .ctrlbar{border-top-width:2px}
+:root[data-theme="dark"] .ghost{color:var(--gold);background:var(--gold-soft);border-color:var(--gold);transition:background .3s,color .3s}
+:root[data-theme="dark"] .ghost:hover:not(:disabled){background:var(--gold);color:var(--on-gold)}
+@media (max-width:640px){
+  .wm{display:none}.hudmark{width:44px}
+  .appname{font-size:15px;letter-spacing:.1em;padding-left:12px}
+  .top{gap:12px;padding:8px 0}
+  .standing{padding-bottom:9px}
+  .wrap{padding-top:10px;gap:12px}
+  .panel{padding:13px;gap:12px}
+  .shead{height:112px;gap:13px}
+  .bighex{width:80px;height:92px}.bighex b{font-size:19px}
+  .biglat{width:100px;height:100px}
+  .sinfo h2{font-size:22px}
+  .meta{font-size:11px}
+  .desc{font-size:12.5px;-webkit-line-clamp:3;line-height:1.42}
+  .choices{gap:8px}
+  .choice{padding:11px 8px 8px}
+  .choice .r{font-size:17px}
+  .choice .c{font-size:10px}
+  .status{height:62px;font-size:13px;padding:8px 12px}
+  .status .verdict{font-size:19px}
+  .ghost{font-size:12px}
+}
+@media (max-width:640px){.sinfo h2.long{font-size:19.5px}}
+@media (max-height:700px){
+  .top{padding:7px 0}.standing{padding-bottom:7px}
+  .wrap{padding-top:6px;gap:10px;padding-bottom:12px}
+  .path{padding-top:3px;padding-bottom:4px}
+  .panel{padding:11px 13px;gap:10px}
+  .shead{height:100px}
+  .bighex{width:72px;height:82px}.bighex b{font-size:17px}
+  .biglat{width:92px;height:92px}
+  .desc{-webkit-line-clamp:2}
+  .prog{padding-top:9px}
+  .status{height:58px}
+  .ctrlbar-in{padding-top:8px;padding-bottom:8px}
+}
+@media (max-width:360px){.choice .r{font-size:15px}.desc{-webkit-line-clamp:2}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style id="nv-brand">
+/* Nick Vuci house style: Ivory (light) and Nocturne (dark, the original nickvuci.com palette).
+   The applet's own variables are mapped onto the design-system tokens below. */
+:root{--nv-ground-start:#f7f4ec;--nv-ground-end:#f7f4ec;--nv-surface:#f7f4ec;--nv-surface-raised:#fffdf8;--nv-surface-sunk:#ece7db;--nv-ink:#121933;--nv-ink-muted:#565c70;--nv-hairline:#dcd5c6;--nv-brand-blue:#1640c8;--nv-blue:#1640c8;--nv-on-blue:#fffdf8;--nv-blue-soft:#dde4f7;--nv-gold:#b8892b;--nv-gold-ink:#7a5a1c;--nv-gold-soft:#efe4cb;--nv-on-gold:#121933;--nv-alert:#b42a12;--nv-focus-ring:#1640c8;--nv-burgundy:#6b1d34;--nv-burgundy-ink:#6b1d34;--nv-burgundy-mid:#7a2c40;--nv-burgundy-soft:#f3e4e8;--nv-burgundy-wash:#faf2f3;--nv-band:#2e0f16;--nv-on-band:#f5ecee;--nv-on-band-muted:#d1b6bd;--nv-band-line:#4f2530;--nv-band-edge:#916a72;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#d1a246;--nv-prime-3:#3d5ba9;--nv-prime-5:#2f7d6b;--nv-prime-7:#a2562e;--nv-prime-11:#6b4f9e;--nv-prime-13:#963c8c;--nv-edge:#8F897C;--nv-grid:#e8e2d5;--nv-font-display:"Cormorant Garamond","EB Garamond",Garamond,"Times New Roman",serif;--nv-font-sans:"Montserrat","Helvetica Neue",Arial,system-ui,sans-serif;--nv-font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;--surface:var(--nv-surface);--surface-raised:var(--nv-surface-raised);--surface-sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--ink-muted:var(--nv-ink-muted);--hairline:var(--nv-hairline);--blue:var(--nv-blue);--on-blue:var(--nv-on-blue);--blue-soft:var(--nv-blue-soft);--gold:var(--nv-gold);--gold-ink:var(--nv-gold-ink);--gold-soft:var(--nv-gold-soft);--on-gold:var(--nv-on-gold);--alert:var(--nv-alert);--burgundy:var(--nv-burgundy);--burgundy-ink:var(--nv-burgundy-ink);--burgundy-mid:var(--nv-burgundy-mid);--burgundy-soft:var(--nv-burgundy-soft);--burgundy-wash:var(--nv-burgundy-wash);--prime-3:var(--nv-prime-3);--prime-5:var(--nv-prime-5);--prime-7:var(--nv-prime-7);--prime-11:var(--nv-prime-11);--prime-13:var(--nv-prime-13);--edge:var(--nv-edge);--brand-blue:var(--nv-brand-blue);--ground-start:var(--nv-ground-start);--ground-end:var(--nv-ground-end);--font-display:var(--nv-font-display);--font-sans:var(--nv-font-sans);--font-mono:var(--nv-font-mono);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--surface:var(--nv-surface);--surface-raised:var(--nv-surface-raised);--surface-sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--ink-muted:var(--nv-ink-muted);--hairline:var(--nv-hairline);--blue:var(--nv-blue);--on-blue:var(--nv-on-blue);--blue-soft:var(--nv-blue-soft);--gold:var(--nv-gold);--gold-ink:var(--nv-gold-ink);--gold-soft:var(--nv-gold-soft);--on-gold:var(--nv-on-gold);--alert:var(--nv-alert);--burgundy:var(--nv-burgundy);--burgundy-ink:var(--nv-burgundy-ink);--burgundy-mid:var(--nv-burgundy-mid);--burgundy-soft:var(--nv-burgundy-soft);--burgundy-wash:var(--nv-burgundy-wash);--prime-3:var(--nv-prime-3);--prime-5:var(--nv-prime-5);--prime-7:var(--nv-prime-7);--prime-11:var(--nv-prime-11);--prime-13:var(--nv-prime-13);--edge:var(--nv-edge);--brand-blue:var(--nv-brand-blue);--ground-start:var(--nv-ground-start);--ground-end:var(--nv-ground-end);--font-display:var(--nv-font-display);--font-sans:var(--nv-font-sans);--font-mono:var(--nv-font-mono);color-scheme:dark}}
+:root[data-theme="dark"]{--nv-ground-start:#1e1f26;--nv-ground-end:#283c63;--nv-surface:#232d44;--nv-surface-raised:#1e1f26;--nv-surface-sunk:#181920;--nv-ink:#f0f0f0;--nv-ink-muted:#a8dadc;--nv-hairline:#e9c56a5b;--nv-brand-blue:#86a3ff;--nv-blue:#a8dadc;--nv-on-blue:#1e1f26;--nv-blue-soft:#a8dadc26;--nv-gold:#e9c46a;--nv-gold-ink:#e9c46a;--nv-gold-soft:#e9c46a33;--nv-on-gold:#1e1f26;--nv-alert:#ff8a6a;--nv-focus-ring:#a8dadc;--nv-burgundy:#f4a261;--nv-burgundy-ink:#e9c46a;--nv-burgundy-mid:#f4a261;--nv-burgundy-soft:#e9c56a5b;--nv-burgundy-wash:#ffffff0a;--nv-band:#1e1f26;--nv-on-band:#f0f0f0;--nv-on-band-muted:#a8dadc;--nv-band-line:#e9c56a5b;--nv-band-edge:#e9c46a;--nv-band-blue:#7393ff;--nv-on-band-blue:#0c1230;--nv-band-gold:#e9c46a;--nv-prime-3:#8aa2f0;--nv-prime-5:#6cc0a8;--nv-prime-7:#e0976a;--nv-prime-11:#b49be6;--nv-prime-13:#d98bd0;--nv-edge:#e9c46a;--nv-grid:#e9c56a26;--surface:var(--nv-surface);--surface-raised:var(--nv-surface-raised);--surface-sunk:var(--nv-surface-sunk);--ink:var(--nv-ink);--ink-muted:var(--nv-ink-muted);--hairline:var(--nv-hairline);--blue:var(--nv-blue);--on-blue:var(--nv-on-blue);--blue-soft:var(--nv-blue-soft);--gold:var(--nv-gold);--gold-ink:var(--nv-gold-ink);--gold-soft:var(--nv-gold-soft);--on-gold:var(--nv-on-gold);--alert:var(--nv-alert);--burgundy:var(--nv-burgundy);--burgundy-ink:var(--nv-burgundy-ink);--burgundy-mid:var(--nv-burgundy-mid);--burgundy-soft:var(--nv-burgundy-soft);--burgundy-wash:var(--nv-burgundy-wash);--prime-3:var(--nv-prime-3);--prime-5:var(--nv-prime-5);--prime-7:var(--nv-prime-7);--prime-11:var(--nv-prime-11);--prime-13:var(--nv-prime-13);--edge:var(--nv-edge);--brand-blue:var(--nv-brand-blue);--ground-start:var(--nv-ground-start);--ground-end:var(--nv-ground-end);--font-display:var(--nv-font-display);--font-sans:var(--nv-font-sans);--font-mono:var(--nv-font-mono);color-scheme:dark}
+html body{background-color:var(--nv-surface);background-image:linear-gradient(135deg,var(--nv-ground-start),var(--nv-ground-end));background-attachment:fixed;color:var(--nv-ink)}
+.eyebrow{color:var(--nv-gold-ink)}
+h2,h3{color:var(--nv-burgundy-ink)}
+
+.nv-appbar{position:relative;z-index:30;background:var(--nv-surface-raised);border-bottom:1px solid var(--nv-burgundy-soft);
+  padding-top:env(safe-area-inset-top,0px);font-family:var(--nv-font-sans);color:var(--nv-ink)}
+.nv-appbar,.nv-appbar *{box-sizing:border-box}
+.nv-appbar{text-align:left;grid-column:1/-1;align-self:stretch}
+.nv-in{max-width:var(--nv-appbar-max,1200px);margin:0 auto;justify-content:flex-start;padding:12px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:14px}
+.nv-lock{display:flex;align-items:center;gap:12px;flex:none;text-decoration:none;color:inherit}
+.nv-lock:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-mark{display:block;width:40px;height:auto}
+.nv-wm{font-weight:400;font-size:18px;letter-spacing:.18em;white-space:nowrap;line-height:1}
+.nv-wm .n{color:var(--nv-brand-blue)}.nv-wm .v{color:var(--nv-gold)}
+.nv-name{margin:0;padding-left:14px;border-left:1px solid var(--nv-burgundy-soft);font-family:var(--nv-font-sans);font-weight:400;font-size:18px;
+  line-height:1;letter-spacing:.18em;color:var(--nv-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:640px){.nv-wm{display:none}.nv-mark{width:34px}.nv-name{font-size:15px;letter-spacing:.1em;padding-left:12px}.nv-in{gap:12px;padding-top:10px;padding-bottom:10px}}
+
+.nv-theme{flex:none;display:grid;place-items:center;width:36px;height:36px;padding:0;margin-left:auto;cursor:pointer;
+  color:var(--nv-ink-muted);background:transparent;border:1px solid var(--nv-burgundy-soft);border-radius:2px;
+  transition:color .2s ease,border-color .2s ease,background-color .2s ease}
+.nv-theme:hover{color:var(--nv-gold);border-color:var(--nv-gold)}
+.nv-theme:focus-visible{outline:2px solid var(--nv-focus-ring);outline-offset:2px}
+.nv-ti{grid-area:1/1;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity .3s ease,transform .3s ease}
+.nv-ti-sun{opacity:0;transform:rotate(-45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-moon{opacity:0;transform:rotate(45deg) scale(.8)}
+.nv-theme.is-dark .nv-ti-sun{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.nv-ti,.nv-theme{transition:none}}
+
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nv-appbar{border-bottom-width:2px}
+  :root:not([data-theme="light"]) .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+  :root:not([data-theme="light"]) .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}}
+:root[data-theme="dark"] .nv-appbar{border-bottom-width:2px}
+:root[data-theme="dark"] .nv-theme{color:var(--nv-gold);background:var(--nv-gold-soft);border-color:var(--nv-gold)}
+:root[data-theme="dark"] .nv-theme:hover{color:var(--nv-on-gold);background:var(--nv-gold)}
+.top .nv-theme{margin-left:auto}
+</style>
+
+<style id="nv-burgundy-bars">
+/* Ivory only: header, control bar and mastered stages on the style guide's burgundy (#6b1d34);
+   content on them uses the band tokens (on-band text, band-blue / band-gold for the brand colours). Nocturne is unchanged. */
+:root{--bar:#6b1d34;--on-bar:#f5ecee;--on-bar-muted:#d1b6bd;--bar-line:rgba(245,236,238,.22);--bar-edge:#c9a3ad}
+@media (prefers-color-scheme:light){
+:root:not([data-theme="dark"]) .hud,:root:not([data-theme="dark"]) .ctrlbar{background:var(--bar)!important;color:var(--on-bar);border-color:var(--bar-line)!important}
+:root:not([data-theme="dark"]) body::before{background:var(--bar)}
+:root:not([data-theme="dark"]) .hud{--brand-blue:#7393ff;--gold:#d1a246}
+:root:not([data-theme="dark"]) .hud .appname{color:var(--on-bar);border-left-color:var(--bar-line)}
+:root:not([data-theme="dark"]) .hud .label,:root:not([data-theme="dark"]) .hud .pcount{color:var(--on-bar-muted)}
+:root:not([data-theme="dark"]) .hud .pbar{background:var(--bar-line)}
+:root:not([data-theme="dark"]) .hud .nv-theme{color:var(--on-bar-muted);border-color:var(--bar-edge)}
+:root:not([data-theme="dark"]) .hud .nv-theme:hover{color:#d1a246;border-color:#d1a246}
+:root:not([data-theme="dark"]) .hud .hudlock:focus-visible,:root:not([data-theme="dark"]) .ctrlbar button:focus-visible{outline-color:var(--on-bar)}
+:root:not([data-theme="dark"]) .ctrlbar .ghost{color:var(--on-bar);border-color:var(--bar-edge)}
+:root:not([data-theme="dark"]) .ctrlbar .ghost:hover:not(:disabled){background:rgba(255,255,255,.09)}
+:root:not([data-theme="dark"]) .ctrlbar{--blue:#7393ff;--on-blue:#0c1230}
+:root:not([data-theme="dark"]) .node.r.done polygon{fill:var(--burgundy-soft);stroke:var(--burgundy-mid)}
+:root:not([data-theme="dark"]) .node.r.done b{color:var(--burgundy-ink)}
+:root:not([data-theme="dark"]) .node.l.done .lat{background:var(--burgundy-soft);border-color:var(--burgundy-mid);color:var(--burgundy-ink)}
+:root:not([data-theme="dark"]) .node.l.done small{color:var(--burgundy-ink)}
+:root:not([data-theme="dark"]) .node.r.cur polygon{fill:var(--bar);stroke:var(--bar)}
+:root:not([data-theme="dark"]) .node.r.cur b{color:var(--on-bar)}
+:root:not([data-theme="dark"]) .node.l.cur .lat{background:var(--bar);border-color:var(--bar);color:var(--on-bar)}
+:root:not([data-theme="dark"]) .node.l.cur small{color:var(--burgundy-ink)}
+:root:not([data-theme="dark"]) .bighex polygon,:root:not([data-theme="dark"]) .bighex.done polygon{fill:var(--burgundy-soft);stroke:var(--burgundy-mid)}
+:root:not([data-theme="dark"]) .bighex b,:root:not([data-theme="dark"]) .bighex.done b{color:var(--burgundy-ink)}
+:root:not([data-theme="dark"]) .bighex.lit polygon{fill:var(--bar);stroke:var(--bar)}
+:root:not([data-theme="dark"]) .bighex.lit b{color:var(--on-bar)}
+}
+:root[data-theme="light"] .hud,:root[data-theme="light"] .ctrlbar{background:var(--bar)!important;color:var(--on-bar);border-color:var(--bar-line)!important}
+:root[data-theme="light"] body::before{background:var(--bar)}
+:root[data-theme="light"] .hud{--brand-blue:#7393ff;--gold:#d1a246}
+:root[data-theme="light"] .hud .appname{color:var(--on-bar);border-left-color:var(--bar-line)}
+:root[data-theme="light"] .hud .label,:root[data-theme="light"] .hud .pcount{color:var(--on-bar-muted)}
+:root[data-theme="light"] .hud .pbar{background:var(--bar-line)}
+:root[data-theme="light"] .hud .nv-theme{color:var(--on-bar-muted);border-color:var(--bar-edge)}
+:root[data-theme="light"] .hud .nv-theme:hover{color:#d1a246;border-color:#d1a246}
+:root[data-theme="light"] .hud .hudlock:focus-visible,:root[data-theme="light"] .ctrlbar button:focus-visible{outline-color:var(--on-bar)}
+:root[data-theme="light"] .ctrlbar .ghost{color:var(--on-bar);border-color:var(--bar-edge)}
+:root[data-theme="light"] .ctrlbar .ghost:hover:not(:disabled){background:rgba(255,255,255,.09)}
+:root[data-theme="light"] .ctrlbar{--blue:#7393ff;--on-blue:#0c1230}
+:root[data-theme="light"] .node.r.done polygon{fill:var(--burgundy-soft);stroke:var(--burgundy-mid)}
+:root[data-theme="light"] .node.r.done b{color:var(--burgundy-ink)}
+:root[data-theme="light"] .node.l.done .lat{background:var(--burgundy-soft);border-color:var(--burgundy-mid);color:var(--burgundy-ink)}
+:root[data-theme="light"] .node.l.done small{color:var(--burgundy-ink)}
+:root[data-theme="light"] .node.r.cur polygon{fill:var(--bar);stroke:var(--bar)}
+:root[data-theme="light"] .node.r.cur b{color:var(--on-bar)}
+:root[data-theme="light"] .node.l.cur .lat{background:var(--bar);border-color:var(--bar);color:var(--on-bar)}
+:root[data-theme="light"] .node.l.cur small{color:var(--burgundy-ink)}
+:root[data-theme="light"] .bighex polygon,:root[data-theme="light"] .bighex.done polygon{fill:var(--burgundy-soft);stroke:var(--burgundy-mid)}
+:root[data-theme="light"] .bighex b,:root[data-theme="light"] .bighex.done b{color:var(--burgundy-ink)}
+:root[data-theme="light"] .bighex.lit polygon{fill:var(--bar);stroke:var(--bar)}
+:root[data-theme="light"] .bighex.lit b{color:var(--on-bar)}
+</style>
+
+<style id="options">
+/* options sheet, ported from Ear Trainer Classic: a settings button in the app bar opens a slide-in sheet */
+.optbtn{flex:none;display:grid;place-items:center;width:36px;height:36px;padding:0;margin-left:auto;cursor:pointer;color:var(--ink-muted);background:transparent;border:1px solid var(--burgundy-soft);border-radius:2px;transition:color .2s,border-color .2s,background-color .2s}
+.optbtn svg{width:18px;height:18px}
+.optbtn:hover{color:var(--gold);border-color:var(--gold)}
+.optbtn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.top .optbtn+.nv-theme{margin-left:0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .optbtn{color:var(--gold);background:var(--gold-soft);border-color:var(--gold)}:root:not([data-theme="light"]) .optbtn:hover{color:var(--on-gold);background:var(--gold)}}
+:root[data-theme="dark"] .optbtn{color:var(--gold);background:var(--gold-soft);border-color:var(--gold)}
+:root[data-theme="dark"] .optbtn:hover{color:var(--on-gold);background:var(--gold)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .hud .optbtn{color:var(--on-bar-muted);border-color:var(--bar-edge)}:root:not([data-theme="dark"]) .hud .optbtn:hover{color:#d1a246;border-color:#d1a246}}
+:root[data-theme="light"] .hud .optbtn{color:var(--on-bar-muted);border-color:var(--bar-edge)}
+:root[data-theme="light"] .hud .optbtn:hover{color:#d1a246;border-color:#d1a246}
+.scrim{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,#121933 42%,transparent)}
+.sheet{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);z-index:51;background:var(--surface-raised);border-left:1px solid var(--burgundy-soft);overflow-y:auto;overscroll-behavior:contain;
+  padding:calc(env(safe-area-inset-top,0px) + 18px) max(20px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 28px) 20px;
+  transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column;gap:22px}
+.sheet.in{transform:none}
+.sheet header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--burgundy-soft)}
+.sheet h2{margin:0;font-family:var(--font-display);font-weight:600;font-size:28px;line-height:1.1;color:var(--burgundy-ink)}
+.sheet h3{margin:0;font-family:var(--font-display);font-weight:600;font-size:20px;color:var(--burgundy-ink)}
+.sheet section{display:flex;flex-direction:column;gap:16px}
+.sheet .row{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.sheet .note{margin:0;font-size:12.5px;line-height:1.5;color:var(--ink-muted)}
+.sheet .acts{display:flex;flex-wrap:wrap;gap:8px}
+.seg{display:flex;flex-wrap:wrap;gap:2px;background:var(--burgundy-wash);border:1px solid var(--burgundy-soft);border-radius:2px;padding:2px}
+.seg button{border:0;background:transparent;color:var(--ink);font-family:var(--font-sans);font-weight:500;font-size:13px;padding:6px 12px;border-radius:1px;cursor:pointer;font-variant-numeric:tabular-nums}
+.seg button:hover{background:var(--surface-sunk)}
+.seg button[aria-pressed="true"]{background:var(--burgundy);color:var(--surface-raised)}
+.seg button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.sheet .ghost{height:auto;padding:8px 14px;font-size:12.5px;color:var(--ink)}
+.sheet header .ghost{padding:7px 14px}
+.sheet .ghost.danger{border-color:var(--alert);color:var(--alert)}
+.status .vnote{color:var(--ink-muted)}
+.pips{min-width:0}.pips i{flex:0 1 16px;min-width:9px}
+.prog .stepl{flex:none;max-width:64%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.calm *,body.calm *::before,body.calm *::after{animation:none!important;transition:none!important}
+/* Cross-Presentation bridge */
+.choices.cxmode{display:block}
+.cxp{display:flex;flex-direction:column;gap:10px}
+.cxrow{display:grid;gap:8px;grid-template-columns:repeat(var(--n,2),minmax(0,1fr))}
+.cxcard{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;padding:10px 12px;border-radius:2px;cursor:pointer;text-align:left;
+  background:var(--surface-raised);border:1px solid var(--burgundy-soft);transition:background .12s,border-color .12s}
+.cxcard .label{font-size:9.5px;letter-spacing:.14em;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cxcard b{font-family:var(--font-mono);font-weight:500;font-size:20px;line-height:1.25;color:var(--ink)}
+.cxcard small{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-muted);min-height:1.3em}
+.cxcard:hover{border-color:var(--burgundy-mid)}
+.cxcard.lit{background:var(--burgundy-soft);border-color:var(--burgundy-mid)}
+.cxcard.q b{color:var(--burgundy-ink)}
+.cxans{display:grid;gap:8px;grid-template-columns:repeat(var(--n,2),minmax(0,1fr))}
+.cxans button{min-width:0;padding:12px 6px;border-radius:2px;cursor:pointer;font-weight:600;font-size:13.5px;background:var(--surface-raised);border:1px solid var(--edge);color:var(--ink)}
+.cxans button.m{font-family:var(--font-mono);font-weight:500;font-size:17px}
+.cxans button:disabled{cursor:default}
+.cxans button.right{border-color:transparent;background:linear-gradient(var(--gold-soft),var(--gold-soft)) padding-box,var(--foil) border-box;background-size:100% 100%,260% 100%}
+.cxans button.wrong{border-color:var(--alert);background:color-mix(in srgb,var(--alert) 12%,var(--surface-raised))}
+.cxans button.dim{opacity:.5}
+.cxfb{margin:0;height:58px;overflow:hidden;font-size:12.5px;line-height:1.55;color:var(--ink-muted)}
+.cxfb .verdict{font-family:var(--font-display);font-style:italic;font-weight:600;font-size:17px;margin-right:4px;color:var(--ink)}
+.cxfb .ok{color:var(--gold-ink)}.cxfb .no{color:var(--alert)}
+.cxfb .m{font-family:var(--font-mono);font-weight:500;color:var(--ink)}
+/* developer section skipper */
+.devbar{display:flex;align-items:center;gap:8px;margin-top:-4px;padding:6px 8px;border:1px dashed var(--burgundy-mid);border-radius:2px;background:var(--burgundy-wash)}
+.devbar .label{flex:none}
+.devbar select{flex:1;min-width:0;font-family:var(--font-sans);font-size:12.5px;padding:5px 6px;border:1px solid var(--burgundy-soft);border-radius:2px;background:var(--surface-raised);color:var(--ink)}
+.devbar button{flex:none;font-family:var(--font-sans);font-weight:600;font-size:12px;padding:6px 10px;border-radius:2px;border:1px solid var(--burgundy);background:var(--burgundy);color:var(--surface-raised);cursor:pointer}
+/* answer tiles: share the row, grow to fill it, never narrower than they are tall; text centred */
+.choices{display:flex;flex-wrap:wrap;gap:10px}
+.choice{flex:1 1 72px;min-width:72px;min-height:72px;align-items:center;justify-content:center;text-align:center;padding:10px 8px}
+@media (max-width:640px){.choices{gap:8px}.choice{flex-basis:64px;min-width:64px;min-height:64px;padding:8px 6px}}
+.choices:not(.cxmode){display:flex;flex-direction:column}
+.trow{display:flex;gap:10px}.trow .choice{flex:1 1 0}
+@media (max-width:640px){.trow{gap:8px}}
+/* mix-up duels */
+.suggest{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 14px;background:var(--burgundy-wash);border:1px dashed var(--burgundy-mid);border-radius:2px}
+.suggest p{margin:0;flex:1;min-width:0;font-size:13px;line-height:1.4;color:var(--ink)}
+.suggest .m,.confl .m{font-family:var(--font-mono);font-weight:500}
+.sacts{display:flex;gap:6px;flex:none}
+.sgo,.sno,.confl button{font-family:var(--font-sans);font-weight:600;font-size:12.5px;padding:8px 12px;border-radius:2px;cursor:pointer}
+.sgo{background:var(--burgundy);color:var(--surface-raised);border:1px solid var(--burgundy)}
+.sno{background:transparent;color:var(--ink-muted);border:1px solid var(--burgundy-soft)}
+.confl{display:flex;flex-direction:column}
+.confl .crow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--burgundy-soft)}
+.confl .crow .m{flex:1;font-size:14px}
+.confl .crow small{color:var(--ink-muted);font-size:12px;font-variant-numeric:tabular-nums}
+.confl button{background:transparent;color:var(--burgundy-ink);border:1px solid var(--burgundy-mid);padding:5px 12px}
+.confl .none{margin:0;font-size:13px;color:var(--ink-muted)}
+.duelvs{flex:none;display:flex;align-items:center;gap:6px}
+.duelvs em{font-family:var(--font-display);font-style:italic;font-size:18px;color:var(--burgundy-mid)}
+.duelvs .bighex{width:62px;height:72px}.duelvs .bighex b{font-size:15px}
+.sinfo .leave{align-self:flex-start;margin-top:6px;background:transparent;border:1px solid var(--burgundy-soft);color:var(--ink-muted);font-family:var(--font-sans);font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:2px;cursor:pointer}
+@media (max-width:640px){.duelvs .bighex{width:52px;height:60px}.duelvs .bighex b{font-size:13px}.duelvs em{font-size:15px}.suggest{flex-wrap:wrap}.sacts{margin-left:auto}}
+/* sing it: match an interval over a root drone, and watch your pitch against the ratio lines */
+.ctrlbar-in{grid-template-columns:minmax(0,1fr) 96px}
+body.singing #choices,body.singing #status,body.singing #stage .prog,body.singing #stage .desc{display:none}
+body.singing .shead{height:auto;min-height:110px}
+.singpanel{gap:12px}
+.sghead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sgsel{font:inherit;font-size:13px;background:var(--surface-raised);color:var(--ink);border:1px solid var(--hairline);border-radius:2px;padding:7px 8px;min-width:0;max-width:100%}
+.sgtip{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.sgtip .m,.sgnote .m{font-family:var(--font-mono);font-weight:500}
+.sgrow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.sgrow label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-muted)}
+.ghost.sgbtn{height:36px;padding:4px 12px;display:inline-flex;align-items:center;gap:8px}
+:root .ghost.sgbtn[aria-pressed="true"]{background:var(--blue);color:var(--on-blue);border-color:var(--blue)}
+.sglvl{width:34px;height:5px;background:var(--burgundy-soft);overflow:hidden;flex:none}
+.sglvl i{display:block;height:100%;width:0;background:var(--gold)}
+.sgtrace{position:relative;height:clamp(180px,30vh,250px);background:var(--surface-sunk);border:1px solid var(--burgundy-soft);border-radius:2px;overflow:hidden}
+.sgtrace canvas{position:absolute;inset:0;width:100%;height:100%}
+.sgmeter{position:relative;height:38px;background:var(--surface-sunk);border:1px solid var(--burgundy-soft);border-radius:2px;overflow:hidden}
+.sgmeter .zone{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--gold) 26%,transparent)}
+.sgmeter .mid{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--gold)}
+.sgmeter .tick{position:absolute;bottom:0;width:1px;height:8px;background:var(--hairline)}
+.sgmeter .tl{position:absolute;top:2px;font-family:var(--font-mono);font-size:10px;color:var(--ink-muted);transform:translateX(-50%)}
+.sgneedle{position:absolute;top:6px;bottom:6px;width:6px;margin-left:-3px;border-radius:3px;background:var(--ink);left:50%;opacity:.25;transition:left .06s linear,opacity .2s}
+.sgneedle.ok{background:var(--gold)}
+.sgread{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--font-mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.sgread span:last-child{color:var(--ink-muted);text-align:right}
+.sgnote{margin:0;font-size:13px;line-height:1.45;color:var(--ink-muted);background:var(--burgundy-wash);border:1px solid var(--burgundy-soft);border-radius:2px;padding:9px 12px}
+.sgnote b{color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.sgneedle{transition:none}}
+</style>
+
+<header class="hud">
+  <div class="hud-in">
+    <div class="top">
+      <a class="hudlock" href="https://nickvuci.com" target="_blank" rel="noopener" aria-label="Nick Vuci — nickvuci.com"><svg class="hudmark" role="img" aria-label="Nick Vuci" viewBox="-9.89 0 209.79 80" shape-rendering="geometricPrecision"><defs><clipPath id="nvhc"><rect x="-29.89" y="0" width="249.79" height="80"/></clipPath><linearGradient id="nvhg" gradientUnits="userSpaceOnUse" x1="110.00" y1="0" x2="118.00" y2="0"><stop offset="0" style="stop-color:var(--brand-blue)"/><stop offset="1" style="stop-color:var(--gold)"/></linearGradient></defs><polyline clip-path="url(#nvhc)" points="-17.74,102.14 0.00,72.14 38.00,7.86 76.00,72.14 114.00,7.86 152.00,72.14 190.00,7.86 207.74,-22.14" fill="none" stroke="url(#nvhg)" stroke-width="8.0" stroke-linejoin="miter" stroke-miterlimit="10"/></svg><span class="wm"><span class="n">Nick</span> <span class="v">Vuci</span></span></a>
+      <h1 class="appname">Odd-Limit Ear Trainer</h1><button type="button" class="optbtn" id="openSet" aria-label="Options" title="Options"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M20 18h0"/><circle cx="16" cy="6" r="2.4"/><circle cx="10" cy="12" r="2.4"/><circle cx="18" cy="18" r="2.4"/></svg></button><button type="button" class="nv-theme" aria-label="Switch to dark theme" aria-pressed="false" title="Switch to dark theme"><svg class="nv-ti nv-ti-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M19.5 14.2A7.5 7.5 0 0 1 9.8 4.5a7.5 7.5 0 1 0 9.7 9.7Z"/></svg><svg class="nv-ti nv-ti-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="wrap">
+    <nav class="path" id="path" aria-label="The path"></nav>
+    <div class="pslide"><div class="strack"><i class="sfill" id="pfill"></i><span class="sticks" id="pticks"></span><input type="range" id="pslide" min="0" max="1000" step="1" value="0" aria-label="Scroll along the path"></div><span class="pcount" id="pcount">0 / 55</span></div>
+    <div class="devbar" id="devbar" hidden><span class="label">Dev</span><select id="devsec" aria-label="Jump to a section of this stage"></select><button type="button" id="devskip">Complete section ›</button></div>
+    <section class="panel" id="stage" aria-live="polite">
+      <div class="shead" id="shead"></div>
+      <div class="prog" id="sprog"></div>
+    </section>
+    <section class="panel singpanel" id="singpanel" aria-label="Sing the interval" hidden>
+      <div class="sghead"><span class="eyebrow">Sing it</span>
+        <select class="sgsel" id="sgTarget" aria-label="Interval to sing"></select></div>
+      <p class="sgtip" id="sgTip"></p>
+      <div class="sgrow">
+        <label for="sgVoice">Root note
+          <select class="sgsel" id="sgVoice"><option value="98">G2 · 98 Hz</option><option value="130.81">C3 · 131 Hz</option><option value="146.83">D3 · 147 Hz</option><option value="196">G3 · 196 Hz</option><option value="261.63">C4 · 262 Hz</option></select></label>
+        <label for="sgTol">Tolerance
+          <select class="sgsel" id="sgTol"><option value="5">±5¢</option><option value="10">±10¢</option><option value="15">±15¢</option><option value="25">±25¢</option></select></label>
+        <button type="button" class="ghost sgbtn" id="sgDrone" aria-pressed="false">Root drone</button>
+        <button type="button" class="ghost sgbtn" id="sgMic" aria-pressed="false"><span id="sgMicTxt">Enable microphone</span><span class="sglvl"><i id="sgLvl"></i></span></button>
+      </div>
+      <div class="sgtrace"><canvas id="sgCv" aria-label="Your sung pitch over the last eight seconds against the interval's ratio line"></canvas></div>
+      <div class="sgmeter" id="sgMeter" aria-hidden="true"><div class="zone" id="sgZone"></div><div class="mid"></div><div class="sgneedle" id="sgNeedle"></div></div>
+      <div class="mbar" aria-hidden="true"><i id="sgHold"></i></div>
+      <div class="sgread"><span id="sgYou">You: —</span><span id="sgDir">Waiting for your voice</span></div>
+      <p class="sgnote" id="sgNote">Press <b>Hear it</b> to hear the interval, then sing the upper note over the root. Any octave counts. Headphones keep the drone out of the microphone.</p>
+    </section>
+    <div class="choices" id="choices"></div>
+    <div class="status" id="status" hidden></div>
+    <div class="suggest" id="suggest" hidden><p id="suggestText"></p><div class="sacts"><button class="sgo" id="suggestGo">Duel</button><button class="sno" id="suggestNo">Not now</button></div></div>
+  </div>
+</main>
+
+<footer class="ctrlbar">
+  <div class="ctrlbar-in">
+    <button class="playbtn" id="play"><span class="disc"><svg viewBox="0 0 12 14" fill="currentColor"><path d="M0 0l12 7-12 7z"/></svg></span><span id="playLabel">Play</span></button>
+    <button type="button" class="ghost" id="singBtn" aria-pressed="false" title="Sing the interval instead of naming it"><span id="singBtnTxt">Sing</span></button>
+  </div>
+</footer>
+<div id="toasts"></div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="setSheet" hidden aria-label="Options">
+  <header><h2>Options</h2><button class="ghost" data-close>Close</button></header>
+  <section>
+    <div class="row" id="row-mode"><span class="label">Playback</span><div class="seg" id="mode">
+      <button data-v="harm">Harmonic</button><button data-v="mel">Ascending</button><button data-v="down">Descending</button></div></div>
+    <div class="row"><span class="label">Tone</span><div class="seg" id="tone"></div></div>
+    <div class="row"><span class="label">Vary each round</span><div class="seg" id="vary">
+      <button data-v="vRoot">Root</button><button data-v="vTone">Tone colour</button></div></div>
+    <div class="row"><span class="label">Answer tiles</span><div class="seg" id="nch">
+      <button data-v="auto">Auto</button><button data-v="4">4</button><button data-v="6">6</button><button data-v="9">9</button><button data-v="all">All</button></div></div>
+    <div class="row"><span class="label">Game effects</span><div class="seg" id="fxset">
+      <button data-v="sfx">Sound effects</button><button data-v="motion">Animations</button></div></div>
+    <p class="note">Turn on any mix of playbacks; each round uses one of them at random, and at least one stays on. Tap a tone to hear it on a major third. On the path, each step runs first with every round on 220 Hz, then again with the root changing each round (varying the root spreads that over two octaves), and varying the tone colour rotates through every tone. Answer tiles apply to the full-limit stages (Auto shows 8); each ratio stage sets its own answers as you go through its steps. Flute and Glassy have few harmonics, so higher-limit locks are harder to hear in them.</p>
+  </section>
+  <section>
+    <h3>Pairs you mix up</h3>
+    <div class="row"><span class="label">Duel length</span><div class="seg" id="dneed"><button data-v="8">8</button><button data-v="12">12</button><button data-v="16">16</button><button data-v="20">20</button></div></div>
+    <div class="confl" id="confl"></div>
+    <p class="note">A pair lands here when you pick one for the other. In a duel only those two play, equally often, with the root changing each round; win it by naming them right that many times in a row, and the pair comes off the list. Duels don't change your place on the path.</p>
+  </section>
+  <section>
+    <h3>Progress</h3>
+    <div class="acts"><button class="ghost" id="unlockAll">Unlock the whole path</button><button class="ghost danger" id="resetprog">Restart the path</button></div>
+    <p class="note">Unlocking the whole path also turns on developer mode: a bar under the path for jumping to any section of a stage, or marking the current section complete. Restarting the path turns it off. Jumping back into a stage you had passed locks the stages after it again; choosing "Mastered" in the bar restores them.</p>
+  </section>
+</aside>
+
+<script>
+(function(){
+const LAT={"5": {"vb": "-105 -92 210 184", "g": "<polygon points=\"100,0 50,-86.6025 -50,-86.6025 -100,0 -50,86.6025 50,86.6025\"/> <line x1=\"-100\" y1=\"0\" x2=\"100\" y2=\"0\"/> <line x1=\"-50\" y1=\"-86.6025\" x2=\"50\" y2=\"86.6025\"/> <line x1=\"50\" y1=\"-86.6025\" x2=\"-50\" y2=\"86.6025\"/>"}, "7": {"vb": "-106 -92.6 212 185.2", "g": "<line x1=\"0\" y1=\"0\" x2=\"100\" y2=\"-0\"/> <line x1=\"0\" y1=\"0\" x2=\"50\" y2=\"-86.6\"/> <line x1=\"0\" y1=\"0\" x2=\"-50\" y2=\"-86.6\"/> <line x1=\"0\" y1=\"0\" x2=\"-100\" y2=\"-0\"/> <line x1=\"0\" y1=\"0\" x2=\"-50\" y2=\"86.6\"/> <line x1=\"0\" y1=\"0\" x2=\"50\" y2=\"86.6\"/> <line x1=\"0\" y1=\"0\" x2=\"50\" y2=\"-28.87\"/> <line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"-57.74\"/> <line x1=\"0\" y1=\"0\" x2=\"-50\" y2=\"-28.87\"/> <line x1=\"0\" y1=\"0\" x2=\"-50\" y2=\"28.87\"/> <line x1=\"0\" y1=\"0\" x2=\"-0\" y2=\"57.74\"/> <line x1=\"0\" y1=\"0\" x2=\"50\" y2=\"28.87\"/> <line x1=\"100\" y1=\"-0\" x2=\"50\" y2=\"-86.6\"/> <line x1=\"100\" y1=\"-0\" x2=\"50\" y2=\"86.6\"/> <line x1=\"100\" y1=\"-0\" x2=\"50\" y2=\"-28.87\"/> <line x1=\"100\" y1=\"-0\" x2=\"50\" y2=\"28.87\"/> <line x1=\"50\" y1=\"-86.6\" x2=\"-50\" y2=\"-86.6\"/> <line x1=\"50\" y1=\"-86.6\" x2=\"50\" y2=\"-28.87\"/> <line x1=\"50\" y1=\"-86.6\" x2=\"0\" y2=\"-57.74\"/> <line x1=\"-50\" y1=\"-86.6\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-50\" y1=\"-86.6\" x2=\"0\" y2=\"-57.74\"/> <line x1=\"-50\" y1=\"-86.6\" x2=\"-50\" y2=\"-28.87\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-50\" y2=\"86.6\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-50\" y2=\"-28.87\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-50\" y2=\"28.87\"/> <line x1=\"-50\" y1=\"86.6\" x2=\"50\" y2=\"86.6\"/> <line x1=\"-50\" y1=\"86.6\" x2=\"-50\" y2=\"28.87\"/> <line x1=\"-50\" y1=\"86.6\" x2=\"-0\" y2=\"57.74\"/> <line x1=\"50\" y1=\"86.6\" x2=\"-0\" y2=\"57.74\"/> <line x1=\"50\" y1=\"86.6\" x2=\"50\" y2=\"28.87\"/> <line x1=\"50\" y1=\"-28.87\" x2=\"-50\" y2=\"-28.87\"/> <line x1=\"50\" y1=\"-28.87\" x2=\"-0\" y2=\"57.74\"/> <line x1=\"0\" y1=\"-57.74\" x2=\"-50\" y2=\"28.87\"/> <line x1=\"0\" y1=\"-57.74\" x2=\"50\" y2=\"28.87\"/> <line x1=\"-50\" y1=\"-28.87\" x2=\"-0\" y2=\"57.74\"/> <line x1=\"-50\" y1=\"28.87\" x2=\"50\" y2=\"28.87\"/>"}, "9": {"vb": "-106 -106 212 212", "g": "<line x1=\"0\" y1=\"0\" x2=\"19.1\" y2=\"58.78\"/> <line x1=\"0\" y1=\"0\" x2=\"-61.8\" y2=\"-0\"/> <line x1=\"0\" y1=\"0\" x2=\"-19.1\" y2=\"-58.78\"/> <line x1=\"0\" y1=\"0\" x2=\"-50\" y2=\"36.33\"/> <line x1=\"0\" y1=\"0\" x2=\"50\" y2=\"-36.33\"/> <line x1=\"0\" y1=\"0\" x2=\"-50\" y2=\"-36.33\"/> <line x1=\"0\" y1=\"0\" x2=\"50\" y2=\"36.33\"/> <line x1=\"0\" y1=\"0\" x2=\"19.1\" y2=\"-58.78\"/> <line x1=\"0\" y1=\"0\" x2=\"61.8\" y2=\"0\"/> <line x1=\"0\" y1=\"0\" x2=\"-19.1\" y2=\"58.78\"/> <line x1=\"19.1\" y1=\"58.78\" x2=\"-30.9\" y2=\"95.11\"/> <line x1=\"19.1\" y1=\"58.78\" x2=\"80.9\" y2=\"58.78\"/> <line x1=\"-30.9\" y1=\"95.11\" x2=\"-80.9\" y2=\"58.78\"/> <line x1=\"-30.9\" y1=\"95.11\" x2=\"-50\" y2=\"36.33\"/> <line x1=\"-30.9\" y1=\"95.11\" x2=\"30.9\" y2=\"95.11\"/> <line x1=\"-80.9\" y1=\"58.78\" x2=\"-61.8\" y2=\"-0\"/> <line x1=\"-80.9\" y1=\"58.78\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-80.9\" y1=\"58.78\" x2=\"-19.1\" y2=\"58.78\"/> <line x1=\"-61.8\" y1=\"-0\" x2=\"-80.9\" y2=\"-58.78\"/> <line x1=\"-19.1\" y1=\"-58.78\" x2=\"-80.9\" y2=\"-58.78\"/> <line x1=\"-19.1\" y1=\"-58.78\" x2=\"30.9\" y2=\"-95.11\"/> <line x1=\"-50\" y1=\"36.33\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-80.9\" y2=\"-58.78\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-50\" y2=\"-36.33\"/> <line x1=\"-80.9\" y1=\"-58.78\" x2=\"-30.9\" y2=\"-95.11\"/> <line x1=\"30.9\" y1=\"-95.11\" x2=\"50\" y2=\"-36.33\"/> <line x1=\"30.9\" y1=\"-95.11\" x2=\"-30.9\" y2=\"-95.11\"/> <line x1=\"30.9\" y1=\"-95.11\" x2=\"80.9\" y2=\"-58.78\"/> <line x1=\"50\" y1=\"-36.33\" x2=\"100\" y2=\"0\"/> <line x1=\"-50\" y1=\"-36.33\" x2=\"-30.9\" y2=\"-95.11\"/> <line x1=\"-30.9\" y1=\"-95.11\" x2=\"19.1\" y2=\"-58.78\"/> <line x1=\"80.9\" y1=\"-58.78\" x2=\"100\" y2=\"0\"/> <line x1=\"80.9\" y1=\"-58.78\" x2=\"19.1\" y2=\"-58.78\"/> <line x1=\"80.9\" y1=\"-58.78\" x2=\"61.8\" y2=\"0\"/> <line x1=\"100\" y1=\"0\" x2=\"50\" y2=\"36.33\"/> <line x1=\"100\" y1=\"0\" x2=\"80.9\" y2=\"58.78\"/> <line x1=\"50\" y1=\"36.33\" x2=\"30.9\" y2=\"95.11\"/> <line x1=\"61.8\" y1=\"0\" x2=\"80.9\" y2=\"58.78\"/> <line x1=\"80.9\" y1=\"58.78\" x2=\"30.9\" y2=\"95.11\"/> <line x1=\"30.9\" y1=\"95.11\" x2=\"-19.1\" y2=\"58.78\"/>"}, "11": {"vb": "-106 -106 212 212", "g": "<line x1=\"0\" y1=\"0\" x2=\"-50\" y2=\"-36.33\"/> <line x1=\"0\" y1=\"0\" x2=\"50\" y2=\"-36.33\"/> <line x1=\"0\" y1=\"0\" x2=\"50\" y2=\"36.33\"/> <line x1=\"0\" y1=\"0\" x2=\"19.1\" y2=\"-58.78\"/> <line x1=\"0\" y1=\"0\" x2=\"-19.1\" y2=\"58.78\"/> <line x1=\"0\" y1=\"0\" x2=\"61.8\" y2=\"0\"/> <line x1=\"0\" y1=\"0\" x2=\"-61.8\" y2=\"0\"/> <line x1=\"0\" y1=\"0\" x2=\"19.1\" y2=\"58.78\"/> <line x1=\"0\" y1=\"0\" x2=\"-50\" y2=\"36.33\"/> <line x1=\"0\" y1=\"0\" x2=\"-19.1\" y2=\"-58.78\"/> <line x1=\"-0\" y1=\"52.57\" x2=\"-50\" y2=\"16.25\"/> <line x1=\"-0\" y1=\"52.57\" x2=\"50\" y2=\"16.25\"/> <line x1=\"-50\" y1=\"16.25\" x2=\"-30.9\" y2=\"-42.53\"/> <line x1=\"-30.9\" y1=\"-42.53\" x2=\"30.9\" y2=\"-42.53\"/> <line x1=\"30.9\" y1=\"-42.53\" x2=\"50\" y2=\"16.25\"/> <line x1=\"0\" y1=\"-52.57\" x2=\"50\" y2=\"-16.25\"/> <line x1=\"0\" y1=\"-52.57\" x2=\"-50\" y2=\"-16.25\"/> <line x1=\"-50\" y1=\"-36.33\" x2=\"-30.9\" y2=\"-95.11\"/> <line x1=\"-50\" y1=\"-36.33\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-30.9\" y1=\"-95.11\" x2=\"30.9\" y2=\"-95.11\"/> <line x1=\"-30.9\" y1=\"-95.11\" x2=\"19.1\" y2=\"-58.78\"/> <line x1=\"-30.9\" y1=\"-95.11\" x2=\"-80.9\" y2=\"-58.78\"/> <line x1=\"30.9\" y1=\"-95.11\" x2=\"50\" y2=\"-36.33\"/> <line x1=\"30.9\" y1=\"-95.11\" x2=\"80.9\" y2=\"-58.78\"/> <line x1=\"30.9\" y1=\"-95.11\" x2=\"-19.1\" y2=\"-58.78\"/> <line x1=\"50\" y1=\"-36.33\" x2=\"100\" y2=\"0\"/> <line x1=\"50\" y1=\"-16.25\" x2=\"30.9\" y2=\"42.53\"/> <line x1=\"50\" y1=\"36.33\" x2=\"100\" y2=\"0\"/> <line x1=\"50\" y1=\"36.33\" x2=\"30.9\" y2=\"95.11\"/> <line x1=\"19.1\" y1=\"-58.78\" x2=\"80.9\" y2=\"-58.78\"/> <line x1=\"80.9\" y1=\"-58.78\" x2=\"100\" y2=\"0\"/> <line x1=\"80.9\" y1=\"-58.78\" x2=\"61.8\" y2=\"0\"/> <line x1=\"100\" y1=\"0\" x2=\"80.9\" y2=\"58.78\"/> <line x1=\"30.9\" y1=\"42.53\" x2=\"-30.9\" y2=\"42.53\"/> <line x1=\"30.9\" y1=\"95.11\" x2=\"-19.1\" y2=\"58.78\"/> <line x1=\"30.9\" y1=\"95.11\" x2=\"80.9\" y2=\"58.78\"/> <line x1=\"30.9\" y1=\"95.11\" x2=\"-30.9\" y2=\"95.11\"/> <line x1=\"-19.1\" y1=\"58.78\" x2=\"-80.9\" y2=\"58.78\"/> <line x1=\"61.8\" y1=\"0\" x2=\"80.9\" y2=\"58.78\"/> <line x1=\"80.9\" y1=\"58.78\" x2=\"19.1\" y2=\"58.78\"/> <line x1=\"-30.9\" y1=\"42.53\" x2=\"-50\" y2=\"-16.25\"/> <line x1=\"-30.9\" y1=\"95.11\" x2=\"-80.9\" y2=\"58.78\"/> <line x1=\"-30.9\" y1=\"95.11\" x2=\"19.1\" y2=\"58.78\"/> <line x1=\"-30.9\" y1=\"95.11\" x2=\"-50\" y2=\"36.33\"/> <line x1=\"-80.9\" y1=\"58.78\" x2=\"-61.8\" y2=\"0\"/> <line x1=\"-80.9\" y1=\"58.78\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-61.8\" y1=\"0\" x2=\"-80.9\" y2=\"-58.78\"/> <line x1=\"-50\" y1=\"36.33\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-80.9\" y2=\"-58.78\"/> <line x1=\"-80.9\" y1=\"-58.78\" x2=\"-19.1\" y2=\"-58.78\"/>"}, "13": {"vb": "-106 -106 212 212", "g": "<line x1=\"0\" y1=\"0\" x2=\"-40.1\" y2=\"-19.31\"/> <line x1=\"0\" y1=\"0\" x2=\"40.1\" y2=\"-19.31\"/> <line x1=\"0\" y1=\"0\" x2=\"40.1\" y2=\"19.31\"/> <line x1=\"0\" y1=\"0\" x2=\"-9.9\" y2=\"-43.39\"/> <line x1=\"0\" y1=\"0\" x2=\"9.9\" y2=\"43.39\"/> <line x1=\"0\" y1=\"0\" x2=\"27.75\" y2=\"-34.79\"/> <line x1=\"0\" y1=\"0\" x2=\"-27.75\" y2=\"34.79\"/> <line x1=\"0\" y1=\"0\" x2=\"44.5\" y2=\"-0\"/> <line x1=\"0\" y1=\"0\" x2=\"-44.5\" y2=\"-0\"/> <line x1=\"0\" y1=\"0\" x2=\"27.75\" y2=\"34.79\"/> <line x1=\"0\" y1=\"0\" x2=\"-27.75\" y2=\"-34.79\"/> <line x1=\"0\" y1=\"0\" x2=\"-9.9\" y2=\"43.39\"/> <line x1=\"0\" y1=\"0\" x2=\"-40.1\" y2=\"19.31\"/> <line x1=\"0\" y1=\"0\" x2=\"9.9\" y2=\"-43.39\"/> <line x1=\"-40.1\" y1=\"-19.31\" x2=\"-50\" y2=\"-62.7\"/> <line x1=\"-40.1\" y1=\"-19.31\" x2=\"-80.19\" y2=\"0\"/> <line x1=\"-50\" y1=\"-62.7\" x2=\"-22.25\" y2=\"-97.49\"/> <line x1=\"-50\" y1=\"-62.7\" x2=\"-9.9\" y2=\"-43.39\"/> <line x1=\"-50\" y1=\"-62.7\" x2=\"-90.1\" y2=\"-43.39\"/> <line x1=\"-22.25\" y1=\"-97.49\" x2=\"22.25\" y2=\"-97.49\"/> <line x1=\"-22.25\" y1=\"-97.49\" x2=\"17.84\" y2=\"-78.18\"/> <line x1=\"-22.25\" y1=\"-97.49\" x2=\"-62.35\" y2=\"-78.18\"/> <line x1=\"22.25\" y1=\"-97.49\" x2=\"50\" y2=\"-62.7\"/> <line x1=\"22.25\" y1=\"-97.49\" x2=\"62.35\" y2=\"-78.18\"/> <line x1=\"22.25\" y1=\"-97.49\" x2=\"-17.84\" y2=\"-78.18\"/> <line x1=\"50\" y1=\"-62.7\" x2=\"40.1\" y2=\"-19.31\"/> <line x1=\"50\" y1=\"-62.7\" x2=\"90.1\" y2=\"-43.39\"/> <line x1=\"50\" y1=\"-62.7\" x2=\"9.9\" y2=\"-43.39\"/> <line x1=\"40.1\" y1=\"-19.31\" x2=\"80.19\" y2=\"-0\"/> <line x1=\"40.1\" y1=\"19.31\" x2=\"80.19\" y2=\"-0\"/> <line x1=\"40.1\" y1=\"19.31\" x2=\"50\" y2=\"62.7\"/> <line x1=\"-9.9\" y1=\"-43.39\" x2=\"17.84\" y2=\"-78.18\"/> <line x1=\"17.84\" y1=\"-78.18\" x2=\"62.35\" y2=\"-78.18\"/> <line x1=\"17.84\" y1=\"-78.18\" x2=\"27.75\" y2=\"-34.79\"/> <line x1=\"62.35\" y1=\"-78.18\" x2=\"90.1\" y2=\"-43.39\"/> <line x1=\"62.35\" y1=\"-78.18\" x2=\"72.25\" y2=\"-34.79\"/> <line x1=\"90.1\" y1=\"-43.39\" x2=\"80.19\" y2=\"-0\"/> <line x1=\"90.1\" y1=\"-43.39\" x2=\"100\" y2=\"0\"/> <line x1=\"80.19\" y1=\"-0\" x2=\"90.1\" y2=\"43.39\"/> <line x1=\"50\" y1=\"62.7\" x2=\"9.9\" y2=\"43.39\"/> <line x1=\"50\" y1=\"62.7\" x2=\"90.1\" y2=\"43.39\"/> <line x1=\"50\" y1=\"62.7\" x2=\"22.25\" y2=\"97.49\"/> <line x1=\"9.9\" y1=\"43.39\" x2=\"-17.84\" y2=\"78.18\"/> <line x1=\"27.75\" y1=\"-34.79\" x2=\"72.25\" y2=\"-34.79\"/> <line x1=\"72.25\" y1=\"-34.79\" x2=\"100\" y2=\"0\"/> <line x1=\"72.25\" y1=\"-34.79\" x2=\"44.5\" y2=\"-0\"/> <line x1=\"100\" y1=\"0\" x2=\"90.1\" y2=\"43.39\"/> <line x1=\"100\" y1=\"0\" x2=\"72.25\" y2=\"34.79\"/> <line x1=\"90.1\" y1=\"43.39\" x2=\"62.35\" y2=\"78.18\"/> <line x1=\"22.25\" y1=\"97.49\" x2=\"-17.84\" y2=\"78.18\"/> <line x1=\"22.25\" y1=\"97.49\" x2=\"62.35\" y2=\"78.18\"/> <line x1=\"22.25\" y1=\"97.49\" x2=\"-22.25\" y2=\"97.49\"/> <line x1=\"-17.84\" y1=\"78.18\" x2=\"-27.75\" y2=\"34.79\"/> <line x1=\"-17.84\" y1=\"78.18\" x2=\"-62.35\" y2=\"78.18\"/> <line x1=\"-27.75\" y1=\"34.79\" x2=\"-72.25\" y2=\"34.79\"/> <line x1=\"44.5\" y1=\"-0\" x2=\"72.25\" y2=\"34.79\"/> <line x1=\"72.25\" y1=\"34.79\" x2=\"62.35\" y2=\"78.18\"/> <line x1=\"72.25\" y1=\"34.79\" x2=\"27.75\" y2=\"34.79\"/> <line x1=\"62.35\" y1=\"78.18\" x2=\"17.84\" y2=\"78.18\"/> <line x1=\"-22.25\" y1=\"97.49\" x2=\"-62.35\" y2=\"78.18\"/> <line x1=\"-22.25\" y1=\"97.49\" x2=\"17.84\" y2=\"78.18\"/> <line x1=\"-22.25\" y1=\"97.49\" x2=\"-50\" y2=\"62.7\"/> <line x1=\"-62.35\" y1=\"78.18\" x2=\"-72.25\" y2=\"34.79\"/> <line x1=\"-62.35\" y1=\"78.18\" x2=\"-90.1\" y2=\"43.39\"/> <line x1=\"-72.25\" y1=\"34.79\" x2=\"-44.5\" y2=\"-0\"/> <line x1=\"-72.25\" y1=\"34.79\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-44.5\" y1=\"-0\" x2=\"-72.25\" y2=\"-34.79\"/> <line x1=\"27.75\" y1=\"34.79\" x2=\"17.84\" y2=\"78.18\"/> <line x1=\"17.84\" y1=\"78.18\" x2=\"-9.9\" y2=\"43.39\"/> <line x1=\"-50\" y1=\"62.7\" x2=\"-90.1\" y2=\"43.39\"/> <line x1=\"-50\" y1=\"62.7\" x2=\"-9.9\" y2=\"43.39\"/> <line x1=\"-50\" y1=\"62.7\" x2=\"-40.1\" y2=\"19.31\"/> <line x1=\"-90.1\" y1=\"43.39\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-90.1\" y1=\"43.39\" x2=\"-80.19\" y2=\"0\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-72.25\" y2=\"-34.79\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-90.1\" y2=\"-43.39\"/> <line x1=\"-72.25\" y1=\"-34.79\" x2=\"-27.75\" y2=\"-34.79\"/> <line x1=\"-72.25\" y1=\"-34.79\" x2=\"-62.35\" y2=\"-78.18\"/> <line x1=\"-27.75\" y1=\"-34.79\" x2=\"-17.84\" y2=\"-78.18\"/> <line x1=\"-40.1\" y1=\"19.31\" x2=\"-80.19\" y2=\"0\"/> <line x1=\"-80.19\" y1=\"0\" x2=\"-90.1\" y2=\"-43.39\"/> <line x1=\"-90.1\" y1=\"-43.39\" x2=\"-62.35\" y2=\"-78.18\"/> <line x1=\"-62.35\" y1=\"-78.18\" x2=\"-17.84\" y2=\"-78.18\"/> <line x1=\"-17.84\" y1=\"-78.18\" x2=\"9.9\" y2=\"-43.39\"/>"}, "15": {"vb": "-106 -106 212 212", "g": "<line x1=\"0\" y1=\"0\" x2=\"-40.1\" y2=\"-19.31\"/> <line x1=\"0\" y1=\"0\" x2=\"40.1\" y2=\"-19.31\"/> <line x1=\"0\" y1=\"0\" x2=\"40.1\" y2=\"19.31\"/> <line x1=\"0\" y1=\"0\" x2=\"-9.9\" y2=\"-43.39\"/> <line x1=\"0\" y1=\"0\" x2=\"9.9\" y2=\"43.39\"/> <line x1=\"0\" y1=\"0\" x2=\"27.75\" y2=\"-34.79\"/> <line x1=\"0\" y1=\"0\" x2=\"-27.75\" y2=\"34.79\"/> <line x1=\"0\" y1=\"0\" x2=\"44.5\" y2=\"0\"/> <line x1=\"0\" y1=\"0\" x2=\"-44.5\" y2=\"0\"/> <line x1=\"0\" y1=\"0\" x2=\"27.75\" y2=\"34.79\"/> <line x1=\"0\" y1=\"0\" x2=\"-27.75\" y2=\"-34.79\"/> <line x1=\"0\" y1=\"0\" x2=\"-9.9\" y2=\"43.39\"/> <line x1=\"0\" y1=\"0\" x2=\"-40.1\" y2=\"19.31\"/> <line x1=\"0\" y1=\"0\" x2=\"9.9\" y2=\"-43.39\"/> <line x1=\"-0\" y1=\"51.29\" x2=\"-40.1\" y2=\"31.98\"/> <line x1=\"-0\" y1=\"51.29\" x2=\"40.1\" y2=\"31.98\"/> <line x1=\"-40.1\" y1=\"31.98\" x2=\"-50\" y2=\"-11.41\"/> <line x1=\"-50\" y1=\"-11.41\" x2=\"-22.25\" y2=\"-46.21\"/> <line x1=\"-22.25\" y1=\"-46.21\" x2=\"22.25\" y2=\"-46.21\"/> <line x1=\"22.25\" y1=\"-46.21\" x2=\"50\" y2=\"-11.41\"/> <line x1=\"50\" y1=\"-11.41\" x2=\"40.1\" y2=\"31.98\"/> <line x1=\"0\" y1=\"-51.29\" x2=\"40.1\" y2=\"-31.98\"/> <line x1=\"0\" y1=\"-51.29\" x2=\"-40.1\" y2=\"-31.98\"/> <line x1=\"-40.1\" y1=\"-19.31\" x2=\"-50\" y2=\"-62.7\"/> <line x1=\"-40.1\" y1=\"-19.31\" x2=\"-80.19\" y2=\"0\"/> <line x1=\"-50\" y1=\"-62.7\" x2=\"-22.25\" y2=\"-97.49\"/> <line x1=\"-50\" y1=\"-62.7\" x2=\"-9.9\" y2=\"-43.39\"/> <line x1=\"-50\" y1=\"-62.7\" x2=\"-90.1\" y2=\"-43.39\"/> <line x1=\"-22.25\" y1=\"-97.49\" x2=\"22.25\" y2=\"-97.49\"/> <line x1=\"-22.25\" y1=\"-97.49\" x2=\"17.84\" y2=\"-78.18\"/> <line x1=\"-22.25\" y1=\"-97.49\" x2=\"-62.35\" y2=\"-78.18\"/> <line x1=\"22.25\" y1=\"-97.49\" x2=\"50\" y2=\"-62.7\"/> <line x1=\"22.25\" y1=\"-97.49\" x2=\"62.35\" y2=\"-78.18\"/> <line x1=\"22.25\" y1=\"-97.49\" x2=\"-17.84\" y2=\"-78.18\"/> <line x1=\"50\" y1=\"-62.7\" x2=\"40.1\" y2=\"-19.31\"/> <line x1=\"50\" y1=\"-62.7\" x2=\"90.1\" y2=\"-43.39\"/> <line x1=\"50\" y1=\"-62.7\" x2=\"9.9\" y2=\"-43.39\"/> <line x1=\"40.1\" y1=\"-19.31\" x2=\"80.19\" y2=\"-0\"/> <line x1=\"40.1\" y1=\"-31.98\" x2=\"50\" y2=\"11.41\"/> <line x1=\"40.1\" y1=\"19.31\" x2=\"80.19\" y2=\"-0\"/> <line x1=\"40.1\" y1=\"19.31\" x2=\"50\" y2=\"62.7\"/> <line x1=\"-9.9\" y1=\"-43.39\" x2=\"17.84\" y2=\"-78.18\"/> <line x1=\"17.84\" y1=\"-78.18\" x2=\"62.35\" y2=\"-78.18\"/> <line x1=\"17.84\" y1=\"-78.18\" x2=\"27.75\" y2=\"-34.79\"/> <line x1=\"62.35\" y1=\"-78.18\" x2=\"90.1\" y2=\"-43.39\"/> <line x1=\"62.35\" y1=\"-78.18\" x2=\"72.25\" y2=\"-34.79\"/> <line x1=\"90.1\" y1=\"-43.39\" x2=\"80.19\" y2=\"-0\"/> <line x1=\"90.1\" y1=\"-43.39\" x2=\"100\" y2=\"0\"/> <line x1=\"80.19\" y1=\"-0\" x2=\"90.1\" y2=\"43.39\"/> <line x1=\"50\" y1=\"11.41\" x2=\"22.25\" y2=\"46.21\"/> <line x1=\"50\" y1=\"62.7\" x2=\"9.9\" y2=\"43.39\"/> <line x1=\"50\" y1=\"62.7\" x2=\"90.1\" y2=\"43.39\"/> <line x1=\"50\" y1=\"62.7\" x2=\"22.25\" y2=\"97.49\"/> <line x1=\"9.9\" y1=\"43.39\" x2=\"-17.84\" y2=\"78.18\"/> <line x1=\"27.75\" y1=\"-34.79\" x2=\"72.25\" y2=\"-34.79\"/> <line x1=\"72.25\" y1=\"-34.79\" x2=\"100\" y2=\"0\"/> <line x1=\"72.25\" y1=\"-34.79\" x2=\"44.5\" y2=\"0\"/> <line x1=\"100\" y1=\"0\" x2=\"90.1\" y2=\"43.39\"/> <line x1=\"100\" y1=\"0\" x2=\"72.25\" y2=\"34.79\"/> <line x1=\"90.1\" y1=\"43.39\" x2=\"62.35\" y2=\"78.18\"/> <line x1=\"22.25\" y1=\"46.21\" x2=\"-22.25\" y2=\"46.21\"/> <line x1=\"22.25\" y1=\"97.49\" x2=\"-17.84\" y2=\"78.18\"/> <line x1=\"22.25\" y1=\"97.49\" x2=\"62.35\" y2=\"78.18\"/> <line x1=\"22.25\" y1=\"97.49\" x2=\"-22.25\" y2=\"97.49\"/> <line x1=\"-17.84\" y1=\"78.18\" x2=\"-27.75\" y2=\"34.79\"/> <line x1=\"-17.84\" y1=\"78.18\" x2=\"-62.35\" y2=\"78.18\"/> <line x1=\"-27.75\" y1=\"34.79\" x2=\"-72.25\" y2=\"34.79\"/> <line x1=\"44.5\" y1=\"0\" x2=\"72.25\" y2=\"34.79\"/> <line x1=\"72.25\" y1=\"34.79\" x2=\"62.35\" y2=\"78.18\"/> <line x1=\"72.25\" y1=\"34.79\" x2=\"27.75\" y2=\"34.79\"/> <line x1=\"62.35\" y1=\"78.18\" x2=\"17.84\" y2=\"78.18\"/> <line x1=\"-22.25\" y1=\"46.21\" x2=\"-50\" y2=\"11.41\"/> <line x1=\"-22.25\" y1=\"97.49\" x2=\"-62.35\" y2=\"78.18\"/> <line x1=\"-22.25\" y1=\"97.49\" x2=\"17.84\" y2=\"78.18\"/> <line x1=\"-22.25\" y1=\"97.49\" x2=\"-50\" y2=\"62.7\"/> <line x1=\"-62.35\" y1=\"78.18\" x2=\"-72.25\" y2=\"34.79\"/> <line x1=\"-62.35\" y1=\"78.18\" x2=\"-90.1\" y2=\"43.39\"/> <line x1=\"-72.25\" y1=\"34.79\" x2=\"-44.5\" y2=\"0\"/> <line x1=\"-72.25\" y1=\"34.79\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-44.5\" y1=\"0\" x2=\"-72.25\" y2=\"-34.79\"/> <line x1=\"27.75\" y1=\"34.79\" x2=\"17.84\" y2=\"78.18\"/> <line x1=\"17.84\" y1=\"78.18\" x2=\"-9.9\" y2=\"43.39\"/> <line x1=\"-50\" y1=\"11.41\" x2=\"-40.1\" y2=\"-31.98\"/> <line x1=\"-50\" y1=\"62.7\" x2=\"-90.1\" y2=\"43.39\"/> <line x1=\"-50\" y1=\"62.7\" x2=\"-9.9\" y2=\"43.39\"/> <line x1=\"-50\" y1=\"62.7\" x2=\"-40.1\" y2=\"19.31\"/> <line x1=\"-90.1\" y1=\"43.39\" x2=\"-100\" y2=\"-0\"/> <line x1=\"-90.1\" y1=\"43.39\" x2=\"-80.19\" y2=\"0\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-72.25\" y2=\"-34.79\"/> <line x1=\"-100\" y1=\"-0\" x2=\"-90.1\" y2=\"-43.39\"/> <line x1=\"-72.25\" y1=\"-34.79\" x2=\"-27.75\" y2=\"-34.79\"/> <line x1=\"-72.25\" y1=\"-34.79\" x2=\"-62.35\" y2=\"-78.18\"/> <line x1=\"-27.75\" y1=\"-34.79\" x2=\"-17.84\" y2=\"-78.18\"/> <line x1=\"-40.1\" y1=\"19.31\" x2=\"-80.19\" y2=\"0\"/> <line x1=\"-80.19\" y1=\"0\" x2=\"-90.1\" y2=\"-43.39\"/> <line x1=\"-90.1\" y1=\"-43.39\" x2=\"-62.35\" y2=\"-78.18\"/> <line x1=\"-62.35\" y1=\"-78.18\" x2=\"-17.84\" y2=\"-78.18\"/> <line x1=\"-17.84\" y1=\"-78.18\" x2=\"9.9\" y2=\"-43.39\"/>"}, "3": {"vb": "-105 -92 210 184", "g": "<line x1=\"-50\" y1=\"86.6025\" x2=\"50\" y2=\"-86.6025\"/>"}};
+const LIMITS=[3,5,7,9,11,13,15];
+const NEED_L=2, WIN=8;
+// each new ratio: listen, then name it against its nearest known neighbour, its two nearest, then everything known
+const PH=[{need:3},{need:5},{need:5,row:true},{need:NEED_L}]; // steps 1–2: every interval in the step must be named need times (step 2: a miss resets that interval)
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const oddPart=n=>{while(n%2===0)n/=2;return n};
+const maxPrime=n=>{let m=1;for(let p=3;p<=n;p+=2){while(n%p===0){m=p;n/=p}}return m};
+const NAMES={"2/1":"octave","3/2":"perfect fifth","4/3":"perfect fourth","5/4":"major third","6/5":"minor third","5/3":"major sixth","8/5":"minor sixth","9/8":"major tone","10/9":"minor tone","16/9":"Pythagorean minor seventh","9/5":"just minor seventh","15/8":"just major seventh","16/15":"diatonic semitone","7/4":"harmonic seventh","7/6":"septimal minor third","8/7":"septimal tone","9/7":"septimal major third","7/5":"septimal tritone","10/7":"Euler's tritone","12/7":"septimal major sixth","14/9":"septimal minor sixth","15/14":"septimal semitone","11/8":"undecimal superfourth","16/11":"undecimal subfifth","11/9":"undecimal neutral third","18/11":"undecimal neutral sixth","12/11":"undecimal neutral second","11/6":"undecimal neutral seventh","13/8":"tridecimal neutral sixth","16/13":"tridecimal neutral third"};
+const CHAR={
+"3/2":"Open, stable and strong. When it locks, the sound seems to glow with no movement at all.",
+"4/3":"The fifth turned upside down. Stable, but it leans a little, with a suspended feel.",
+"5/4":"Warm, sweet and calm. Clearly lower and smoother than a piano's major third, which shimmers by comparison.",
+"6/5":"Tender and gentle. A little wider than the piano's minor third, so it sounds brighter and more settled.",
+"5/3":"Open and singing, like a major third with room to breathe.",
+"8/5":"Soft and wistful: the major third turned upside down.",
+"7/4":"The barbershop seventh. Far lower than a piano's minor seventh, smooth and bluesy, and it barely needs to resolve.",
+"7/6":"A dark, narrow minor third, heavier and more mournful than 6/5.",
+"7/5":"The smoothest tritone there is: sombre, and a little below the piano's.",
+"10/7":"The inversion of 7/5: a little wider and brighter.",
+"8/7":"A wide, soft step that almost sounds like a tiny third.",
+"12/7":"A wide, bright sixth, the inversion of the 7/6 minor third.",
+"9/8":"Two fifths stacked and folded into the octave: the standard step of a just scale.",
+"10/9":"A slightly narrower step. It and 9/8 differ by the syntonic comma, 21.5¢.",
+"9/5":"A bright, slightly tense seventh, clearly wider than 7/4.",
+"16/9":"Two fourths stacked, very close to the piano's minor seventh.",
+"9/7":"A wide, bright, tense third that sits well above 5/4.",
+"14/9":"A narrow, dark sixth, the inversion of 9/7.",
+"15/8":"A bright leading tone: a fifth plus a major third.",
+"16/15":"The just half step, a little wider than the piano's.",
+"11/8":"Right between a fourth and a tritone. Strange at first, then strikingly characterful.",
+"16/11":"The inversion of 11/8: a fifth that has been gently squashed.",
+"11/9":"Exactly between minor and major. Neither happy nor sad, and beautifully ambiguous.",
+"18/11":"Between the minor and major sixths: the inversion of 11/9.",
+"12/11":"A step between a half step and a whole step.",
+"11/6":"Between the minor and major sevenths.",
+"13/8":"A glassy, exotic sixth between minor and major.",
+"16/13":"A neutral third, a little higher than 11/9."};
+const PRIME_ADJ={3:"Pythagorean",5:"5-limit",7:"septimal",11:"undecimal",13:"tridecimal"};
+const PRIME_CHAR={3:"Built only from fifths.",5:"Built from fifths and pure thirds.",7:"Smooth and dark, with the colour of the 7th harmonic.",11:"It sits in the cracks between familiar steps, with a neutral, ambiguous colour.",13:"Exotic and glassy: a quiet lock that rewards careful listening."};
+const ET=["unison","minor second","major second","minor third","major third","perfect fourth","tritone","perfect fifth","minor sixth","major sixth","minor seventh","major seventh","octave"];
+const LIMIT_DESC={3:"The fourth and the fifth together. Each needs two right in a row; a miss resets it.",5:"Everything up to the 5-odd-limit, mixed. Each needs two right in a row; a miss resets it."};
+
+const map=new Map();
+for(let a=1;a<=15;a+=2)for(let b=1;b<=15;b+=2){
+  let n=a,d=b;if(n===d)continue;
+  while(n/d<1)n*=2;while(n/d>2)d*=2;
+  const g=gcd(n,d);n/=g;d/=g;if(n/d<=1)continue;
+  const key=n+"/"+d;if(map.has(key))continue;
+  map.set(key,{key,n,d,ratio:n/d,cents:1200*Math.log2(n/d),ol:Math.max(oddPart(n),oddPart(d)),prime:maxPrime(oddPart(n)*oddPart(d))});
+}
+map.set("2/1",{key:"2/1",n:2,d:1,ratio:2,cents:1200,ol:1,prime:1});
+const ALL=[...map.values()].sort((x,y)=>x.cents-y.cents);
+const pc=p=>({1:"var(--ink-muted)",3:"var(--prime-3)",5:"var(--prime-5)",7:"var(--prime-7)",11:"var(--prime-11)",13:"var(--prime-13)"}[p]);
+const ETS=["unison","m2","M2","m3","M3","P4","tritone","P5","m6","M6","m7","M7","octave"];
+const etText=iv=>{const st=Math.round(iv.cents/100),dev=iv.cents-st*100;return Math.abs(dev)<0.05?`= 12-ET ${ETS[st]}`:`12-ET ${ETS[st]} ${dev>0?"+":"−"}${Math.abs(dev).toFixed(1)}¢`};
+const nameOf=iv=>NAMES[iv.key]||`${PRIME_ADJ[iv.prime]} ${ET[Math.round(iv.cents/100)]}`;
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+// the path: each limit's new ratios (simplest first), then the full limit
+const STAGES=[];
+LIMITS.forEach(L=>{
+  const nw=ALL.filter(i=>i.ol===L).sort((a,b)=>a.n*a.d-b.n*b.d||a.cents-b.cents);
+  nw.forEach((iv,j)=>STAGES.push({type:"r",L,key:iv.key,j,of:nw.length}));
+  STAGES.push({type:"l",L});
+});
+const limitPool=L=>ALL.filter(i=>i.ol<=L&&i.ol>1);
+const knownAt=s=>["2/1",...STAGES.slice(0,s).filter(x=>x.type==="r").map(x=>x.key)];
+
+// progress
+let P={done:0,cur:0,sp:{}};
+try{const o=JSON.parse(localStorage.getItem("olet-path-v1")||"null");if(o&&typeof o.done==="number")P=Object.assign(P,o)}catch(e){}
+P.done=Math.max(0,Math.min(STAGES.length,P.done|0));P.cur=Math.max(0,Math.min(P.done,STAGES.length-1,P.cur|0));if(!P.sp)P.sp={};
+const save=()=>{try{localStorage.setItem("olet-path-v1",JSON.stringify(P))}catch(e){}};
+const sp=s=>{let d=P.sp[s];
+  if(STAGES[s].type==="r"&&(!d||d.ph==null))d=P.sp[s]={ph:0,n:0};
+  if(d&&d.ph===4){d.ph=5;d.n=0;d.run={}}   // the bridge's later levels were removed
+  else if(!d)d=P.sp[s]={run:{}};
+  return d};
+// a ratio stage's rivals, nearest first, from the ratios learned before it (the octave included)
+const rivalsAt=s=>{const iv=map.get(STAGES[s].key);return knownAt(s).filter(k=>k!==iv.key).sort((a,b)=>Math.abs(map.get(a).cents-iv.cents)-Math.abs(map.get(b).cents-iv.cents))};
+const phSize=(s,ph)=>{const k=rivalsAt(s).length;return ph===0?0:ph===1?Math.min(1,k):ph===2?Math.min(2,k):k};
+const phKeys=(s,ph)=>{const key=STAGES[s].key;return [key,...rivalsAt(s).slice(0,phSize(s,Math.max(1,ph)))].sort((a,b)=>map.get(a).cents-map.get(b).cents)};
+const phaseOf=s=>s<P.done?3:sp(s).ph;
+const runLeft=s=>{const d=sp(s);if(!d.run)d.run={};return phKeys(s,3).filter(k=>(d.run[k]||0)<NEED_L)};
+// move to the next step, skipping a step whose answer set would be the same as the last one; true when the stage is done
+const UNI=220;
+// a ratio stage: listen (ph 0) → steps 2–4 on 220 Hz (v 0) → Cross-Presentation bridge (ph 4)
+//   [the demo is step 1, ph 0] → Guided Transposition (ph 5) → steps 2–4 again with random roots (v 1)
+function advance(s){const d=sp(s);
+  if(d.ph===4){d.ph=5;d.n=0;d.run={};return false}           // bridge → Guided Transposition
+  if(d.ph===5){d.ph=1;d.v=1;d.n=0;d.run={};return false}      // Guided Transposition → random roots
+  let prev=phSize(s,d.ph);d.ph++;d.n=0;d.run={};
+  while(d.ph<=3&&phSize(s,d.ph)===prev){prev=phSize(s,d.ph);d.ph++}
+  if(d.ph>3&&!d.v){d.ph=5;return false}
+  return d.ph>3}
+const keysText=ks=>ks.map(k=>`<span class="m">${k}</span>`).join(ks.length===2?" and ":", ");
+function stepText(s){const t=stepText0(s),ph=sp(s).ph;return ph===0?t:t+(sp(s).v?" The root now changes every round.":` Every round starts on the same root, ${UNI} Hz.`)}
+function stepText0(s){const ph=sp(s).ph,r=rivalsAt(s),key=STAGES[s].key;
+  if(ph===0)return `Hear <span class="m">${key}</span> on ${UNI} Hz three ways: rising, falling and together. Press <b>Play</b>.`;
+  if(ph===5)return `Guided transposition: the reference stays on ${UNI} Hz, the question moves up or down a semitone or two.`;
+  if(ph===4)return `The bridge: hear <span class="m">${key}</span> rising, falling and together, and recognise it in any of the three.`;
+  if(ph===1)return `Now tell <span class="m">${key}</span> from ${keysText(r.slice(0,1))}. Name each one correctly ${PH[1].need} times.`;
+  if(ph===2)return `Now against ${keysText(r.slice(0,2))}. Name each one correctly ${PH[2].need} times; a miss resets that one.`;
+  return `Now every ratio you know, mixed in with <span class="m">${key}</span>. Name each one ${NEED_L} times in a row; a miss resets that ratio.`}
+let lastHexRoot=0;
+function hexRoot(){let r,t=0;do{r=130*Math.pow(2,Math.random()*1.35);t++}while(lastHexRoot&&Math.abs(1200*Math.log2(r/lastHexRoot))<150&&t<20);lastHexRoot=r;return r}
+
+// options (ported from Ear Trainer Classic)
+let S={pb:{harm:true,mel:false,down:false},timbre:"bright",vRoot:false,vTone:false,nch:"auto",sfx:true,motion:true};
+try{Object.assign(S,JSON.parse(localStorage.getItem("olet-path-set")||"{}"))}catch(e){}
+if(!S.pb||typeof S.pb!=="object")S.pb={harm:true,mel:S.mode==="mel"||S.mode==="both",down:false};
+delete S.mode;delete S.vVoice;
+const PB_NAME={harm:"harmonic",mel:"ascending",down:"descending"};
+const pbOn=()=>{const m=Object.keys(PB_NAME).filter(k=>S.pb[k]);return m.length?m:["harm"]};
+const pickMode=()=>{const m=pbOn();return m[Math.floor(Math.random()*m.length)]};
+const saveS=()=>{try{localStorage.setItem("olet-path-set",JSON.stringify(S))}catch(e){}};
+// mix-ups: how often each pair has been confused (pick one when the other played); duels clear them
+let conf={};try{conf=JSON.parse(localStorage.getItem("olet-path-conf")||"{}")||{}}catch(e){}
+const saveConf=()=>{try{localStorage.setItem("olet-path-conf",JSON.stringify(conf))}catch(e){}};
+const pairKey=(a,b)=>[a,b].sort((x,y)=>map.get(x).cents-map.get(y).cents).join("|");
+if(![8,12,16,20].includes(S.duelNeed))S.duelNeed=12;
+let D=null, pendingPair=null;
+const VARIANTS=[["harm","together"],["mel","rising"],["down","falling"],["both","rising, then together"],["downharm","falling, then together"],["short","short and together"]];
+const TIMB_LABEL={bright:"Bright",mellow:"Mellow",hollow:"Hollow",glassy:"Glassy",string:"String",reed:"Reed",organ:"Organ",brass:"Brass",flute:"Flute",voice:"Voice",buzzy:"Buzzy"};
+const tbase=()=>TIMB_LABEL[S.timbre]?S.timbre:"bright";
+let timbre=tbase(), curMode=null, lastVar=null;
+
+// audio
+let ctx=null,master=null,wave=null,waves={},live=[],root=220;
+function audio(){
+  if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const mk=(f,N=18)=>{const re=new Float32Array(N),im=new Float32Array(N);for(let k=1;k<N;k++)im[k]=f(k);return ctx.createPeriodicWave(re,im)};
+    waves.bright=mk(k=>1/Math.pow(k,1.15));
+    waves.mellow=mk(k=>1/Math.pow(k,2.2));
+    waves.hollow=mk(k=>k%2?1/k:0.08/k);
+    waves.glassy=mk(k=>k<=6?[0,1,.25,.5,.12,.3,.06][k]:0);
+    waves.string=mk(k=>(1/k)*(k>16?.6:1)*(k%7===0?.7:1),33);
+    waves.reed=mk(k=>k%2?1/k:.22/k,25);
+    waves.organ=mk(k=>({1:1,2:.8,3:.6,4:.5,5:.3,6:.35,8:.3,10:.15,12:.12,16:.1})[k]||0,17);
+    waves.brass=mk(k=>Math.pow(k,-.7)*(k>=2&&k<=6?1.35:1),25);
+    waves.flute=mk(k=>[0,1,.35,.15,.08,.05,.03][k]||0,7);
+    waves.voice=mk(k=>{const f=k*220,g=(c,w)=>Math.exp(-Math.pow((f-c)/w,2));return Math.pow(k,-.6)*(g(730,220)+.7*g(1090,260)+.3*g(2440,400)+.08)},25);
+    waves.buzzy=mk(k=>1/k,41);
+    wave=waves.bright;
+    ctx.onstatechange=()=>{if(ctx.state!=="running"&&ctx.state!=="closed")ctx.resume().catch(()=>{})};   // a browser can suspend output when the mic opens; keep it playing
+    master=ctx.createGain();master.gain.value=0.5;
+    const lp=ctx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=4200;master.connect(lp);lp.connect(ctx.destination)}
+  if(ctx.state!=="running")ctx.resume();
+  return ctx;
+}
+function stopAll(){if(!ctx)return;const t=ctx.currentTime;live.forEach(({o,g})=>{try{g.gain.cancelScheduledValues(t);g.gain.setTargetAtTime(0,t,0.02);o.stop(t+0.15)}catch(e){}});live=[]}
+function tone(f,start,dur){
+  const o=ctx.createOscillator(),g=ctx.createGain();o.setPeriodicWave(waves[timbre]||wave);o.frequency.value=f;
+  g.gain.setValueAtTime(0,start);g.gain.linearRampToValueAtTime(0.22,start+0.025);
+  g.gain.setTargetAtTime(0.15,start+0.03,0.25);g.gain.setValueAtTime(0.15,start+dur-0.12);g.gain.linearRampToValueAtTime(0,start+dur);
+  o.connect(g);g.connect(master);o.start(start);o.stop(start+dur+0.05);live.push({o,g});
+}
+function play(iv,mode){
+  audio();stopAll();clearTimeout(hexFlip.t);document.querySelectorAll(".bighex.lit").forEach(h=>h.classList.remove("lit"));const t=ctx.currentTime+0.05,hi=root*iv.ratio;
+  let d=1.85;
+  if(mode==="rise"||mode==="mel"){tone(root,t,0.85);tone(hi,t+0.9,0.95)}
+  else if(mode==="root"){tone(root,t,1.6);d=1.65}
+  else if(mode==="down"){tone(hi,t,0.85);tone(root,t+0.9,0.95)}
+  else if(mode==="both"){tone(root,t,0.75);tone(hi,t+0.8,0.75);tone(root,t+1.7,1.8);tone(hi,t+1.7,1.8);d=3.55}
+  else if(mode==="downharm"){tone(hi,t,0.75);tone(root,t+0.8,0.75);tone(root,t+1.7,1.8);tone(hi,t+1.7,1.8);d=3.55}
+  else if(mode==="short"){tone(root,t,0.6);tone(hi,t,0.6);d=0.65}
+  else{tone(root,t,1.8);tone(hi,t,1.8)}
+  const b=$("play");b.classList.add("playing");clearTimeout(play.tm);play.tm=setTimeout(()=>b.classList.remove("playing"),d*1000);
+  return d;
+}
+function sfx(kind){
+  if(!S.sfx)return;audio();const t0=ctx.currentTime+0.02;
+  const note=(f,t,d,type="sine",v=.06)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+d+.02)};
+  if(kind==="ok")[1,5/4,3/2].forEach((r,i)=>note(1046.5*r,t0+i*.055,.35));
+  else if(kind==="miss"){note(155.6,t0,.32,"triangle",.08);note(164.8,t0,.32,"triangle",.08)}
+  else if(kind==="level")[1,5/4,3/2,7/4,2].forEach((r,i)=>note(523.25*r,t0+i*.09,.7,"sine",.07));
+}
+const modeName=m=>(VARIANTS.find(v=>v[0]===m)||[0,"together"])[1];
+function rollVariant(){
+  const tk=Object.keys(TIMB_LABEL);let m,t,tries=0;
+  const many=pbOn().length>1;
+  do{m=pickMode();
+     t=S.vTone?tk[Math.floor(Math.random()*tk.length)]:tbase();tries++}
+  while(lastVar&&(many||S.vTone)&&m===lastVar[0]&&t===lastVar[1]&&tries<20);
+  lastVar=[m,t];curMode=m;timbre=t;
+  root=roundRoot();
+}
+// the root for a test round: in the first pass of a step every round uses the universal root, in the second it varies
+function roundRoot(){
+  const s=P.cur;
+  if(s<P.done)return S.vRoot?110*Math.pow(4,Math.random()):165*Math.pow(2,Math.random()*0.65);
+  if(!sp(s).v)return UNI;
+  return S.vRoot?110*Math.pow(4,Math.random()):hexRoot();
+}
+function variantNote(){
+  const bits=[];
+  if(pbOn().length>1)bits.push(PB_NAME[curMode]);
+  if(S.vTone)bits.push(TIMB_LABEL[timbre].toLowerCase()+" tone");
+  if(S.vRoot)bits.push("root "+Math.round(root)+" Hz");
+  return bits.length?` <span class="vnote">${bits.join(", ")}</span>`:"";
+}
+
+// ui
+const $=id=>document.getElementById(id);
+const HEX=`<svg viewBox="0 0 42 48" preserveAspectRatio="none" aria-hidden="true"><polygon points="21,1 41,12.5 41,35.5 21,47 1,35.5 1,12.5"/></svg>`;
+const latSVG=L=>`<svg viewBox="${LAT[L].vb}" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${LAT[L].g}</g></svg>`;
+let R=null, just=-1;
+
+function renderPath(){
+  $("path").innerHTML=STAGES.map((st,i)=>{
+    const s=i===P.cur?"cur":i<P.done?"done":i===P.done?"open":"locked";
+    const dis=i>P.done?"disabled":"";
+    const j=i===just?" just":"";
+    if(st.type==="r")return `<button class="node r ${s}${j}" data-s="${i}" ${dis} aria-label="${st.key}${s==="locked"?", locked":s==="done"?", mastered":""}">${HEX}<b>${st.key}</b></button>`;
+    return `<button class="node l ${s}${j}" data-s="${i}" ${dis} aria-label="Full ${st.L}-odd-limit${s==="locked"?", locked":s==="done"?", mastered":""}"><span class="lat">${latSVG(st.L)}</span><small>${st.L}-limit</small></button>`;
+  }).join("");
+  just=-1;
+  const n=Math.min(P.done,STAGES.length);
+  $("pcount").textContent=`${n} / ${STAGES.length}`;
+  requestAnimationFrame(layoutSlider);
+  requestAnimationFrame(()=>{const el=$("path").querySelector(".cur");if(el){const p=$("path");p.scrollLeft=el.offsetLeft-p.clientWidth/2+el.offsetWidth/2}});
+}
+function renderStage(){
+  if(D){const A=map.get(D.a),B=map.get(D.b),gap=Math.abs(A.cents-B.cents);
+    $("shead").innerHTML=`<div class="duelvs"><button type="button" class="bighex" data-hear="${D.a}" aria-label="Hear ${D.a}">${HEX}<b>${D.a}</b></button><em>or</em><button type="button" class="bighex" data-hear="${D.b}" aria-label="Hear ${D.b}">${HEX}<b>${D.b}</b></button></div>
+      <div class="sinfo"><span class="eyebrow">Mix-up duel</span><h2>${D.a} or ${D.b}</h2><p class="meta">${gap.toFixed(1)}¢ apart</p><button type="button" class="leave" id="leaveDuel">Leave duel</button></div>`;
+    $("sprog").innerHTML=`<span class="label stepl">In a row</span><div class="mbar"><i style="width:${(Math.min(D.streak,D.need)/D.need*100).toFixed(1)}%"></i></div><b>${Math.min(D.streak,D.need)} / ${D.need}</b>`;
+    return}
+  const st=STAGES[P.cur], d=sp(P.cur), mastered=P.cur<P.done;
+  if(st.type==="r"){
+    const iv=map.get(st.key);
+    $("shead").innerHTML=`<button type="button" class="bighex ${mastered?"done":""}" aria-label="Hear ${iv.key}" title="Hear ${iv.key}">${HEX}<b>${iv.key}</b></button>
+      <div class="sinfo"><span class="eyebrow">${st.L}-odd-limit · ratio ${st.j+1} of ${st.of}</span><h2 class="${nameOf(iv).length>19?"long":""}">${cap(nameOf(iv))}</h2>
+      <p class="meta">${iv.cents.toFixed(2)}¢ · ${etText(iv)}</p><p class="desc">${CHAR[iv.key]||(cap(PRIME_ADJ[iv.prime])+". "+PRIME_CHAR[iv.prime])}</p></div>`;
+    if(mastered){$("sprog").innerHTML=`<span class="label">Mastered</span><div class="mbar"><i style="width:100%"></i></div><b>4 / 4</b>`}
+    else if(d.ph===5){const c=tpOf(P.cur),h=(c.hist[c.lvl]||[]).slice(-cxWin()),acc=h.length?Math.round(h.filter(x=>x.ok).length/h.length*100):0;
+      $("sprog").innerHTML=`<span class="label stepl" title="Guided Transposition, level ${c.lvl} of 4: ${TP_LV[c.lvl]}; roots within ±${c.range} semitone${c.range>1?"s":""}">Transposed · demo</span><div class="mbar"><i style="width:0%"></i></div><b>–</b>`}
+    else if(d.ph===4){const c=cxOf(P.cur),h=(c.hist[c.lvl]||[]).slice(-cxWin()),acc=h.length?Math.round(h.filter(x=>x.ok).length/h.length*100):0;
+      $("sprog").innerHTML=`<span class="label stepl" title="Cross-Presentation, level ${c.lvl} of 4: ${CX_LV[c.lvl]}">Bridge ${c.lvl}/4 · ${CX_LV[c.lvl]}</span><div class="mbar"><i style="width:${c.lvl===1?0:(Math.min(h.length,cxWin())/cxWin()*100).toFixed(1)}%"></i></div><b>${c.lvl===1?"–":acc+"%"}</b>`}
+    else if(d.ph===3){const all=phKeys(P.cur,3),m=all.length-runLeft(P.cur).length;
+      $("sprog").innerHTML=`<span class="label stepl" title="Step 4 of 4: every ratio you know, ${d.v?"roots vary":"one root"}">Step 4 · ${d.v?"roots vary":"one root"}</span><div class="mbar"><i style="width:${(m/all.length*100).toFixed(1)}%"></i></div><b>${m} / ${all.length}</b>`}
+    else if(d.ph===0){
+      $("sprog").innerHTML=`<span class="label stepl" title="Step 1 of 4: hear it rising, falling and together">Step 1 · three ways</span><div class="mbar"><i style="width:0%"></i></div><b>–</b>`}
+    else{const ph=d.ph,need=PH[ph].need,ks=phKeys(P.cur,ph),run=d.run||{},got=ks.reduce((a,k)=>a+Math.min(run[k]||0,need),0),tot=ks.length*need;
+      const what=ph===1?"vs nearest":"vs 2 nearest";
+      $("sprog").innerHTML=`<span class="label stepl" title="Step ${ph+1} of 4: ${what}, ${d.v?"roots vary":"one root"}; each interval ${need} times">Step ${ph+1} · ${d.v?"roots vary":"one root"}</span><div class="mbar"><i style="width:${(got/tot*100).toFixed(1)}%"></i></div><b>${got} / ${tot}</b>`}
+  }else{
+    const pool=limitPool(st.L), m=pool.filter(i=>(d.run[i.key]||0)>=NEED_L).length, f=mastered?1:m/pool.length;
+    $("shead").innerHTML=`<button type="button" class="biglat" aria-label="Hear the root" title="Hear the root">${latSVG(st.L)}<span class="gold" style="clip-path:inset(0 ${(100-f*100).toFixed(1)}% 0 0)">${latSVG(st.L)}</span></button>
+      <div class="sinfo"><span class="eyebrow">Stage ${P.cur+1} of ${STAGES.length}</span><h2>The ${st.L}-odd-limit</h2>
+      <p class="meta">${pool.length} ratios, mixed</p><p class="desc">${LIMIT_DESC[st.L]||`Every ratio up to the ${st.L}-odd-limit, mixed. Each needs two right in a row; a miss resets it.`}</p></div>`;
+    $("sprog").innerHTML=`<span class="label">${mastered?"Mastered":d.v?"Roots vary":"One root"}</span><div class="mbar"><i style="width:${f*100}%"></i></div><b>${mastered?pool.length:m} / ${pool.length}</b>`;
+  }
+}
+function setPlay(text,gold){$("playLabel").textContent=text;$("play").classList.toggle("next",!!gold)}
+function idleTiles(){
+  if(inCross()){renderCross();return}
+  if(inTransp()){renderTransp();return}
+  $("choices").classList.remove("cxmode");
+  // before the first round: show the answer set, quietly
+  const keys=candidates(null);
+  renderTiles(keys,true);
+}
+function goTo(s,intro){
+  setTimeout(()=>typeof renderDev==="function"&&renderDev(),0);
+  if(typeof stopSeq==="function")stopSeq();Q=null;TQ=null;
+  D=null;$("suggest").hidden=true;pendingPair=null;stopAll();P.cur=s;save();R=null;renderPath();renderStage();idleTiles();
+  const st=STAGES[s];
+  setPlay("Play",false);
+  $("status").innerHTML=intro||(st.type==="r"
+    ? (s<P.done?`Mastered. Practise it against every ratio you know, or tap the hexagon to hear it from new notes.`:stepText(s))
+    : (s<P.done?`Mastered. Practise the whole limit as long as you like.`:`Every ratio you have learned up to the ${st.L}-odd-limit. Press <b>Play</b> to begin.`));
+  if(SG.on){clearTimeout(SG.advT);sgRefresh()}   // moving along the path while singing retargets to the new stage
+}
+
+function candidates(target){
+  if(D)return [D.a,D.b];
+  const st=STAGES[P.cur];
+  if(st.type==="r"){
+    return phKeys(P.cur,phaseOf(P.cur));
+  }
+  const pool=limitPool(st.L), W=S.nch==="all"?pool.length:S.nch==="auto"?WIN:+S.nch;
+  if(pool.length<=W)return pool.map(i=>i.key);
+  const t=target?pool.findIndex(i=>i.key===target):Math.floor(pool.length/2);
+  let start=t-Math.floor(Math.random()*W);start=Math.max(0,Math.min(pool.length-W,start));
+  if(!target)start=Math.max(0,Math.min(pool.length-W,t-Math.floor(W/2)));
+  return pool.slice(start,start+W).map(i=>i.key);
+}
+function pickTarget(){
+  const st=STAGES[P.cur], last=R&&R.key;
+  // the same interval twice in a row only when the root changes each round
+  // and then at most 3 times in a row
+  const noRepeat=(P.cur>=P.done&&!sp(P.cur).v)||(last&&lastRun>=3);
+  if(st.type==="r"&&P.cur>=P.done&&(sp(P.cur).ph===1||sp(P.cur).ph===2)){
+    const d=sp(P.cur),ph=d.ph,need=PH[ph].need,run=d.run||{};
+    let ks=phKeys(P.cur,ph);if(noRepeat&&ks.length>1)ks=ks.filter(k=>k!==last);
+    // random, weighted toward the intervals that still need answers
+    const w=ks.map(k=>(run[k]||0)<need?3:1),sum=w.reduce((a,b)=>a+b,0);let x=Math.random()*sum;
+    for(let i=0;i<ks.length;i++){x-=w[i];if(x<0)return ks[i]}
+    return ks[ks.length-1];
+  }
+  if(st.type==="r"&&P.cur>=P.done&&sp(P.cur).ph===3){
+    const all=phKeys(P.cur,3),rem=runLeft(P.cur),done=all.filter(k=>!rem.includes(k));
+    let src=(rem.length&&(Math.random()<0.8||!done.length))?rem:done;
+    if(noRepeat){let o=src.filter(k=>k!==last);if(!o.length)o=all.filter(k=>k!==last);if(o.length)src=o}
+    return src[Math.floor(Math.random()*src.length)];
+  }
+  if(st.type==="r"){
+    const c=candidates(null).filter(k=>k!==st.key);
+    if(!c.length||(Math.random()<0.5&&!(last===st.key&&lastRun>=3)))return st.key;
+    const o=c.filter(k=>k!==last);return (o.length?o:c)[Math.floor(Math.random()*(o.length?o:c).length)];
+  }
+  const d=sp(P.cur), pool=limitPool(st.L).map(i=>i.key);
+  const rem=pool.filter(k=>(d.run[k]||0)<NEED_L), done=pool.filter(k=>!rem.includes(k));
+  let src=(rem.length&&(Math.random()<0.8||!done.length))?rem:done;
+  if(noRepeat){let o=src.filter(k=>k!==last);if(!o.length)o=pool.filter(k=>k!==last);if(o.length)src=o}
+  return src[Math.floor(Math.random()*src.length)];
+}
+function renderTiles(keys,idle){
+  $("choices").innerHTML=keys.map((k,i)=>{const iv=map.get(k);
+    return `<button class="choice${idle?" idle":""}" data-k="${k}" style="--pc:${pc(iv.prime)};--i:${i}" ${idle?'tabindex="-1"':""}><span class="r">${k}</span><span class="c">${iv.cents.toFixed(1)}¢</span></button>`}).join("");
+  layoutTiles();
+}
+// spread the tiles evenly over as few rows as fit: rows differ by at most one tile, and each tile is at least as wide as it is tall
+function layoutTiles(){
+  const el=$("choices");if(el.classList.contains("cxmode"))return;
+  const tiles=[...el.querySelectorAll(".choice")];if(!tiles.length)return;
+  const small=innerWidth<=640,min=small?64:72,gap=small?8:10,W=el.clientWidth||300;
+  const per=Math.max(1,Math.floor((W+gap)/(min+gap))),rows=Math.ceil(tiles.length/per);
+  const base=Math.floor(tiles.length/rows),extra=tiles.length%rows;let k=0;
+  const frag=document.createDocumentFragment();
+  for(let r=0;r<rows;r++){const row=document.createElement("div");row.className="trow";
+    for(let c=0;c<base+(r<extra?1:0);c++)row.appendChild(tiles[k++]);frag.appendChild(row)}
+  el.innerHTML="";el.appendChild(frag);
+}
+addEventListener("resize",()=>{clearTimeout(layoutTiles.t);layoutTiles.t=setTimeout(layoutTiles,80)});
+let lastRun=0;
+function duelPick(){
+  if(!D.bag.length){D.bag=[D.a,D.a,D.b,D.b];for(let i=3;i>0;i--){const j=Math.floor(Math.random()*(i+1));[D.bag[i],D.bag[j]]=[D.bag[j],D.bag[i]]}}
+  const last=R&&R.key;let i=D.bag.length-1;
+  if(last&&lastRun>=3&&D.bag[i]===last){const j=D.bag.findIndex(k=>k!==last);if(j>=0)i=j;else{D.bag=[];return last===D.a?D.b:D.a}}
+  return D.bag.splice(i,1)[0];
+}
+function newRound(){
+  const key=D?duelPick():pickTarget();lastRun=(R&&R.key===key)?lastRun+1:1;
+  rollVariant();if(D)root=S.vRoot?110*Math.pow(4,Math.random()):hexRoot();
+  R={key,answered:false,keys:candidates(key),root,timbre};
+  renderTiles(R.keys,false);
+  play(map.get(key),curMode);
+  setPlay("Replay",false);
+  $("status").innerHTML=`Which interval is this? Tap a tile${R.keys.length<=9?`, or press <b>1</b>–<b>${R.keys.length}</b>`:""}.${variantNote()}`;
+}
+function answer(k,btn){
+  if(!R)return;
+  if(R.answered){root=R.root;timbre=R.timbre;play(map.get(k),curMode||pickMode());return}
+  R.answered=true;
+  const st=STAGES[P.cur], d=sp(P.cur), iv=map.get(R.key), ok=k===R.key;
+  document.querySelectorAll(".choice").forEach(b=>{b.classList.add("done");if(b.dataset.k===R.key)b.classList.add("right")});
+  if(!ok){btn.classList.add("wrong","shake")}
+  sfx(ok?"ok":"miss");
+  if(D){D.streak=ok?D.streak+1:0;
+    if(D.streak>=D.need){delete conf[pairKey(D.a,D.b)];saveConf();renderConf();R.duelWon=true;setTimeout(()=>sfx("level"),380);
+      toast("Duel won",`${D.need} in a row on ${D.a} and ${D.b}. The pair is off your mix-up list.`);setPlay("Back to the path",true)}
+    else setPlay("Next",true);
+    renderStage();return}
+  if(!ok&&k!==R.key){const pk=pairKey(R.key,k);conf[pk]=(conf[pk]||0)+1;saveConf();renderConf();
+    if(conf[pk]>=2)suggestPair(pk,conf[pk])}
+  let won=false;
+  let stepped=false;
+  if(st.type==="r"){
+    if(P.cur>=P.done&&d.ph>0){const ph=d.ph;
+      if(ph===3){if(!d.run)d.run={};d.run[R.key]=ok?Math.min(NEED_L,(d.run[R.key]||0)+1):0;if(!runLeft(P.cur).length){if(advance(P.cur))won=true;else stepped=true}}
+      else{if(!d.run)d.run={};const need=PH[ph].need;
+        if(ok)d.run[R.key]=Math.min(need,(d.run[R.key]||0)+1);else if(PH[ph].row)d.run[R.key]=0;
+        if(phKeys(P.cur,ph).every(k=>(d.run[k]||0)>=need)){if(advance(P.cur))won=true;else stepped=true}}}
+  }else{
+    d.run[R.key]=ok?Math.min(NEED_L,(d.run[R.key]||0)+1):0;
+    const pool=limitPool(st.L);
+    if(P.cur>=P.done&&pool.every(i=>(d.run[i.key]||0)>=NEED_L)){if(!d.v){d.v=1;d.run={};stepped=true}else won=true}
+  }
+  const desc=`<span class="m">${iv.key}</span> (${iv.cents.toFixed(1)}¢, ${nameOf(iv)})`;
+  if(ok)$("status").innerHTML=`<span class="verdict ok">Correct.</span>${desc}. Tap tiles to compare.`;
+  else{const w=map.get(k);$("status").innerHTML=`<span class="verdict no">Not quite.</span>It was ${desc}, ${Math.abs(w.cents-iv.cents).toFixed(1)}¢ from your <span class="m">${k}</span>.`}
+  if(won){
+    P.done=P.cur+1;just=P.cur;delete P.sp[P.cur];setTimeout(()=>sfx("level"),380);
+    const fin=P.done>=STAGES.length;
+    if(st.type==="r")toast(`${st.key} mastered`,`${cap(nameOf(map.get(st.key)))}. ${P.done<STAGES.length?"The next stage is open.":""}`);
+    else toast(`The ${st.L}-odd-limit, mastered`,fin?"Every odd limit up to 15. The whole path is yours.":"A new limit opens on the path.");
+    $("status").innerHTML=`<span class="verdict ok">${st.type==="r"?"Mastered.":"Limit mastered."}</span>${fin?"You have walked the whole path. Pick any stage to practise it.":"Press <b>Next stage</b> to go on."}`;
+    save();renderPath();renderStage();
+    setPlay(fin?"Next":"Next stage",true);R.won=!fin;
+  }else{save();renderStage();setPlay("Next",true);
+    if(stepped){sfx("level");const dd=sp(P.cur);
+      if(st.type==="l")toast(`One root cleared`,`Now the whole ${st.L}-odd-limit again, with the root changing every round.`);
+      else if(dd.ph===5)toast(`One root cleared`,`Next: guided transposition for ${st.key}.`);
+      else if(dd.v)toast(`Step ${dd.ph} cleared`,`Now step ${dd.ph+1}, with the root changing every round.`);
+      else toast(`Step ${dd.ph}/4 cleared`,`${st.key}: on to step ${dd.ph+1}, starting on ${UNI} Hz.`);
+      if(st.type==="r")$("status").innerHTML+=` <b>Cleared.</b> ${stepText(P.cur)}`;idleNext=true}}
+}
+function toast(t,s){
+  const el=document.createElement("div");el.className="toast";el.innerHTML=`<b>${t}</b><span>${s}</span>`;
+  $("toasts").appendChild(el);setTimeout(()=>{el.classList.add("out");setTimeout(()=>el.remove(),400)},3200);
+}
+
+$("play").addEventListener("click",()=>{
+  if(SG.on){sgHear();return}
+  if(D&&R&&R.duelWon){endDuel();return}
+  if(inCross()){crossPlay();return}
+  if(inTransp()){transpPlay();return}
+  if(R&&R.won){goTo(Math.min(P.done,STAGES.length-1));return}
+  if(R&&!R.answered){root=R.root;timbre=R.timbre;play(map.get(R.key),curMode||pickMode());return}
+  const st=STAGES[P.cur];
+  if(st.type==="r"&&phaseOf(P.cur)===0){hearHex();return}
+  idleNext=false;newRound();
+});
+$("shead").addEventListener("click",e=>{
+  if(SG.on){if(e.target.closest(".bighex,.biglat"))sgHear();return}
+  if(e.target.closest("#leaveDuel")){endDuel();return}
+  const hx=e.target.closest("[data-hear]");
+  if(hx){timbre=tbase();if(!R||R.answered)root=hexRoot();const dd=play(map.get(hx.dataset.hear),(R&&R.answered===false)?curMode:pickMode());hexFlip(hx,dd);return}
+  if(!e.target.closest(".bighex,.biglat"))return;
+  const st=STAGES[P.cur];
+  if(!R||R.answered){timbre=tbase()}
+  if(st.type==="r")hearHex();else play(map.get("2/1"),"root");
+});
+let idleNext=false;
+// the hexagon plays the stage's ratio from a new starting note each time; in the listening step each tap counts
+function hearHex(){
+  const s=P.cur,st=STAGES[s],iv=map.get(st.key);
+  if(inCross()){stopSeq();root=UNI;timbre=tbase();const d0=play(iv,pickMode());hexFlip(document.querySelector(".bighex"),d0);return}
+  // the listening step: on 220 Hz, rising, then falling, then together
+  const listen=s>=P.done&&sp(s).ph===0&&!(R&&!R.answered), LORD=["mel","down","harm"], LNAME={mel:"rising",down:"falling",harm:"together"};
+  const lm=listen?LORD[sp(s).n%3]:null;
+  timbre=tbase();root=(listen||inCross()||inTransp())?UNI:hexRoot();
+  const d=play(iv,lm||pickMode());hexFlip(document.querySelector(".bighex"),d);
+  if(s<P.done||sp(s).ph!==0||R&&!R.answered){if(!R||R.answered)$("status").innerHTML=`<span class="m">${iv.key}</span> from ${Math.round(root)} Hz. Tap again for another starting note.`;return}
+  const dd=sp(s);dd.n++;
+  if(dd.n>=PH[0].need){advance(s);save();renderStage();idleTiles();setPlay("Play",true);
+    $("status").innerHTML=`<span class="m">${iv.key}</span> ${LNAME[lm]}. ${stepText(s)} Press <b>Play</b>.`}
+  else{save();renderStage();$("status").innerHTML=`<span class="m">${iv.key}</span> ${LNAME[lm]}. Tap the hexagon again to hear it ${LNAME[LORD[dd.n%3]]}.`}
+}
+// the stage hexagon turns the selected-stage colour for as long as the interval sounds
+function hexFlip(h,d){
+  if(!h)return;clearTimeout(hexFlip.t);h.classList.add("lit");
+  hexFlip.t=setTimeout(()=>h.classList.remove("lit"),(d||1.85)*1000);
+}
+$("choices").addEventListener("click",e=>{const b=e.target.closest(".choice");if(!b||b.classList.contains("idle"))return;answer(b.dataset.k,b)});
+// the ball follows the hexagon row: it is a scrollbar for the path; the line shows progress (gold up to the furthest mastered stage, a tick at each full limit)
+function scrollMax(){const p=$("path");return Math.max(1,p.scrollWidth-p.clientWidth)}
+function fracOf(el){const p=$("path");return Math.max(0,Math.min(1,(el.offsetLeft+el.offsetWidth/2-p.clientWidth/2)/scrollMax()))}
+function syncBall(){$("pslide").value=Math.round($("path").scrollLeft/scrollMax()*1000)}
+function layoutSlider(){
+  const nodes=$("path").querySelectorAll(".node");if(!nodes.length)return;
+  const last=Math.min(P.done,STAGES.length)-1;
+  $("pfill").style.width=last<0?"0":`calc((100% - 18px) * ${P.done>=STAGES.length?1:fracOf(nodes[Math.min(P.done,STAGES.length-1)])})`;
+  $("pticks").innerHTML=STAGES.map((st,i)=>st.type==="l"?`<i class="${i<P.done?"done":""}" style="left:${(fracOf(nodes[i])*100).toFixed(2)}%"></i>`:"").join("");
+  syncBall();
+}
+$("pslide").addEventListener("input",e=>{const p=$("path");p.style.scrollBehavior="auto";p.scrollLeft=+e.target.value/1000*scrollMax();p.style.scrollBehavior=""});
+$("path").addEventListener("scroll",syncBall,{passive:true});
+addEventListener("resize",layoutSlider);
+$("path").addEventListener("click",e=>{const b=e.target.closest(".node");if(!b||b.disabled)return;goTo(+b.dataset.s)});
+document.addEventListener("keydown",e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(openSheet){if(e.key==="Escape")closeSheets();return}
+  const tg=document.activeElement&&document.activeElement.tagName;
+  if(tg==="SELECT")return;   // let the keyboard operate a focused dropdown
+  if(e.key===" "||e.key==="Enter"){if(tg==="BUTTON"&&e.key==="Enter")return;e.preventDefault();$("play").click();return}
+  const n=+e.key;if(!SG.on&&n>=1&&n<=9){const b=document.querySelectorAll(".choice")[n-1];if(b&&!b.classList.contains("idle"))answer(b.dataset.k,b)}
+});
+
+// ---- Cross-Presentation bridge ----
+// Same root (220 Hz), same tone, same loudness throughout; only the presentation changes.
+// Level 1 demonstration · 2 same or different · 3 name the second against a labelled reference · 4 mixed, no reference.
+// Progress is kept apart from the path, under its own key, per ratio stage.
+const CX_LV={1:"demo",2:"same or not",3:"name it",4:"mixed"};
+const PRES=["mel","down","harm"], PNAME={mel:"rising",down:"falling",harm:"together"};
+const COMBOS=[];PRES.forEach(a=>PRES.forEach(b=>{if(a!==b)COMBOS.push(a+">"+b)}));
+const cxPass=()=>[75,85,95].includes(S.cxPass)?S.cxPass:85;
+const cxWin=()=>[10,20,30].includes(S.cxWin)?S.cxWin:20;
+let CX={};try{CX=JSON.parse(localStorage.getItem("olet-path-cross")||"{}")||{}}catch(e){}
+const saveCX=()=>{try{localStorage.setItem("olet-path-cross",JSON.stringify(CX))}catch(e){}};
+const cxOf=s=>CX[s]||(CX[s]={lvl:1,tier:0,hist:{2:[],3:[],4:[]},combos:{},pairs:{}});
+const inCross=()=>!D&&P.cur>=P.done&&STAGES[P.cur].type==="r"&&sp(P.cur).ph===0;   // step 1: the three-way demo
+let Q=null, seqT=[];
+function stopSeq(){seqT.forEach(clearTimeout);seqT=[];document.querySelectorAll(".cxcard.lit").forEach(c=>c.classList.remove("lit"))}
+// play a list of [ratio key, presentation, card index] one after another, lighting each card while it sounds
+function playSeq(items){
+  stopSeq();let t=0;
+  items.forEach(([k,m,ci,rt])=>{seqT.push(setTimeout(()=>{root=rt||UNI;timbre=tbase();const d=play(map.get(k),m);
+    document.querySelectorAll(".cxcard").forEach((c,i)=>c.classList.toggle("lit",i===ci));
+    seqT.push(setTimeout(()=>{const c=document.querySelectorAll(".cxcard")[ci];if(c)c.classList.remove("lit")},d*1000))},t*1000));
+    t+=({harm:1.85,mel:1.85,down:1.85}[m]||1.85)+0.55});
+}
+// rivals for the bridge: the ratios already learned, filtered by how close they may be at the current difficulty
+function cxRivals(s){const c=cxOf(s),x=map.get(STAGES[s].key),r=rivalsAt(s);
+  const far=[150,50,0][c.tier]||0;let pool=r.filter(k=>Math.abs(map.get(k).cents-x.cents)>=far);
+  if(!pool.length)pool=r.slice(0,1);return pool}
+function wpick(list,w){const sum=w.reduce((a,b)=>a+b,0);let x=Math.random()*sum;for(let i=0;i<list.length;i++){x-=w[i];if(x<0)return list[i]}return list[list.length-1]}
+function cxPickRival(s){const c=cxOf(s),x=STAGES[s].key,pool=cxRivals(s);
+  return wpick(pool,pool.map(k=>{const st=c.pairs[pairKey(x,k)];return 1+2*(st?st.t-st.r:0)}))}
+function cxPickCombo(s){const c=cxOf(s),h=(c.hist[c.lvl]||[]).slice(-cxWin());
+  return wpick(COMBOS,COMBOS.map(k=>{const st=c.combos[k],seen=h.filter(e=>e.combo===k).length;return 1+2*(st?st.t-st.r:0)+Math.max(0,3-seen)}))}
+function cxNewQ(){
+  const s=P.cur,c=cxOf(s),x=STAGES[s].key;
+  if(c.lvl===1){Q={lvl:1,items:[[x,"mel",0],[x,"down",1],[x,"harm",2]],answered:false};return}
+  const r=cxPickRival(s);
+  if(c.lvl===4){
+    const pool=[x,...cxRivals(s)];let ch=[x,...pool.filter(k=>k!==x).sort((a,b)=>Math.abs(map.get(a).cents-map.get(x).cents)-Math.abs(map.get(b).cents-map.get(x).cents)).slice(0,c.tier>=1?3:2)];
+    const h=(c.hist[4]||[]).slice(-cxWin()),cnt=p=>h.filter(e=>e.p===p).length;
+    const pm=wpick(PRES,PRES.map(p=>1+Math.max(0,4-cnt(p))));
+    const q=Math.random()<0.4?x:wpick(ch.filter(k=>k!==x),ch.filter(k=>k!==x).map(()=>1));
+    Q={lvl:4,q,qm:pm,choices:ch.sort((a,b)=>map.get(a).cents-map.get(b).cents),answered:false,combo:null};return}
+  const [rm,qm]=cxPickCombo(s).split(">");
+  const a=Math.random()<0.7?x:r, b=a===x?r:x;
+  const q=Math.random()<0.5?a:b;
+  let choices=null;
+  if(c.lvl===3){choices=[a,b];if(c.tier>=1){const more=cxRivals(s).filter(k=>k!==a&&k!==b);if(more.length)choices.push(more[0])}choices.sort((u,v)=>map.get(u).cents-map.get(v).cents)}
+  Q={lvl:c.lvl,ref:a,rm,q,qm,choices,answered:false,combo:rm+">"+qm};
+}
+const fmtR=k=>`<span class="m">${k}</span> (${map.get(k).cents.toFixed(2)}¢)`;
+function renderCross(){
+  const s=P.cur,c=cxOf(s),x=STAGES[s].key,el=$("choices");el.classList.add("cxmode");c.lvl=1;
+  if(c.lvl===1){
+    el.innerHTML=`<div class="cxp"><div class="cxrow" style="--n:3">${PRES.map((m,i)=>`<button class="cxcard" data-ci="${i}"><span class="label">${PNAME[m]}</span><b>${x}</b><small>${map.get(x).cents.toFixed(2)}¢</small></button>`).join("")}</div>
+      <p class="cxfb" id="cxfb">The same ratio three ways, on ${UNI} Hz. Press <b>Play</b> to hear all three in turn, or tap one.</p></div>`;
+    return}
+  if(!Q||Q.lvl!==c.lvl){el.innerHTML=`<div class="cxp"><p class="cxfb" id="cxfb">${c.lvl===2?`A labelled reference, then a hidden interval played another way. Same interval, or different?`:c.lvl===3?`A labelled reference, then a hidden interval played another way. Which ratio is the second one?`:`One hidden interval, played rising, falling or together. Which is it?`} Press <b>Play</b>.</p></div>`;return}
+  const qlab=Q.answered?`<b>${Q.q}</b><small>${map.get(Q.q).cents.toFixed(2)}¢</small>`:`<b>?</b><small></small>`;
+  const cards=Q.lvl===4?`<div class="cxrow" style="--n:1"><button class="cxcard q" data-ci="0"><span class="label">Question · ${PNAME[Q.qm]}</span>${qlab}</button></div>`
+    :`<div class="cxrow"><button class="cxcard" data-ci="0"><span class="label">Reference · ${PNAME[Q.rm]}</span><b>${Q.ref}</b><small>${map.get(Q.ref).cents.toFixed(2)}¢</small></button><button class="cxcard q" data-ci="1"><span class="label">Question · ${PNAME[Q.qm]}</span>${qlab}</button></div>`;
+  const ans=Q.lvl===2?`<div class="cxans"><button data-a="same">Same interval</button><button data-a="diff">Different</button></div>`
+    :`<div class="cxans" style="--n:${Q.choices.length}">${Q.choices.map(k=>`<button class="m" data-a="${k}">${k}</button>`).join("")}</div>`;
+  el.innerHTML=`<div class="cxp">${cards}${ans}<p class="cxfb" id="cxfb"></p></div>`;
+  if(Q.answered)cxMark();
+}
+function cxItems(){return Q.lvl===4?[[Q.q,Q.qm,0]]:[[Q.ref,Q.rm,0],[Q.q,Q.qm,1]]}
+function crossPlay(){
+  const c=cxOf(P.cur);c.lvl=1;
+  if(c.lvl===1){Q={lvl:1,items:[[STAGES[P.cur].key,"mel",0],[STAGES[P.cur].key,"down",1],[STAGES[P.cur].key,"harm",2]]};renderCross();playSeq(Q.items);
+    const total=(1.85+0.55)*3*1000;clearTimeout(crossPlay.t);
+    const s0=P.cur;crossPlay.t=setTimeout(()=>{if(!inCross()||P.cur!==s0)return;Q=null;stopSeq();
+      advance(s0);save();renderStage();idleTiles();setPlay("Play",true);
+      toast("Step 1 cleared",`${STAGES[s0].key}: now tell it from ${rivalsAt(s0)[0]}, on ${UNI} Hz.`)},total);
+    return}
+  if(Q&&Q.lvl===c.lvl&&!Q.answered){playSeq(cxItems());return}   // a repeat keeps its pitches and presentations
+  if(c.done){finishCross();return}
+  cxNewQ();renderCross();playSeq(cxItems());setPlay("Replay",false);
+}
+function cxMark(){
+  document.querySelectorAll(".cxans button").forEach(b=>{b.disabled=true;const a=b.dataset.a;
+    const right=Q.lvl===2?((a==="same")===(Q.ref===Q.q)):a===Q.q;
+    if(right)b.classList.add("right");else if(a===Q.pick)b.classList.add("wrong");else b.classList.add("dim")});
+}
+function cxAnswer(a){
+  if(!Q||Q.answered||Q.lvl===1)return;
+  const s=P.cur,c=cxOf(s),x=STAGES[s].key;Q.answered=true;Q.pick=a;stopSeq();
+  const ok=Q.lvl===2?((a==="same")===(Q.ref===Q.q)):a===Q.q;
+  sfx(ok?"ok":"miss");
+  // per presentation combination and per interval pair
+  const bump=(o,k)=>{const e=o[k]||(o[k]={r:0,t:0});e.t++;if(ok)e.r++};
+  if(Q.combo)bump(c.combos,Q.combo);
+  const other=Q.lvl===4?(Q.q===x?(a===x?null:a):Q.q):(Q.ref===x?Q.q:Q.ref);
+  if(other&&other!==x)bump(c.pairs,pairKey(x,other));
+  if(!ok&&Q.lvl!==2&&a!==Q.q){const pk=pairKey(Q.q,a);conf[pk]=(conf[pk]||0)+1;saveConf();renderConf()}
+  const h=c.hist[c.lvl]||(c.hist[c.lvl]=[]);h.push({ok,combo:Q.combo,p:Q.qm});if(h.length>60)h.shift();
+  // difficulty: closer rivals after a strong run, wider ones after a weak run
+  const last=h.slice(-8),good=last.filter(e=>e.ok).length;let tierMsg="";
+  if(last.length>=8&&good>=7&&c.tier<2){c.tier++;tierMsg=" Closer intervals now."}
+  else if(last.length>=8&&good<=4&&c.tier>0){c.tier--;tierMsg=" Wider intervals for a while."}
+  renderCross();
+  const same=Q.ref===Q.q;
+  const fb=Q.lvl===4?`It was ${fmtR(Q.q)}, ${PNAME[Q.qm]}.`
+    :`Reference ${fmtR(Q.ref)} ${PNAME[Q.rm]}; question ${fmtR(Q.q)} ${PNAME[Q.qm]}: ${same?"the same interval":"different intervals"}.`;
+  $("cxfb").innerHTML=`<span class="verdict ${ok?"ok":"no"}">${ok?"Correct.":"Not quite."}</span>${fb}${tierMsg}`;
+  // advancement: pass mark over the last N, with every presentation covered
+  const w=h.slice(-cxWin()),acc=w.filter(e=>e.ok).length/w.length;
+  const minEach=Math.max(1,Math.floor(cxWin()/10));
+  const covered=c.lvl===4?PRES.every(p=>w.filter(e=>e.p===p).length>=Math.max(2,Math.floor(cxWin()/6))):COMBOS.every(k=>w.filter(e=>e.combo===k).length>=minEach);
+  if(w.length>=cxWin()&&acc*100>=cxPass()&&covered){
+    if(c.lvl<4){c.lvl++;Q=null;toast(`Bridge level ${c.lvl-1} cleared`,`${Math.round(acc*100)}% over the last ${cxWin()}. Next: ${CX_LV[c.lvl]}.`);sfx("level")}
+    else{c.done=true;toast("Bridge cleared",`${x} recognised rising, falling and together.`);sfx("level")}
+  }
+  saveCX();renderStage();setPlay(c.done?"Next step":"Next",true);
+}
+function finishCross(){
+  const s=P.cur;delete CX[s].done;saveCX();Q=null;
+  advance(s);save();
+  toast("Next: guided transposition",`The reference stays on ${UNI} Hz; the question moves a semitone or two.`);
+  renderStage();idleTiles();setPlay("Play",false);
+}
+$("choices").addEventListener("click",e=>{
+  if(inTransp()){tpClick(e);return}
+  if(!inCross())return;
+  const card=e.target.closest(".cxcard");
+  if(card){const ci=+card.dataset.ci;
+    if(cxOf(P.cur).lvl===1){const m=PRES[ci];playSeq([[STAGES[P.cur].key,m,ci]]);return}
+    if(Q&&Q.lvl!==1){const it=cxItems()[ci];if(it)playSeq([it])}return}
+  const b=e.target.closest(".cxans button");if(b)cxAnswer(b.dataset.a);
+});
+
+// ---- Guided Transposition ----
+// The labelled reference stays on the original root (220 Hz); the question's root moves by whole semitones,
+// f_new = f_original × 2^(n/12), applied to both notes, so the ratio is exact. Roots hold for blocks of four questions.
+// Level 1 demonstration · 2 same or different · 3 two confusable ratios · 4 a larger choice (the only level that counts as independent).
+// Progress is kept apart from the path, per ratio stage.
+const TP_LV={1:"demo",2:"same or not",3:"contrast",4:"independent"};
+let TP={};try{TP=JSON.parse(localStorage.getItem("olet-path-transp")||"{}")||{}}catch(e){}
+const saveTP=()=>{try{localStorage.setItem("olet-path-transp",JSON.stringify(TP))}catch(e){}};
+const tpOf=s=>{let c=TP[s];if(!c||!c.hist)c=TP[s]=Object.assign({lvl:1,range:1,tier:0,block:null,lastN:0,ints:{},trans:{},pres:{},pairs:{}},c||{},{hist:{2:[],3:[],4:[]}});return c};
+const inTransp=()=>!D&&P.cur>=P.done&&STAGES[P.cur].type==="r"&&sp(P.cur).ph===5;
+const tHz=n=>UNI*Math.pow(2,n/12);
+const nTxt=n=>(n>0?"+":"−")+Math.abs(n)+" semitone"+(Math.abs(n)>1?"s":"");
+let TQ=null;
+// the next question's transposition: blocks of four, changing between blocks, balancing up and down
+function tpNextN(c){
+  if(c.block&&c.block.left>0&&Math.abs(c.block.n)<=c.range){c.block.left--;return c.block.n}
+  const opts=c.range>=2?[-2,-1,1,2]:[-1,1];
+  const recent=(c.hist[c.lvl]||[]).slice(-12),up=recent.filter(e=>e.n>0).length,dn=recent.filter(e=>e.n<0).length;
+  const prevN=c.block?c.block.n:c.lastN;
+  const w=opts.map(n=>{if(n===prevN)return 0;let x=1;
+    if(n>0&&up>dn)x*=.5;if(n<0&&dn>up)x*=.5;
+    if(c.lvl===4&&Math.abs(n)===2){const h=(c.hist[4]||[]).slice(-cxWin());if(h.filter(e=>e.n===n).length<3)x*=3}
+    return x});
+  const n=wpick(opts,w.some(x=>x>0)?w:opts.map(()=>1));c.block={n,left:3};c.lastN=n;return n;
+}
+const tpWeak=(c,k)=>{const st=c.ints[k];return 1+2*(st?Math.max(0,st.t-st.r):0)};
+function tpRivals(s){const c=tpOf(s),x=map.get(STAGES[s].key),r=rivalsAt(s);
+  const far=[150,50,0][c.tier]||0;let pool=r.filter(k=>Math.abs(map.get(k).cents-x.cents)>=far);
+  if(!pool.length)pool=r.slice(0,1);return pool}
+function tpNewQ(){
+  const s=P.cur,c=tpOf(s),x=STAGES[s].key,m=pickMode();
+  if(c.lvl===1){const a=Math.random()<.5?1:-1;
+    TQ={lvl:1,m,items:[[x,m,0,UNI],[x,m,1,tHz(a)],[x,m,2,tHz(-a)]],ns:[0,a,-a]};return}
+  const n=tpNextN(c), pool=tpRivals(s);
+  const r=wpick(pool,pool.map(k=>{const st=c.pairs[pairKey(x,k)];return 1+2*(st?Math.max(0,st.t-st.r):0)}));
+  const last=TQ&&TQ.q,last2=TQ&&TQ.prevQ;
+  let choices,q;
+  if(c.lvl===4){choices=[x,...pool.filter(k=>k!==r).slice(0,2),r].filter((k,i,a)=>a.indexOf(k)===i).slice(0,4);
+    q=wpick(choices,choices.map(k=>(k===last&&k===last2)?0:tpWeak(c,k)*(k===x?1.5:1)))}
+  else{choices=[x,r];q=wpick(choices,choices.map(k=>(k===last&&k===last2)?0:tpWeak(c,k)))}
+  TQ={lvl:c.lvl,ref:x,q,m,n,choices:choices.sort((a,b)=>map.get(a).cents-map.get(b).cents),answered:false,prevQ:last};
+}
+function tpItems(){return [[TQ.ref,TQ.m,0,UNI],[TQ.q,TQ.m,1,tHz(TQ.n)]]}
+function renderTransp(){
+  const s=P.cur,c=tpOf(s),x=STAGES[s].key,el=$("choices");el.classList.add("cxmode");c.lvl=1;
+  if(c.lvl===1){const ns=TQ&&TQ.lvl===1?TQ.ns:[0,1,-1];
+    el.innerHTML=`<div class="cxp"><div class="cxrow" style="--n:3">${ns.map((n,i)=>`<button class="cxcard" data-ci="${i}"><span class="label">${n?nTxt(n):`On ${UNI} Hz`}</span><b>${x}</b><small>${tHz(n).toFixed(1)} Hz</small></button>`).join("")}</div>
+      <p class="cxfb" id="cxfb">The same ratio on ${UNI} Hz, then moved up and down. Press <b>Play</b> to hear all three, or tap one.</p></div>`;return}
+  if(!TQ||TQ.lvl!==c.lvl){el.innerHTML=`<div class="cxp"><p class="cxfb" id="cxfb">${c.lvl===2?`A labelled reference on ${UNI} Hz, then a hidden interval on a moved root. Same interval, or different?`:c.lvl===3?`A labelled reference on ${UNI} Hz, then a hidden interval on a moved root. Which of the two is it?`:`A labelled reference on ${UNI} Hz, then a hidden interval on a moved root. Which is it?`} Press <b>Play</b>.</p></div>`;return}
+  const qlab=TQ.answered?`<b>${TQ.q}</b><small>${map.get(TQ.q).cents.toFixed(2)}¢</small>`:`<b>?</b><small>${tHz(TQ.n).toFixed(1)} Hz</small>`;
+  const ans=TQ.lvl===2?`<div class="cxans"><button data-a="same">Same interval</button><button data-a="diff">Different</button></div>`
+    :`<div class="cxans" style="--n:${TQ.choices.length}">${TQ.choices.map(k=>`<button class="m" data-a="${k}">${k}</button>`).join("")}</div>`;
+  el.innerHTML=`<div class="cxp"><div class="cxrow"><button class="cxcard" data-ci="0"><span class="label">Reference · ${UNI} Hz</span><b>${TQ.ref}</b><small>${map.get(TQ.ref).cents.toFixed(2)}¢</small></button><button class="cxcard q" data-ci="1"><span class="label">Question · ${TQ.n>0?"up":"down"} ${Math.abs(TQ.n)}</span>${qlab}</button></div>${ans}<p class="cxfb" id="cxfb"></p></div>`;
+  if(TQ.answered)tpMark();
+}
+function transpPlay(){
+  const c=tpOf(P.cur);c.lvl=1;
+  if(c.lvl===1){tpNewQ();renderTransp();playSeq(TQ.items);
+    const total=(1.85+0.55)*3*1000;clearTimeout(transpPlay.t);
+    const s0=P.cur;transpPlay.t=setTimeout(()=>{if(!inTransp()||P.cur!==s0)return;finishTransp();setPlay("Play",true)},total);return}
+  if(TQ&&TQ.lvl===c.lvl&&!TQ.answered){playSeq(tpItems());return}   // a replay keeps its roots, ratios and playback
+  if(c.done){finishTransp();return}
+  tpNewQ();saveTP();renderTransp();playSeq(tpItems());setPlay("Replay",false);
+}
+function tpMark(){
+  document.querySelectorAll(".cxans button").forEach(b=>{b.disabled=true;const a=b.dataset.a;
+    const right=TQ.lvl===2?((a==="same")===(TQ.ref===TQ.q)):a===TQ.q;
+    if(right)b.classList.add("right");else if(a===TQ.pick)b.classList.add("wrong");else b.classList.add("dim")});
+}
+function tpAnswer(a){
+  if(!TQ||TQ.answered||TQ.lvl===1)return;
+  const s=P.cur,c=tpOf(s),x=STAGES[s].key;TQ.answered=true;TQ.pick=a;stopSeq();
+  const ok=TQ.lvl===2?((a==="same")===(TQ.ref===TQ.q)):a===TQ.q;
+  sfx(ok?"ok":"miss");
+  const bump=(o,k)=>{const e=o[k]||(o[k]={r:0,t:0});e.t++;if(ok)e.r++};
+  bump(c.ints,TQ.q);bump(c.trans,String(TQ.n));bump(c.pres,TQ.m);
+  const other=TQ.q===x?(TQ.lvl===2?null:(a!==x?a:null)):TQ.q;if(other&&other!==x)bump(c.pairs,pairKey(x,other));
+  if(!ok&&TQ.lvl!==2&&a!==TQ.q){const pk=pairKey(TQ.q,a);conf[pk]=(conf[pk]||0)+1;saveConf();renderConf()}
+  const h=c.hist[c.lvl]||(c.hist[c.lvl]=[]);h.push({ok,n:TQ.n,q:TQ.q,p:TQ.m});if(h.length>60)h.shift();
+  // adapt: a wider range and closer rivals after a strong run; back off after repeated errors
+  const l8=h.slice(-8),g8=l8.filter(e=>e.ok).length,l6=h.slice(-6),g6=l6.filter(e=>e.ok).length;let note="";
+  if(l8.length>=8&&g8>=7){if(c.range<2){c.range=2;c.block=null;note=" Roots now move up to two semitones."}else if(c.tier<2){c.tier++;note=" Closer intervals now."}}
+  else if(l6.length>=6&&g6<=3){if(c.tier>0){c.tier--;note=" Wider intervals for a while."}else if(c.range>1&&c.lvl<4){c.range=1;c.block=null;note=" Back to one semitone for a while."}}
+  renderTransp();
+  const q=map.get(TQ.q),ref=map.get(TQ.ref);
+  let fb=`Reference ${fmtR(TQ.ref)}; question ${fmtR(TQ.q)} at ${nTxt(TQ.n)}`;
+  if(TQ.lvl===2)fb+=`: ${TQ.ref===TQ.q?"the same interval":"different intervals"}.`;
+  else fb+=ok?".":`; you chose ${a}, ${Math.abs(map.get(a).cents-q.cents).toFixed(2)}¢ away.`;
+  $("cxfb").innerHTML=`<span class="verdict ${ok?"ok":"no"}">${ok?"Correct.":"Not quite."}</span>${fb}${note}`;
+  // advancement: pass mark over the last N; levels 2–3 need both directions, level 4 needs ±2 tested and recognised
+  const w=h.slice(-cxWin()),acc=w.filter(e=>e.ok).length/w.length;
+  const both=w.filter(e=>e.n>0).length>=3&&w.filter(e=>e.n<0).length>=3;
+  const at=n=>{const e=w.filter(v=>v.n===n);return e.length>=3&&e.filter(v=>v.ok).length/e.length>=0.67};
+  const covered=c.lvl===4?(at(2)&&at(-2)):both;
+  if(w.length>=cxWin()&&acc*100>=cxPass()&&covered){
+    if(c.lvl<4){c.lvl++;TQ=null;toast(`Transposition level ${c.lvl-1} cleared`,`${Math.round(acc*100)}% over the last ${cxWin()}. Next: ${TP_LV[c.lvl]}.`);sfx("level")}
+    else{c.done=true;toast("Transposition cleared",`${x} recognised up to two semitones above and below.`);sfx("level")}
+  }
+  saveTP();renderStage();setPlay(c.done?"Next step":"Next",true);
+}
+function finishTransp(){
+  const s=P.cur;delete TP[s].done;saveTP();TQ=null;
+  advance(s);save();
+  toast("On to random roots",`Steps 2 to 4 again for ${STAGES[s].key}, with the root changing every round.`);
+  renderStage();idleTiles();setPlay("Play",false);
+}
+function tpClick(e){
+  const card=e.target.closest(".cxcard");
+  if(card){const ci=+card.dataset.ci,c=tpOf(P.cur);
+    if(c.lvl===1){const ns=TQ&&TQ.lvl===1?TQ.ns:[0,1,-1],m=TQ&&TQ.m||pickMode();playSeq([[STAGES[P.cur].key,m,ci,tHz(ns[ci])]]);return}
+    if(TQ&&TQ.lvl!==1){const it=tpItems()[ci];if(it)playSeq([it])}return}
+  const b=e.target.closest(".cxans button");if(b)tpAnswer(b.dataset.a);
+}
+
+// options sheet
+let openSheet=null;
+function openS(){openSheet=$("setSheet");openSheet.hidden=false;$("scrim").hidden=false;requestAnimationFrame(()=>openSheet&&openSheet.classList.add("in"));openSheet.querySelector("[data-close]").focus()}
+function closeSheets(){if(!openSheet)return;const s=openSheet;s.classList.remove("in");setTimeout(()=>{if(openSheet!==s)s.hidden=true},230);$("scrim").hidden=true;openSheet=null;$("openSet").focus()}
+$("openSet").addEventListener("click",openS);
+$("scrim").addEventListener("click",closeSheets);
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",closeSheets));
+$("tone").innerHTML=Object.keys(TIMB_LABEL).map(k=>`<button data-v="${k}">${TIMB_LABEL[k]}</button>`).join("");
+const markSeg=(el,val)=>el.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v==String(val))));
+const markFlags=el=>el.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(!!S[b.dataset.v])));
+function markOpts(){$("devbar").hidden=!S.dev;$("unlockAll").textContent=S.dev?"Path unlocked · developer mode on":"Unlock the whole path";markSeg($("dneed"),S.duelNeed);$("mode").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(!!S.pb[b.dataset.v])));markSeg($("tone"),tbase());markSeg($("nch"),S.nch);markFlags($("vary"));markFlags($("fxset"));
+  document.body.classList.toggle("calm",!S.motion)}
+$("mode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const k=b.dataset.v;
+  if(S.pb[k]&&pbOn().length===1&&S.pb[k])return; // keep at least one playback on
+  S.pb[k]=!S.pb[k];saveS();markOpts()});
+$("tone").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.timbre=b.dataset.v;saveS();markOpts();
+  const r0=root;root=220;timbre=S.timbre;play(map.get("5/4"),"harm");root=r0;if(!S.vTone)timbre=S.timbre});
+$("vary").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S[b.dataset.v]=!S[b.dataset.v];saveS();markOpts()});
+$("fxset").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S[b.dataset.v]=!S[b.dataset.v];saveS();markOpts()});
+$("nch").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.nch=b.dataset.v;saveS();markOpts();
+  if(R&&!R.answered){R.keys=candidates(R.key);renderTiles(R.keys,false)}else if(!R)idleTiles()});
+function confirmTap(b,label,armed,act){
+  if(!b.dataset.arm){b.dataset.arm="1";b.textContent=armed;setTimeout(()=>{if(b.dataset.arm){delete b.dataset.arm;b.textContent=label}},3000);return}
+  delete b.dataset.arm;act();
+}
+$("unlockAll").addEventListener("click",e=>{const b=e.currentTarget;confirmTap(b,"Unlock the whole path","Tap again to unlock",()=>{
+  P.done=STAGES.length;save();S.dev=true;saveS();markOpts();goTo(P.cur);requestAnimationFrame(layoutSlider);
+  toast("The whole path is open","Developer mode is on: use the bar under the path to jump between sections.")})});
+$("resetprog").addEventListener("click",e=>{const b=e.currentTarget;confirmTap(b,"Restart the path","Tap again to restart",()=>{
+  P={done:0,cur:0,sp:{}};save();CX={};saveCX();TP={};saveTP();S.dev=false;saveS();markOpts();closeSheets();goTo(0);b.textContent="Restart the path"})});
+// mix-up duels
+function suggestPair(pk,n){
+  pendingPair=pk.split("|");
+  $("suggestText").innerHTML=`You have mixed up <span class="m">${pendingPair[0]}</span> and <span class="m">${pendingPair[1]}</span> ${n===2?"twice":n+" times"}. Practise just those two?`;
+  $("suggest").hidden=false;
+}
+function startDuel(a,b){
+  if(SG.on)sgExit(false);
+  const back=P.cur;goTo(back);
+  [a,b]=pairKey(a,b).split("|");
+  D={a,b,streak:0,need:S.duelNeed,bag:[]};R=null;
+  renderStage();idleTiles();setPlay("Play",false);
+}
+function endDuel(){D=null;goTo(P.cur)}
+function renderConf(){
+  const rows=Object.entries(conf).filter(([,n])=>n>0).sort((x,y)=>y[1]-x[1]);
+  $("confl").innerHTML=rows.length?rows.map(([pk,n])=>{const [a,b]=pk.split("|");
+    return `<div class="crow"><span class="m">${a} · ${b}</span><small>${n}×</small><button data-p="${pk}">Duel</button></div>`}).join("")
+    :`<p class="none">No mix-ups yet.</p>`;
+}
+$("suggestGo").addEventListener("click",()=>{if(pendingPair)startDuel(...pendingPair)});
+$("suggestNo").addEventListener("click",()=>{pendingPair=null;$("suggest").hidden=true});
+$("confl").addEventListener("click",e=>{const b=e.target.closest("button[data-p]");if(!b)return;closeSheets();startDuel(...b.dataset.p.split("|"))});
+$("dneed").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.duelNeed=+b.dataset.v;saveS();markOpts();if(D){D.need=S.duelNeed;renderStage()}});
+renderConf();
+// ---- developer section skipper ----
+function devSections(s){
+  const st=STAGES[s],out=[];
+  if(st.type==="l"){out.push({id:"l0",label:"One root (220 Hz)"},{id:"l1",label:"Roots vary"},{id:"done",label:"Mastered"});return out}
+  const phs=[1];let prev=phSize(s,1);for(let ph=2;ph<=3;ph++){const z=phSize(s,ph);if(z!==prev){phs.push(ph);prev=z}}
+  const nm={1:"vs nearest",2:"vs 2 nearest",3:"vs all known"};
+  out.push({id:"p0",label:"Step 1 · three ways (demo)"});
+  phs.forEach(ph=>out.push({id:"s"+ph+"v0",label:`Step ${ph+1} · ${nm[ph]} · 220 Hz`}));
+  out.push({id:"t1",label:"Transposition · demo"});
+  phs.forEach(ph=>out.push({id:"s"+ph+"v1",label:`Step ${ph+1} · ${nm[ph]} · random roots`}));
+  out.push({id:"done",label:"Mastered"});return out;
+}
+function devCurrent(s){
+  if(s<P.done)return "done";const d=sp(s),st=STAGES[s];
+  if(st.type==="l")return d.v?"l1":"l0";
+  if(d.ph===0)return "p0";if(d.ph===5)return "t1";
+  return "s"+d.ph+"v"+(d.v?1:0);
+}
+function renderDev(){
+  if(!S.dev)return;const s=P.cur,cur=devCurrent(s),secs=devSections(s);
+  $("devsec").innerHTML=secs.map(x=>`<option value="${x.id}"${x.id===cur?" selected":""}>${x.label}</option>`).join("");
+  $("devskip").disabled=cur==="done";
+}
+function devApply(s,id){
+  P.hiDone=Math.max(P.hiDone||0,P.done);
+  if(id==="done"){delete P.sp[s];P.done=Math.max(s+1,P.hiDone);delete CX[s];delete TP[s];saveCX();saveTP();save();goTo(s);return}
+  P.done=s;delete CX[s];delete TP[s];
+  if(id[0]==="l")P.sp[s]={run:{},v:+id[1]};
+  else if(id==="p0")P.sp[s]={ph:0,n:0};
+  else if(id[0]==="s")P.sp[s]={ph:+id[1],n:0,v:+id[3],run:{}};
+  else if(id[0]==="x"){P.sp[s]={ph:4,n:0,v:0,run:{}};cxOf(s).lvl=+id[1]}
+  else if(id[0]==="t"){P.sp[s]={ph:5,n:0,v:0,run:{}};tpOf(s).lvl=+id[1]}
+  saveCX();saveTP();save();goTo(s);
+}
+$("devsec").addEventListener("change",e=>devApply(P.cur,e.target.value));
+$("devskip").addEventListener("click",()=>{const s=P.cur,secs=devSections(s),i=secs.findIndex(x=>x.id===devCurrent(s));
+  const nx=secs[Math.min(i+1,secs.length-1)];devApply(s,nx.id);$("toasts").innerHTML="";toast("Section marked complete",nx.id==="done"?"Stage mastered.":`Now: ${nx.label}.`)});
+// ---- Sing it: match an interval over a root drone and watch it against the ratio lines ----
+// A warm-up for recognition: singing an interval makes its size physical before you have to name it.
+// It never touches path progress. The pitch is folded into one octave above the root, so any octave counts.
+/*SING-ENGINE-START*/
+function makeTracker(){
+  const DB=new Float32Array(2048),DF=new Float32Array(600);
+  let gate=.006,floor=.003;
+  const TR={voiced:false,sm:0,lastV:0,cand:null,candN:0};
+  // YIN on a window decimated to at most 24 kHz; the lag search covers 55-1200 Hz
+  function yin(buf,sr,dec){
+    for(let i=0;i<2048;i++){let s=0;for(let j=0;j<dec;j++)s+=buf[i*dec+j];DB[i]=s/dec}
+    const N=2048,W=1200;let rms=0;for(let i=0;i<N;i++)rms+=DB[i]*DB[i];rms=Math.sqrt(rms/N);
+    if(rms<gate)return{rms};
+    const lo=Math.max(2,Math.floor(sr/1200)),hi=Math.min(598,Math.ceil(sr/55));
+    DF[0]=1;let run=0;
+    for(let t=1;t<=hi+1;t++){let s=0;for(let i=0;i<W;i++){const x=DB[i]-DB[i+t];s+=x*x}run+=s;DF[t]=run?s*t/run:1}
+    let T=-1;
+    for(let t=lo;t<hi;t++){if(DF[t]<.15){while(t+1<hi&&DF[t+1]<DF[t])t++;T=t;break}}
+    if(T<0){let m=1;for(let t=lo;t<hi;t++)if(DF[t]<m){m=DF[t];T=t}if(m>.3)return{rms}}
+    const x0=DF[T-1],x1=DF[T],x2=DF[T+1],den=x0+x2-2*x1,sh=den>0?(x0-x2)/(2*den):0;
+    return{f:sr/(T+Math.max(-1,Math.min(1,sh))),rms,conf:1-x1};
+  }
+  // noise-adaptive gate, onset confirmation, octave-jump rejection, adaptive smoothing.
+  // Returns {rms, c}: c is smoothed cents above rootHz, or null when there is no confirmed voice.
+  function step(buf,sr,dec,now,rootHz){
+    const r=yin(buf,sr/dec,dec);
+    if(!r.f||r.conf<.7){
+      if(!r.f){floor=floor*.97+r.rms*.03;gate=Math.max(.004,Math.min(.03,floor*2.8))}
+      if(TR.voiced&&now-TR.lastV>160)TR.voiced=false;
+      TR.cand=null;TR.candN=0;return{rms:r.rms,c:null};
+    }
+    const c=1200*Math.log2(r.f/rootHz);
+    if(!TR.voiced){
+      if(TR.cand!==null&&Math.abs(c-TR.cand)<45){if(++TR.candN>=2){TR.voiced=true;TR.sm=c;TR.cand=null;TR.candN=0}else TR.cand=c}
+      else{TR.cand=c;TR.candN=1}
+      if(!TR.voiced)return{rms:r.rms,c:null};
+    }else{
+      const d=c-TR.sm,ad=Math.abs(d);
+      if(ad>120){
+        const need=Math.abs(ad-1200)<80||Math.abs(ad-700)<60?4:2;
+        if(TR.cand!==null&&Math.abs(c-TR.cand)<45){if(++TR.candN>=need){TR.sm=c;TR.cand=null;TR.candN=0}else TR.cand=c}
+        else{TR.cand=c;TR.candN=1}
+        if(TR.cand!==null){TR.lastV=now;return{rms:r.rms,c:null}}
+      }else{TR.cand=null;TR.candN=0;TR.sm+=Math.min(.85,Math.max(.12,ad/60))*d}
+    }
+    TR.lastV=now;return{rms:r.rms,c:TR.sm};
+  }
+  function reset(){TR.voiced=false;TR.sm=0;TR.lastV=0;TR.cand=null;TR.candN=0;gate=.006;floor=.003}
+  return{step,reset};
+}
+/*SING-ENGINE-END*/
+const SG={on:false,sel:"*",key:null,keys:[],raf:0,last:0,armed:true,hold:0,errAcc:0,errN:0,lastVoice:0,blocked:0,paused:0,drone:null,advT:0,txt:0,vw:[],trail:[],
+  mic:{on:false,pending:false,epoch:0,ctx:null,stream:null,nodes:null,an:null,buf:null,dec:2},tr:makeTracker()};
+const SG_ROOTS=[98,130.81,146.83,196,261.63];
+S.sgRoot=SG_ROOTS.includes(+S.sgRoot)?+S.sgRoot:130.81;
+S.sgTol=[5,10,15,25].includes(+S.sgTol)?+S.sgTol:10;
+let SS={};try{SS=JSON.parse(localStorage.getItem("olet-path-sing")||"{}")||{}}catch(e){}
+if(typeof SS!=="object"||Array.isArray(SS))SS={};
+const saveSS=()=>{try{localStorage.setItem("olet-path-sing",JSON.stringify(SS))}catch(e){}};
+const sgTok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const sgWrap=c=>((c%1200)+1200)%1200;
+const sgDiff=(a,b)=>{let d=sgWrap(a-b);if(d>=600)d-=1200;return d};
+const sgFmt=x=>(x>=0?"+":"−")+Math.abs(x).toFixed(0);
+const sgFold=k=>k==="1/1"?0:map.get(k).cents%1200;
+const sgColor=k=>k==="1/1"?sgTok("--ink-muted"):sgTok("--prime-"+map.get(k).prime)||sgTok("--ink-muted");
+function sgKeys(){const st=STAGES[P.cur];
+  return (st.type==="r"?phKeys(P.cur,3):limitPool(st.L).map(i=>i.key)).filter(k=>k!=="2/1")}
+function sgRefresh(){
+  const st=STAGES[P.cur];SG.keys=sgKeys();SG.sel=st.type==="r"?st.key:"*";
+  $("sgTarget").innerHTML=`<option value="*">Any of these (random)</option>`+SG.keys.map(k=>`<option value="${k}">${k} · ${nameOf(map.get(k))}</option>`).join("");
+  $("sgTarget").value=SG.sel;SG.key=null;sgPick();setPlay("Hear it",false);
+}
+function sgPick(){
+  if(SG.sel==="*"){const pool=SG.keys.filter(k=>k!==SG.key);SG.key=pool[Math.floor(Math.random()*pool.length)]||SG.keys[0]}
+  else SG.key=SG.sel;
+  SG.hold=0;SG.errAcc=0;SG.errN=0;SG.armed=true;sgInfo();
+}
+function sgInfo(){
+  const iv=map.get(SG.key),s=SS[SG.key];
+  $("sgTip").innerHTML=`Sing <span class="m">${iv.key}</span>, the ${nameOf(iv)} (${iv.cents.toFixed(1)}¢), above the root. ${s&&s.n?`Matched ${s.n}× so far, ±${(s.err/s.n).toFixed(1)}¢ on average.`:"Hear it first, then find it with your voice."}`;
+}
+function sgNote(html){$("sgNote").innerHTML=html}
+function sgHear(){
+  audio();root=S.sgRoot;timbre=tbase();const d=play(map.get(SG.key),"harm");
+  SG.blocked=performance.now()+d*1000+500;hexFlip(document.querySelector(".bighex"),d);
+}
+function sgDrone(on){
+  if(on&&!SG.drone){audio();const t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();o.setPeriodicWave(waves[tbase()]||wave);o.frequency.value=S.sgRoot;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.13,t+.4);o.connect(g);g.connect(master);o.start();SG.drone={o,g}}
+  else if(!on&&SG.drone){const t=ctx.currentTime,{o,g}=SG.drone;g.gain.setTargetAtTime(0,t,.08);o.stop(t+.5);SG.drone=null}
+  $("sgDrone").setAttribute("aria-pressed",String(!!SG.drone));SG.blocked=Math.max(SG.blocked,performance.now()+600);
+}
+function sgResetTrack(){SG.tr.reset();SG.vw.length=0;SG.trail.length=0;SG.hold=0;SG.errAcc=0;SG.errN=0;SG.lastVoice=0}
+async function sgMicOn(){
+  const m=SG.mic;if(m.on||m.pending)return;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){sgMicNotice();return}
+  m.pending=true;$("sgMic").disabled=true;$("sgMicTxt").textContent="Connecting…";const epoch=++m.epoch;
+  try{
+    // the mic gets its own audio context: tying it to the playback context can stall or silence the output on some drivers
+    audio();const a=new (window.AudioContext||window.webkitAudioContext)();m.ctx=a;
+    const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    if(epoch!==m.epoch||!SG.on){s.getTracks().forEach(t=>t.stop());if(a.state!=="closed")a.close();return}
+    m.stream=s;
+    const src=a.createMediaStreamSource(s),hp=a.createBiquadFilter(),lp=a.createBiquadFilter(),an=a.createAnalyser();
+    hp.type="highpass";hp.frequency.value=65;hp.Q.value=.7;lp.type="lowpass";lp.frequency.value=1500;lp.Q.value=.7;
+    m.dec=Math.max(1,Math.ceil(a.sampleRate/24000));
+    an.fftSize=2**Math.ceil(Math.log2(2048*m.dec));an.smoothingTimeConstant=0;m.an=an;m.buf=new Float32Array(an.fftSize);
+    src.connect(hp);hp.connect(lp);lp.connect(an);m.nodes=[src,hp,lp,an];   // never connected to the output
+    s.getTracks().forEach(t=>t.onended=()=>{sgMicOff();sgNote("<b>Microphone disconnected.</b> Enable it to sing again.")});
+    if(a.state!=="running")a.resume();
+    m.on=true;sgResetTrack();$("sgMic").setAttribute("aria-pressed","true");$("sgMicTxt").textContent="Microphone on";
+    sgNote("Listening. Hear the interval, then sing it over the root. Headphones keep the drone out of the microphone. <b>If the app goes quiet or silent now,</b> your system is muting other sound while a mic is open. On Windows, press Win+R, run <span class=\"m\">mmsys.cpl</span>, and set the Communications tab to “Do nothing”. Also turn off the mic’s audio enhancements (Voice clarity) in Sound settings. If it still goes silent, some laptops mute the headphone jack while their built-in mic is in use: a USB mic or a headset mic avoids it.");
+  }catch(e){if(epoch===m.epoch){sgMicOff();sgMicNotice(e&&e.name)}}
+  finally{m.pending=false;$("sgMic").disabled=false;if(!m.on)$("sgMicTxt").textContent="Enable microphone"}
+}
+function sgMicOff(){
+  const m=SG.mic;m.epoch++;
+  if(m.stream){m.stream.getTracks().forEach(t=>{t.onended=null;t.stop()});m.stream=null}
+  if(m.nodes){m.nodes.forEach(n=>n.disconnect());m.nodes=null}
+  if(m.ctx){if(m.ctx.state!=="closed")m.ctx.close().catch(()=>{});m.ctx=null}
+  m.an=null;m.buf=null;m.on=false;sgResetTrack();
+  $("sgMic").setAttribute("aria-pressed","false");$("sgMicTxt").textContent="Enable microphone";$("sgLvl").style.width="0%";
+  $("sgNeedle").style.opacity=.25;$("sgYou").textContent="You: —";$("sgDir").textContent="Waiting for your voice";
+}
+function sgMicNotice(name){
+  sgNote(name==="NotAllowedError"
+    ?"<b>Microphone blocked.</b> Allow microphone access for this page in your browser settings, then try again. Naming intervals works without it."
+    :"<b>The microphone isn’t available.</b> Check the device, and open this page over HTTPS or on localhost in Chrome, Edge or Firefox. Naming intervals works without it.");
+}
+function sgDone(now){
+  const e=SG.errN?SG.errAcc/SG.errN:0,k=SG.key,o=SS[k]||(SS[k]={n:0,err:0});
+  o.n++;o.err+=Math.abs(e);saveSS();sfx("ok");
+  SG.hold=0;SG.errAcc=0;SG.errN=0;SG.paused=now+1600;SG.blocked=now+700;SG.armed=false;   // sing again only after leaving the pitch, so holding a note can't farm matches
+  sgNote(`<b>Matched</b> <span class="m">${k}</span>, average ${sgFmt(e)}¢. ${SG.sel==="*"?"Next interval coming up.":"Sing it again, or pick another."}`);
+  sgInfo();
+  if(SG.sel==="*"){clearTimeout(SG.advT);SG.advT=setTimeout(()=>{if(SG.on&&SG.sel==="*"){sgPick();sgHear();sgNote("New interval. Listen, then sing it.")}},1500)}
+}
+function sgLoop(now){
+  if(!SG.on)return;SG.raf=requestAnimationFrame(sgLoop);
+  const dt=Math.min(100,now-SG.last);SG.last=now;const m=SG.mic;let cur=null;
+  if(m.on&&m.an&&m.ctx){
+    m.an.getFloatTimeDomainData(m.buf);
+    const r=SG.tr.step(m.buf,m.ctx.sampleRate,m.dec,now,S.sgRoot);
+    $("sgLvl").style.width=Math.min(100,r.rms*700)+"%";
+    if(r.c!==null){
+      // the trace shows the live pitch; the meter and scoring use a 320 ms average so vibrato doesn't wobble the verdict
+      if(SG.vw.length&&Math.abs(r.c-SG.vw[SG.vw.length-1].c)>120)SG.vw.length=0;
+      SG.vw.push({t:now,c:r.c});while(SG.vw.length&&now-SG.vw[0].t>320)SG.vw.shift();
+      const c=sgWrap(SG.vw.reduce((a,p)=>a+p.c,0)/SG.vw.length),tc=sgFold(SG.key),dev=sgDiff(c,tc),ok=Math.abs(dev)<=S.sgTol;
+      let near="1/1",nd=Math.abs(sgDiff(c,0));
+      for(const k of SG.keys){const d=Math.abs(sgDiff(c,sgFold(k)));if(d<nd){nd=d;near=k}}
+      cur={c,near,nd,dev,ok};SG.trail.push({t:now,c:sgWrap(r.c),ok});
+      if(now-SG.txt>110){SG.txt=now;
+        $("sgYou").textContent=`You: ${Math.round(c)}¢`+(near!==SG.key&&nd<=40?` · closest ${near} (${sgFmt(sgDiff(c,sgFold(near)))}¢)`:"");
+        $("sgDir").textContent=now<SG.blocked?"Listen to the cue, then sing":ok?"In tune, hold it":Math.abs(dev)>150?(dev>0?"Far too high":"Far too low"):(dev>0?`${sgFmt(dev)}¢ · sing lower`:`${sgFmt(dev)}¢ · sing higher`);
+      }
+      const nd2=$("sgNeedle");nd2.style.left=(50+Math.max(-50,Math.min(50,dev)))+"%";nd2.style.opacity=1;nd2.classList.toggle("ok",ok);
+      if(!ok&&now>SG.paused)SG.armed=true;
+      if(now>SG.paused&&SG.armed){
+        if(now<SG.blocked){SG.hold=0;SG.errAcc=0;SG.errN=0}
+        else if(ok){SG.hold+=dt;SG.errAcc+=dev;SG.errN++}
+        else{SG.hold=Math.max(0,SG.hold-dt*1.5);if(!SG.hold){SG.errAcc=0;SG.errN=0}}   // drain rather than zero: one wobble doesn't cost the whole hold
+        if(SG.hold>=900)sgDone(now);
+      }
+      SG.lastVoice=now;
+    }else if(now-SG.lastVoice>300){   // short dropouts (consonants, breaths) are forgiven
+      $("sgNeedle").style.opacity=.25;if(now>SG.paused)SG.armed=true;
+      if(now-SG.txt>110){SG.txt=now;$("sgDir").textContent="Waiting for your voice"}
+      SG.hold=Math.max(0,SG.hold-dt*1.5);if(!SG.hold){SG.errAcc=0;SG.errN=0}
+    }
+  }
+  $("sgHold").style.width=Math.min(100,SG.hold/9)+"%";
+  sgDraw(now,cur);
+}
+function sgDraw(now,cur){
+  const cv=$("sgCv"),g=cv.getContext("2d"),dpr=window.devicePixelRatio||1,W=cv.clientWidth,Hh=cv.clientHeight;if(!W)return;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(Hh*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(Hh*dpr)}
+  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,Hh);
+  const L=56,R=12,T=14,B=14,w=W-L-R,h=Hh-T-B,y=c=>T+(1-c/1200)*h;
+  const ink=sgTok("--ink"),mute=sgTok("--ink-muted"),grid=sgTok("--hairline"),good=sgTok("--gold"),panel=sgTok("--surface-raised");
+  g.font=`500 11px ${sgTok("--font-mono")}`;g.textBaseline="middle";g.textAlign="left";
+  g.strokeStyle=grid;g.lineWidth=1;[0,1200].forEach(c=>{g.beginPath();g.moveTo(L,y(c));g.lineTo(L+w,y(c));g.stroke()});
+  g.fillStyle=mute;g.fillText("1/1",8,y(0));g.fillText("2/1",8,y(1200));
+  // the target's tolerance band
+  const tc=sgFold(SG.key);g.fillStyle=good;g.globalAlpha=.2;
+  g.fillRect(L,y(Math.min(1200,tc+S.sgTol)),w,y(Math.max(0,tc-S.sgTol))-y(Math.min(1200,tc+S.sgTol)));g.globalAlpha=1;
+  // ratio lines: all of them for a short list; for a long one only the target and the nearest, with ticks for the rest
+  const few=SG.keys.length<=14,labels=[];
+  for(const k of SG.keys){
+    const isT=k===SG.key,isN=!!cur&&cur.near===k&&cur.nd<=40;
+    if(!few&&!isT&&!isN){g.strokeStyle=mute;g.globalAlpha=.5;g.beginPath();g.moveTo(L-6,y(sgFold(k)));g.lineTo(L,y(sgFold(k)));g.stroke();g.globalAlpha=1;continue}
+    const c=sgFold(k),col=sgColor(k);
+    g.strokeStyle=col;g.lineWidth=isT||isN?2.4:1.2;g.globalAlpha=isT||isN?1:.65;g.setLineDash(isT?[]:[5,4]);
+    g.beginPath();g.moveTo(L,y(c));g.lineTo(L+w,y(c));g.stroke();g.setLineDash([]);g.globalAlpha=1;
+    labels.push({k,col,yy:y(c),pri:isT?2:isN?1:0});
+  }
+  const placed=[];labels.sort((a,b)=>b.pri-a.pri||a.yy-b.yy);
+  for(const l of labels){if(placed.some(yy=>Math.abs(yy-l.yy)<14))continue;g.fillStyle=l.col;g.fillText(l.k,8,l.yy,L-14);placed.push(l.yy)}
+  // your pitch
+  const span=8000;while(SG.trail.length&&now-SG.trail[0].t>span)SG.trail.shift();
+  let prev=null;
+  for(const p of SG.trail){
+    const x=L+w-(now-p.t)/span*w,yy=y(p.c);
+    if(prev&&p.t-prev.t<160&&Math.abs(p.c-prev.c)<600){g.strokeStyle=p.ok?good:ink;g.globalAlpha=.6;g.lineWidth=2;g.beginPath();g.moveTo(prev.x,prev.y);g.lineTo(x,yy);g.stroke();g.globalAlpha=1}
+    p.x=x;p.y=yy;prev=p;
+  }
+  const last=SG.trail[SG.trail.length-1];
+  if(last&&now-last.t<200){g.beginPath();g.arc(last.x,last.y,6,0,Math.PI*2);g.fillStyle=last.ok?good:ink;g.fill();g.lineWidth=2;g.strokeStyle=panel;g.stroke()}
+  if(!SG.mic.on){g.fillStyle=mute;g.textAlign="center";g.font=`400 13px ${sgTok("--font-sans")}`;g.fillText("Enable the microphone to see your pitch",L+w/2,T+h/2,w-16);g.textAlign="left"}
+}
+function sgEnter(){
+  if(D){toast("Finish the duel first","Singing is available on the path, not inside a mix-up duel.");return}
+  SG.on=true;document.body.classList.add("singing");$("singpanel").hidden=false;
+  $("singBtn").setAttribute("aria-pressed","true");$("singBtnTxt").textContent="Quiz";
+  if(typeof stopSeq==="function")stopSeq();stopAll();
+  sgNote("Press <b>Hear it</b> to hear the interval, then sing the upper note over the root. Any octave counts. Headphones keep the drone out of the microphone.");
+  sgRefresh();SG.last=performance.now();SG.raf=requestAnimationFrame(sgLoop);
+}
+function sgExit(reset){
+  SG.on=false;cancelAnimationFrame(SG.raf);clearTimeout(SG.advT);
+  sgMicOff();sgDrone(false);
+  document.body.classList.remove("singing");$("singpanel").hidden=true;
+  $("singBtn").setAttribute("aria-pressed","false");$("singBtnTxt").textContent="Sing";
+  if(reset)goTo(P.cur);
+}
+$("singBtn").addEventListener("click",()=>SG.on?sgExit(true):sgEnter());
+$("sgTarget").addEventListener("change",e=>{SG.sel=e.target.value;clearTimeout(SG.advT);SG.key=null;sgPick();SG.paused=0;sgNote("Press <b>Hear it</b>, then sing it over the root.")});
+$("sgVoice").value=S.sgRoot;$("sgTol").value=S.sgTol;
+$("sgVoice").addEventListener("change",e=>{S.sgRoot=+e.target.value;saveS();sgResetTrack();if(SG.drone){sgDrone(false);sgDrone(true)}});
+$("sgTol").addEventListener("change",e=>{S.sgTol=+e.target.value;saveS();$("sgZone").style.left=(50-S.sgTol)+"%";$("sgZone").style.width=(2*S.sgTol)+"%"});
+$("sgDrone").addEventListener("click",()=>sgDrone(!SG.drone));
+$("sgMic").addEventListener("click",()=>{if(SG.mic.on){sgMicOff();sgNote("Microphone off. Enable it to sing again.")}else sgMicOn()});
+$("sgZone").style.left=(50-S.sgTol)+"%";$("sgZone").style.width=(2*S.sgTol)+"%";
+(()=>{const m=$("sgMeter");let h="";for(const c of[-50,-25,0,25,50]){const x=50+c;h+=`<span class="tick" style="left:${x}%"></span>`;if(c)h+=`<span class="tl" style="left:${Math.min(96,Math.max(4,x))}%">${c>0?"+":""}${c}</span>`}m.insertAdjacentHTML("beforeend",h)})();
+// the microphone and drone never keep running behind a hidden tab
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&SG.on){sgMicOff();sgDrone(false);sgNote("Paused while the tab was hidden. Enable the microphone to sing again.")}});
+addEventListener("pagehide",()=>{if(SG.on){sgMicOff();sgDrone(false)}});
+
+renderDev();
+markOpts();
+
+goTo(P.cur);
+})();
+</script>
+<script>
+/* Nick Vuci light/dark toggle: follows the device until the viewer picks; the choice is kept and set as data-theme on <html>. */
+(function(){
+  var root=document.documentElement, sys=window.matchMedia('(prefers-color-scheme: dark)');
+  var btns=[].slice.call(document.querySelectorAll('.nv-theme'));
+  function cur(){var c=root.dataset.theme;return c==='light'||c==='dark'?c:(sys.matches?'dark':'light')}
+  function sync(){var d=cur()==='dark',l=d?'Switch to light theme':'Switch to dark theme';
+    btns.forEach(function(b){b.classList.toggle('is-dark',d);b.setAttribute('aria-label',l);b.title=l;b.setAttribute('aria-pressed',String(d))});
+    document.dispatchEvent(new CustomEvent('nv-theme',{detail:cur()}))}
+  btns.forEach(function(b){b.addEventListener('click',function(){var t=cur()==='dark'?'light':'dark';root.dataset.theme=t;
+    try{localStorage.setItem('theme',t)}catch(e){}sync()})});
+  if(sys.addEventListener)sys.addEventListener('change',sync);
+  /* the app bar spans the full window, edge to edge, whatever margins the page sets on its container */
+  var bar=document.querySelector('.nv-appbar');
+  function bleed(){if(!bar)return;bar.style.marginLeft=bar.style.marginTop=bar.style.width='';
+    var r=bar.getBoundingClientRect(),w=document.documentElement.clientWidth;
+    bar.style.marginLeft=(-r.left)+'px';bar.style.width=w+'px';bar.style.marginTop=(-(r.top+window.scrollY))+'px';
+    var r2=bar.getBoundingClientRect();if(Math.abs(r2.left)>1){bar.style.marginLeft=(-r.left-r2.left)+'px'}}
+  bleed();addEventListener('resize',bleed);addEventListener('load',bleed);
+  sync();
+})();
+</script>
+
+</body></html>

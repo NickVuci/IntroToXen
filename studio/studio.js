@@ -1,6 +1,6 @@
-// The workstation page. Everything musical goes through shared/xen/*; this file is interface only.
+// The studio page (formerly the workstation). Everything musical goes through shared/xen/*; this file is interface only.
 //
-// It has two views, each a real part of the workstation:
+// It has two views, each a real part of the studio:
 //   scale  the scale builder: the 15-odd-limit palette, presets, the bar diagram, Scala export
 //   roll   the piano roll over the current scale: drone, chords and melody
 // On its own the page shows both. Opened for a lesson exercise (?lesson=…&task=…) it shows the
@@ -33,6 +33,7 @@ const newId = () => store.newId(Date.now().toString(36));
 // ----- what the page is for -----------------------------------------------------------
 // mode.view: 'full' (both views), 'scale' or 'roll'. A task adds its wording and finish rule.
 const mode = await readMode();
+// Storage keys keep the old 'workstation' name so saved work survives the rename.
 const lastKey = `nv:workstation:last${mode.task ? `:${mode.task.lessonId}:${mode.task.taskId}` : ''}`;
 const remember = id => { try { localStorage.setItem(lastKey, id); } catch (e) { /* storage blocked */ } };
 const recall = () => { try { return localStorage.getItem(lastKey); } catch (e) { return null; } };
@@ -40,7 +41,7 @@ const recall = () => { try { return localStorage.getItem(lastKey); } catch (e) {
 async function readMode() {
   const lessonId = params.get('lesson') || '', taskId = params.get('task') || '';
   if (!taskId) return { view: 'full', task: null, lessonId: /^[\w-]+$/.test(lessonId) ? lessonId : '' };
-  if (!/^[\w-]+$/.test(lessonId) || !/^[\w-]+$/.test(taskId)) return { view: 'full', task: null, problem: 'That exercise link is not valid, so this is the full workstation.' };
+  if (!/^[\w-]+$/.test(lessonId) || !/^[\w-]+$/.test(taskId)) return { view: 'full', task: null, problem: 'That exercise link is not valid, so this is the full studio.' };
   try {
     const response = await fetch(`../lessons/${lessonId}.json`, { cache: 'no-store' });
     if (!response.ok) throw new Error(String(response.status));
@@ -48,20 +49,20 @@ async function readMode() {
     const items = (lesson.sections?.exercises?.items ?? []).filter(item => item.task);
     const item = items.find(entry => entry.task === taskId);
     if (!item) throw new Error('unknown task');
-    const setup = item.workstation ?? {};
+    const setup = item.studio ?? item.workstation ?? {};
     return {
       view: setup.view === 'scale' ? 'scale' : 'roll',
       task: {
         lessonId, taskId, lessonTitle: String(lesson.title || ''), title: String(item.title || ''), body: String(item.body || ''),
         criteria: item.criteria ?? {}, completeOn: setup.completeOn === 'export' ? 'export' : 'save',
         lane: setup.lane === 'chords' ? 'chords' : 'melody', bars: Number(setup.bars) || 8,
-        scaleTask: setup.scaleFrom || items.find(entry => entry.workstation?.view === 'scale')?.task || '',
+        scaleTask: setup.scaleFrom || items.find(entry => (entry.studio ?? entry.workstation)?.view === 'scale')?.task || '',
         all: items.map(entry => ({ id: entry.task, title: String(entry.title || '') })),
         back: `../template.html?lesson=lessons/${lessonId}.json&section=exercises`,
       },
     };
   } catch (error) {
-    return { view: 'full', task: null, problem: 'The exercise could not be loaded, so this is the full workstation.' };
+    return { view: 'full', task: null, problem: 'The exercise could not be loaded, so this is the full studio.' };
   }
 }
 
@@ -604,8 +605,8 @@ function setUpFrame() {
   $('scaleCard').hidden = mode.view === 'roll';
   $('rollCard').hidden = mode.view === 'scale';
   if (mode.task) {
-    document.title = `${mode.task.title} · Workstation · Nick Vuci`;
-    $('appName').textContent = mode.view === 'scale' ? 'Workstation · Scale' : 'Workstation · Piano roll';
+    document.title = `${mode.task.title} · Studio · Nick Vuci`;
+    $('appName').textContent = mode.view === 'scale' ? 'Studio · Scale' : 'Studio · Piano roll';
     $('taskBack').href = mode.task.back;
     left.textContent = 'Exercises';
     left.addEventListener('click', () => { transport.stop(); window.location.href = mode.task.back; });

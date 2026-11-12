@@ -1,0 +1,97 @@
+{
+  "title": "Scales",
+  "description": "A set of pitches ordered by height, usually repeating at a period.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Scales",
+      "body": "A set of pitches ordered by height, usually repeating at a period.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Intervals",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/intervals.json"
+        },
+        {
+          "label": "MOS",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/moments-of-symmetry.json"
+        },
+        {
+          "label": "Melodies",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/melodies.json"
+        },
+        {
+          "label": "Just Intonation",
+          "body": "Related idea",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Scales",
+      "word": "scales",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Scales",
+      "prompt": "The Scales lab will go here.",
+      "ariaLabel": "Scales lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is a scale?",
+      "choices": [
+        {
+          "text": "A set of pitches ordered by height, usually repeating at a period such as the octave.",
+          "correct": true
+        },
+        {
+          "text": "Any chord with four notes.",
+          "correct": false
+        },
+        {
+          "text": "The loudest notes in a piece.",
+          "correct": false
+        },
+        {
+          "text": "A tempo marking.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "scales-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "scales"
+}

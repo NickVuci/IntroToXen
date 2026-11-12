@@ -1819,7 +1819,7 @@ html { color-scheme: dark !important; }
   padding-top: 0.8rem;
 }
 
-/* ----- exercises linked to the workstation ----- */
+/* ----- exercises linked to the studio ----- */
 .exerciseWrap { width: min(1040px, 100%); display: grid; gap: 0.6rem; min-height: 0; max-height: 100%; }
 .exerciseItem .exerciseOpen {
   display: inline-block;

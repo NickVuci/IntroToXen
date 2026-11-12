@@ -1,0 +1,87 @@
+{
+  "title": "Harmonies",
+  "description": "Chords sounding together and moving from one to the next.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Harmonies",
+      "body": "Chords sounding together and moving from one to the next.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Chords",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/chords.json"
+        },
+        {
+          "label": "Just Intonation",
+          "body": "Related idea",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Harmonies",
+      "word": "harmonies",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Harmonies",
+      "prompt": "The Harmonies lab will go here.",
+      "ariaLabel": "Harmonies lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What does harmony describe?",
+      "choices": [
+        {
+          "text": "How chords sound together and move from one to the next.",
+          "correct": true
+        },
+        {
+          "text": "Only the rhythm of a melody.",
+          "correct": false
+        },
+        {
+          "text": "How loud each note is.",
+          "correct": false
+        },
+        {
+          "text": "The tuning of a single note.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "harmonies-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "harmonies"
+}

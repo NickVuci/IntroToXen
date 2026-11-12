@@ -1,0 +1,92 @@
+{
+  "title": "Chords",
+  "description": "Three or more pitches sounded together.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Chords",
+      "body": "Three or more pitches sounded together.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Intervals",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/intervals.json"
+        },
+        {
+          "label": "Harmonies",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/harmonies.json"
+        },
+        {
+          "label": "Just Intonation",
+          "body": "Related idea",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Chords",
+      "word": "chords",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Chords",
+      "prompt": "The Chords lab will go here.",
+      "ariaLabel": "Chords lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is a chord?",
+      "choices": [
+        {
+          "text": "Three or more pitches sounded together.",
+          "correct": true
+        },
+        {
+          "text": "Two notes played one after another.",
+          "correct": false
+        },
+        {
+          "text": "A single pitch held for a long time.",
+          "correct": false
+        },
+        {
+          "text": "A rhythm pattern.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "chords-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "chords"
+}

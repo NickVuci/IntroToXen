@@ -1,0 +1,87 @@
+{
+  "title": "NEJI",
+  "description": "Near-equal just intonation: a JI scale whose steps are nearly equal, approximating an equal tuning.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "NEJI",
+      "body": "Near-equal just intonation: a JI scale whose steps are nearly equal, approximating an equal tuning.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Just Intonation",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        },
+        {
+          "label": "Equal Tunings",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/equal-tuning.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=NEJI",
+      "word": "neji",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=NEJI",
+      "prompt": "The NEJI lab will go here.",
+      "ariaLabel": "NEJI lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is a NEJI?",
+      "choices": [
+        {
+          "text": "A just-intonation scale chosen so its steps are nearly equal, approximating an equal tuning.",
+          "correct": true
+        },
+        {
+          "text": "An EDO with more than 72 notes.",
+          "correct": false
+        },
+        {
+          "text": "A temperament with no commas.",
+          "correct": false
+        },
+        {
+          "text": "A scale built only from fifths.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "neji-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "neji"
+}

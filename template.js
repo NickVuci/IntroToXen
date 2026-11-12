@@ -44,7 +44,7 @@
       label: "Exercises",
       items: []
     },
-    // The workstation, embedded for the lesson's "make" exercises. Shown only when a lesson defines it.
+    // The studio, embedded for the lesson's "make" exercises. Shown only when a lesson defines it.
     compose: {
       enabled: false,
       label: "Compose",
@@ -314,19 +314,19 @@
       const checkbox = el("input");
       checkbox.type = "checkbox";
       checkbox.setAttribute("aria-label", asText(item?.title, `Exercise ${index + 1}`));
-      // Every exercise remembers its tick. One with a "task" is also ticked by the workstation.
+      // Every exercise remembers its tick. One with a "task" is also ticked by the studio.
       checkbox.dataset.exercise = asText(item?.task, `exercise-${index + 1}`);
       const text = el("span", "exerciseText");
       appendText(text, "strong", item?.title ?? `Exercise ${index + 1}`);
       appendText(text, "p", item?.body ?? "");
       row.append(checkbox, text);
       if (item?.task) {
-        // The exercise opens the part of the workstation it needs, set up for this task.
-        // The workstation records the tick; this page reads it on return.
+        // The exercise opens the part of the studio it needs, set up for this task.
+        // The studio records the tick; this page reads it on return.
         checkbox.dataset.task = asText(item.task);
-        const view = item.workstation?.view === "scale" ? "scale" : "roll";
+        const view = (item.studio ?? item.workstation)?.view === "scale" ? "scale" : "roll";
         const open = el("a", "exerciseOpen", view === "scale" ? "Open the scale builder" : "Open the piano roll");
-        open.href = `workstation/index.html?lesson=${encodeURIComponent(lessonId)}&task=${encodeURIComponent(asText(item.task))}`;
+        open.href = `studio/index.html?lesson=${encodeURIComponent(lessonId)}&task=${encodeURIComponent(asText(item.task))}`;
         row.append(open);
       }
       checklist.appendChild(row);
@@ -339,7 +339,7 @@
     return section("exercises", config.label, inner);
   }
 
-  // The workstation takes the lab's frame and styles; data-role tells the two apart.
+  // The studio takes the lab's frame and styles; data-role tells the two apart.
   function renderCompose(config) {
     const rendered = renderLab({ ...config, label: asText(config.label, defaults.compose.label) });
     rendered.dataset.role = "compose";
@@ -355,7 +355,7 @@
     compose: renderCompose
   };
 
-  // ----- exercises, the workstation and completion -----
+  // ----- exercises, the studio and completion -----
 
   function composeFrame() {
     return document.querySelector('.sectionLayer[data-role="compose"] iframe');
@@ -405,7 +405,7 @@
     refreshCompletion();
   }
 
-  // Messages from the lab and the workstation (same origin only).
+  // Messages from the lab and the studio (same origin only).
   window.addEventListener("message", event => {
     if (event.origin !== window.location.origin) return;
     const message = event.data || {};
@@ -423,8 +423,8 @@
       }
       return;
     }
-    // The lab has left a handoff for the workstation. With the workstation embedded, show it and
-    // tell it to collect; otherwise open the full workstation, which collects on load.
+    // The lab has left a handoff for the studio. With the studio embedded, show it and
+    // tell it to collect; otherwise open the full studio, which collects on load.
     if (message.type === "lesson-handoff") {
       const fromLab = Array.from(document.querySelectorAll(".sectionLayer iframe")).some(frame => frame !== compose && frame.contentWindow === event.source);
       if (!fromLab) return;
@@ -432,7 +432,7 @@
         postToCompose({ type: "lesson-handoff" });
         goTo(composeIndex());
       } else {
-        window.location.href = `workstation/index.html?lesson=${encodeURIComponent(lessonId)}`;
+        window.location.href = `studio/index.html?lesson=${encodeURIComponent(lessonId)}`;
       }
     }
   });
@@ -817,7 +817,7 @@
     updateNavigation();
     activateSection(current);
 
-    // ?section=exercises (on the way back from the workstation) opens that section directly.
+    // ?section=exercises (on the way back from the studio) opens that section directly.
     const wanted = new URLSearchParams(window.location.search).get("section");
     const start = wanted ? sections.findIndex(section => (section.dataset.role || section.dataset.sectionType) === wanted) : -1;
     if (start > 0) goTo(start, true);

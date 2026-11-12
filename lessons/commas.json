@@ -1,0 +1,87 @@
+{
+  "title": "Commas",
+  "description": "Tiny intervals that appear when two routes through JI reach almost the same pitch.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Commas",
+      "body": "Tiny intervals that appear when two routes through JI reach almost the same pitch.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Just Intonation",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        },
+        {
+          "label": "Temperament",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/temperaments.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Commas",
+      "word": "commas",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Commas",
+      "prompt": "The Commas lab will go here.",
+      "ariaLabel": "Commas lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is a comma?",
+      "choices": [
+        {
+          "text": "A small interval between two nearly equal pitches reached by different routes, such as 81/80.",
+          "correct": true
+        },
+        {
+          "text": "A pause between phrases.",
+          "correct": false
+        },
+        {
+          "text": "The largest step in a scale.",
+          "correct": false
+        },
+        {
+          "text": "A kind of chord.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "commas-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "commas"
+}

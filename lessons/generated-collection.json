@@ -1,11 +1,11 @@
 {
-  "title": "Generated Collection",
+  "title": "Generator",
   "description": "A pitch collection made by stacking a generator within a period.",
   "backHref": "index.html",
   "sections": {
     "title": {
       "label": "Title",
-      "heading": "Generated Collection",
+      "heading": "Generator",
       "body": "A generated collection is made by repeatedly applying one interval, called a generator, and folding the results into a period. This is a compact way to build scales with strong internal structure.",
       "startButton": "Start lesson",
       "prerequisites": [
@@ -17,8 +17,13 @@
       ],
       "relatedConcepts": [
         {
-          "label": "Moments of Symmetry",
-          "body": "Many generated collections become MOS scales at special cardinalities.",
+          "label": "Intervals",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/intervals.json"
+        },
+        {
+          "label": "MOS",
+          "body": "Comes next",
           "href": "template.html?lesson=lessons/moments-of-symmetry.json"
         }
       ]
@@ -26,14 +31,18 @@
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/example.html",
+      "file": "animations/placeholder.html?concept=Generator",
       "word": "generator",
       "durationMs": 7800,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
     "lab": {
-      "enabled": false
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Generator",
+      "prompt": "The Generator lab will go here.",
+      "ariaLabel": "Generator lab placeholder"
     },
     "qa": {
       "enabled": true,
@@ -70,8 +79,24 @@
         {
           "title": "Fold into a period",
           "body": "Explain why reducing generated notes into the period makes a scale easier to compare."
+        },
+        {
+          "kind": "make",
+          "task": "generated-collection-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
         }
       ]
     }
-  }
+  },
+  "node": "generated-collection"
 }
