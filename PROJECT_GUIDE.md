@@ -127,7 +127,7 @@ Every musical object keeps three things apart: its mathematical identity, its ma
 - **Hosting:** free GitHub Pages for now.
 - **Core logic:** xen-tun-core (TypeScript) is the main logic of the suite, as self-sufficient as possible. It covers the math engine and at least part of the musical data model, built to one JS file imported by plain-JavaScript pages.
 - **UI:** plain JavaScript throughout; no React.
-- **Storage:** progress and saved work live client-side, with an export/import session file.
+- **Storage:** progress and saved work live client-side. Single projects already export and import (.xenproj.json); a whole-session export/import is still to build.
 - **Lab completion:** each lab defines its own completion task.
 - **Wiki:** the Xen Wiki is the only wiki linked.
 - **Site layout:** `shared/` (CSS, audio engine, math bundle) and `playground/` (concept map, lessons, labs, practice, workstation).
