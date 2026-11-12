@@ -127,6 +127,7 @@ Every musical object keeps three things apart: its mathematical identity, its ma
 - **Hosting:** free GitHub Pages for now.
 - **Core logic:** xen-tun-core (TypeScript) is the main logic of the suite, as self-sufficient as possible. It covers the math engine and at least part of the musical data model, built to one JS file imported by plain-JavaScript pages.
 - **UI:** plain JavaScript throughout; no React.
+- **One source for math and sound:** pages take interval math from `shared/xen/` (`tuning.js` for stored interval text, `ji.js` for fast small-number JI, both on xen-tune-core) and play through `audio/synth.js`, adding their own timbres with `XenAudio.defineVoice`. No page keeps its own copy. The one exception is the Practice Room's microphone pitch tracker, which needs a separate input-only audio context.
 - **Storage:** progress and saved work live client-side. Single projects already export and import (.xenproj.json); a whole-session export/import is still to build.
 - **Lab completion:** each lab defines its own completion task.
 - **Wiki:** the Xen Wiki is the only wiki linked.

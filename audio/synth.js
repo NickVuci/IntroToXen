@@ -22,6 +22,7 @@
 
   function stopAll() {
     playbackGeneration += 1;
+    pendingDrones.clear();
     stopNotes();
     drones.forEach(drone => {
       releaseVoice(drone);
@@ -56,6 +57,15 @@
   let voiceLimit = 64;
   let outputCeiling = 0.8;
   let outputLimiter = null;
+  let keepRunning = false; // resume if the browser suspends output (it can when a microphone opens)
+  let pageSuspended = false;
+
+  function watchState() {
+    if (!audioContext) return;
+    audioContext.onstatechange = keepRunning
+      ? () => { if (!pageSuspended && active && audioContext.state === "suspended") audioContext.resume().catch(() => {}); }
+      : null;
+  }
 
   function limiterCurve(ceiling) {
     const curve = new Float32Array(8193);
@@ -67,7 +77,12 @@
   }
 
   function configurePlayback(options = {}) {
-    if (Number.isFinite(options.maxVoices)) voiceLimit = Math.max(1, Math.min(64, Math.floor(options.maxVoices)));
+    // Up to 1024: pages that schedule long passages ahead (the Reference Library) need room for every note.
+    if (Number.isFinite(options.maxVoices)) voiceLimit = Math.max(1, Math.min(1024, Math.floor(options.maxVoices)));
+    if (typeof options.keepRunning === "boolean") {
+      keepRunning = options.keepRunning;
+      watchState();
+    }
     if (Number.isFinite(options.outputCeiling)) {
       outputCeiling = clamp(options.outputCeiling, 0.02, 0.8);
       if (outputLimiter) outputLimiter.curve = limiterCurve(outputCeiling);
@@ -164,6 +179,47 @@
     return voices[name] || voices.default;
   }
 
+  // Pages can add their own timbres (the Reference Library's and the Practice Room's), so every
+  // page plays through this one engine. A voice with `harmonics` (amplitudes of partials 1, 2, 3...)
+  // uses that spectrum in place of `waveform`.
+  const NUMERIC = ["colorGain", "attack", "decay", "sustain", "release", "filterFrequency", "gain"];
+  function defineVoice(name, preset = {}) {
+    const key = String(name || "");
+    if (!key) throw new Error("A voice needs a name.");
+    const base = { ...voices.default, colorGain: 0 };
+    const voice = { ...base, ...preset };
+    NUMERIC.forEach(field => {
+      if (!Number.isFinite(Number(voice[field])) || Number(voice[field]) < 0) throw new Error(`Voice "${key}": ${field} must be a number of at least 0.`);
+      voice[field] = Number(voice[field]);
+    });
+    if (voice.harmonics !== undefined) {
+      if (!Array.isArray(voice.harmonics) || !voice.harmonics.length || voice.harmonics.some(a => !Number.isFinite(Number(a)))) {
+        throw new Error(`Voice "${key}": harmonics must be a list of partial amplitudes.`);
+      }
+      voice.harmonics = voice.harmonics.map(Number);
+    }
+    voices[key] = Object.freeze(voice);
+    return key;
+  }
+
+  const waveCache = new WeakMap(); // context -> Map(voice preset -> PeriodicWave)
+  function setWaveform(oscillator, context, preset) {
+    if (!preset.harmonics || typeof context.createPeriodicWave !== "function") {
+      oscillator.type = preset.waveform;
+      return;
+    }
+    if (!waveCache.has(context)) waveCache.set(context, new Map());
+    const cache = waveCache.get(context);
+    if (!cache.has(preset)) {
+      const size = preset.harmonics.length + 1;
+      const real = new Float32Array(size);
+      const imag = new Float32Array(size);
+      preset.harmonics.forEach((amplitude, i) => { imag[i + 1] = amplitude; });
+      cache.set(preset, context.createPeriodicWave(real, imag));
+    }
+    oscillator.setPeriodicWave(cache.get(preset));
+  }
+
   function outputGainValue() {
     return muted ? 0 : masterVolume;
   }
@@ -212,6 +268,7 @@
     masterGain = audioContext.createGain();
     masterGain.gain.value = outputGainValue();
     compressor = connectProtectedOutput(audioContext, masterGain, audioContext.destination);
+    watchState();
     return audioContext;
   }
 
@@ -220,18 +277,34 @@
     const generation = playbackGeneration;
     const context = ensureAudio();
     if (!context) return false;
+    pageSuspended = false;
     if (context.state === "suspended") await context.resume();
     return active && generation === playbackGeneration;
   }
 
   async function suspend() {
     if (!audioContext) return;
+    pageSuspended = true;
     await audioContext.suspend();
   }
 
   function currentTime() {
     const context = ensureAudio();
     return context ? context.currentTime : 0;
+  }
+
+  // The context time whose sound is reaching the speakers now. Visual cues that follow the audio
+  // use this, which absorbs output latency (large on Bluetooth and some laptops).
+  function outputTime() {
+    const context = ensureAudio();
+    if (!context) return 0;
+    try {
+      if (context.getOutputTimestamp) {
+        const stamp = context.getOutputTimestamp();
+        if (stamp && stamp.contextTime > 0) return stamp.contextTime;
+      }
+    } catch (_) { /* fall through */ }
+    return context.currentTime - (context.outputLatency || 0) - (context.baseLatency || 0);
   }
 
   function setMasterVolume(value) {
@@ -285,7 +358,7 @@
     const release = context.createGain();
     const filter = context.createBiquadFilter();
 
-    main.type = preset.waveform;
+    setWaveform(main, context, preset);
     color.type = preset.colorWaveform;
     main.frequency.setValueAtTime(frequency, when);
     color.frequency.setValueAtTime(frequency * 2, when);
@@ -350,10 +423,19 @@
     });
   }
 
+  // Drone starts still waiting on resume(), by id. stopDrone() or a newer start for the same id
+  // replaces the token, so a start that was cancelled while the context resumed never sounds.
+  const pendingDrones = new Map();
+
   async function startDrone(options = {}) {
     const generation = playbackGeneration;
-    if (!(await resume()) || !active || generation !== playbackGeneration) return false;
     const id = String(options.id || "drone");
+    const token = {};
+    pendingDrones.set(id, token);
+    const ready = await resume();
+    if (pendingDrones.get(id) !== token) return false; // stopped or superseded while resuming
+    pendingDrones.delete(id);
+    if (!ready || !active || generation !== playbackGeneration) return false;
     const preset = voicePreset(options.voice || "drone");
     if (drones.has(id)) {
       updateDrone({
@@ -379,7 +461,7 @@
     filter.frequency.value = preset.filterFrequency;
     filter.Q.value = 0.45;
     gain.gain.value = 0.000001;
-    main.type = preset.waveform;
+    setWaveform(main, audioContext, preset);
     color.type = preset.colorWaveform;
     main.frequency.value = frequency;
     color.frequency.value = frequency * 2;
@@ -421,8 +503,9 @@
 
   function stopDrone(id = "drone", rampTime = 0.05) {
     const key = String(id);
+    const cancelledStart = pendingDrones.delete(key);
     const drone = drones.get(key);
-    if (!drone || !audioContext) return false;
+    if (!drone || !audioContext) return cancelledStart;
     const now = audioContext.currentTime;
     drone.gain.gain.cancelScheduledValues(now);
     drone.gain.gain.setTargetAtTime(0.000001, now, Number(rampTime) || 0.05);
@@ -540,6 +623,8 @@
     suspend,
     isAvailable,
     currentTime,
+    outputTime,
+    defineVoice,
     setMasterVolume,
     setMuted,
     playTone,

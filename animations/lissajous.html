@@ -280,7 +280,8 @@
     </form>
   </main>
 
-  <script>
+  <script type="module">
+    import * as J from "../shared/xen/ji.js"; // shared interval math
     (() => {
       const TAU = Math.PI * 2;
       const PRESETS = new Set(["3/2", "5/4", "7/4", "9/8", "11/8", "16/15"]);
@@ -343,14 +344,7 @@
       }
 
       function gcd(a, b) {
-        let x = Math.abs(Math.round(a));
-        let y = Math.abs(Math.round(b));
-        while (y) {
-          const t = y;
-          y = x % y;
-          x = t;
-        }
-        return x || 1;
+        return J.gcd(Math.abs(Math.round(a)), Math.abs(Math.round(b))) || 1;
       }
 
       function parseRatio(value) {
@@ -369,7 +363,7 @@
       }
 
       function centsForRatio() {
-        return 1200 * Math.log2(state.numerator / state.denominator);
+        return J.cents(state.numerator, state.denominator);
       }
 
       function effectiveCents() {

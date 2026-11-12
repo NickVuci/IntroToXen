@@ -1,6 +1,6 @@
 # Roadmap
 
-Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (main at 171cdda). The MVP loop (phases 2 to 6) works for the JI lesson. Most remaining work is breadth: real videos, labs and tasks for the other lessons, moving the Reference Library and Practice Room onto the shared core, and folding in the prototypes and other repos.
+Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (main at 171cdda). The MVP loop (phases 2 to 6) works for the JI lesson. Most remaining work is breadth: real videos, labs and tasks for the other lessons, and folding in the prototypes and other repos.
 
 ## Phase status
 
@@ -33,18 +33,21 @@ Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (ma
 ### Reference Library
 
 - [x] The fifteen-limit atlas, renamed the Reference Library, is at `library/index.html`, linked from the map page's header.
-- [ ] Move it onto the shared core.
+- [x] Its math comes from `shared/xen/ji.js` and its sound from `audio/synth.js`.
 
 ### Practice Room
 
 - [x] The odd-limit ear trainer (copied from NickVuci/OddLimitEarTrainer at 95695ee) is the Practice Room MVP at `practice/index.html`, linked from the map page's header.
-- [ ] Move it onto the shared core, and decide whether the separate repo and site are retired or kept in sync.
+- [x] Its math comes from `shared/xen/ji.js` and its sound from `audio/synth.js`; only the microphone's input-only pitch tracker keeps its own audio context.
+- [ ] Decide whether the separate OddLimitEarTrainer repo and site are retired or kept in sync.
 
 ### Studio
 
 - [x] The workstation is renamed the Studio (`studio/`), linked from the map; `workstation/` redirects. Storage keys keep the `nv:workstation:` prefix so saved work survives.
 
-### Audio
+### One source for math and sound
+
+- [x] Every page outside `applets/prototypes/` takes interval math from `shared/xen/` (`ji.js` for small-number JI on xen-tune-core, `tuning.js` for interval text) and plays through `audio/synth.js`. Pages add their own timbres with `XenAudio.defineVoice`. Tests in `tests/ji.test.mjs` show the move changed no result.
 
 - [ ] Move `audio/synth.js` from a global script into `shared/` as a module behind the existing adapter.
 
@@ -64,9 +67,8 @@ Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (ma
 1. Concept map nodes and links as data.
 2. Five-stage lesson format and the lab bridge, proven on the JI lesson.
 3. Whole-session export/import.
-4. Reference Library and Practice Room onto the shared core.
 5. Remaining lessons, then the Practice Room and the other repos.
 
 ## Testing
 
-`node --test tests/*.test.*` runs 7 test files, 62 tests, all passing on Node 22. `tests/browser-flow.mjs` is a manual Playwright walk through the JI lesson.
+`node --test tests/*.test.*` runs 8 test files, 74 tests, all passing on Node 22. `tests/browser-flow.mjs` is a manual Playwright walk through the JI lesson.

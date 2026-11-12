@@ -139,3 +139,106 @@ test('every accepted template navigation pauses animation and updates frame acti
     'pause', [0, false], [1, false], [2, true],
     'pause', [0, true], [1, false], [2, false], 'reset']);
 });
+
+test('pages can define voices; a harmonic spectrum becomes a periodic wave', async () => {
+  const { audio, oscillators } = setup();
+  audio.defineVoice('rich-test', { harmonics: [1, 0.5, 0.25], attack: 0.03, decay: 0, sustain: 1, release: 0.25 });
+  assert.throws(() => audio.defineVoice('bad', { attack: -1 }));
+  assert.throws(() => audio.defineVoice('bad', { harmonics: [] }));
+  assert.throws(() => audio.defineVoice('', {}));
+  // without createPeriodicWave the voice falls back to its waveform rather than failing
+  await audio.playTone({ frequency: 330, voice: 'rich-test' });
+  const main = oscillators.at(-2);
+  assert.equal(main.type, 'sine');
+});
+
+test('a harmonic voice uses one cached periodic wave per context', async () => {
+  const oscillators = [];
+  const made = [];
+  const param = () => ({ value: 0, setValueAtTime() {}, setTargetAtTime() {}, linearRampToValueAtTime() {}, cancelScheduledValues() {} });
+  class Context {
+    constructor() { this.currentTime = 1; this.state = 'running'; }
+    createGain() { return { context: this, gain: param(), connect() {}, disconnect() {} }; }
+    createWaveShaper() { return { connect() {} }; }
+    createDynamicsCompressor() { return { threshold: param(), knee: param(), ratio: param(), attack: param(), release: param(), connect() {} }; }
+    createBiquadFilter() { return { frequency: param(), Q: param(), connect() {} }; }
+    createPeriodicWave(real, imag) { const wave = { real: Array.from(real), imag: Array.from(imag) }; made.push(wave); return wave; }
+    createOscillator() { const node = { frequency: param(), connect() {}, start() {}, stop() {}, setPeriodicWave(w) { node.wave = w; } }; oscillators.push(node); return node; }
+  }
+  const window = { AudioContext: Context, dispatchEvent() {} };
+  vm.runInNewContext(source, { window, Event });
+  const audio = window.XenAudio;
+  audio.defineVoice('rich-test', { harmonics: [1, 0.5, 0.25] });
+  await audio.playTone({ frequency: 220, voice: 'rich-test' });
+  await audio.playTone({ frequency: 330, voice: 'rich-test' });
+  await audio.startDrone({ id: 'd', frequency: 110, voice: 'rich-test' });
+  assert.equal(made.length, 1);
+  assert.deepEqual(made[0].imag, [0, 1, 0.5, 0.25]);
+  const mains = oscillators.filter(o => o.wave);
+  assert.equal(mains.length, 3);
+  assert.ok(mains.every(o => o.wave === made[0]));
+});
+
+test('long schedules can raise the voice limit, and the audible clock is never ahead of the context', async () => {
+  const { audio, oscillators } = setup();
+  audio.configurePlayback({ maxVoices: 400 });
+  for (let i = 0; i < 300; i++) await audio.playTone({ frequency: 220 + i, when: 1 + i * 0.1, duration: 0.2 });
+  const released = oscillators.filter(o => o.stops.length > 1);
+  assert.equal(released.length, 0, 'no scheduled note was cut to make room');
+  assert.ok(audio.outputTime() <= audio.currentTime());
+});
+
+// A context that stays suspended until the test lets resume() finish, to reach the window
+// between asking for a drone and the engine registering it.
+function slowResume() {
+  const started = [];
+  const waiting = [];
+  const param = () => ({ value: 0, setValueAtTime() {}, setTargetAtTime() {}, linearRampToValueAtTime() {}, cancelScheduledValues() {} });
+  class Context {
+    constructor() { this.currentTime = 1; this.state = 'suspended'; }
+    resume() { return new Promise(done => waiting.push(() => { this.state = 'running'; done(); })); }
+    createGain() { return { context: this, gain: param(), connect() {}, disconnect() {} }; }
+    createWaveShaper() { return { connect() {} }; }
+    createDynamicsCompressor() { return { threshold: param(), knee: param(), ratio: param(), attack: param(), release: param(), connect() {} }; }
+    createBiquadFilter() { return { frequency: param(), Q: param(), connect() {} }; }
+    createOscillator() { const node = { frequency: param(), connect() {}, start() { started.push(node); }, stop() {} }; return node; }
+  }
+  const window = { AudioContext: Context, dispatchEvent() {} };
+  vm.runInNewContext(source, { window, Event });
+  return { audio: window.XenAudio, started, resume: () => { waiting.splice(0).forEach(go => go()); return new Promise(r => setImmediate(r)); } };
+}
+
+test('a drone stopped while the context is still resuming never starts', async () => {
+  const { audio, started, resume } = slowResume();
+  const starting = audio.startDrone({ id: 'sing', frequency: 220 });
+  await new Promise(r => setImmediate(r));
+  assert.equal(audio.stopDrone('sing'), true, 'stopping a pending start counts as stopping it');
+  await resume();
+  assert.equal(await starting, false);
+  assert.equal(started.length, 0, 'no oscillator sounds after the stop');
+  assert.equal(audio.stopDrone('sing'), false, 'nothing is left to stop');
+});
+
+test('stopAll also cancels a pending drone, and a later start still works', async () => {
+  const { audio, started, resume } = slowResume();
+  const first = audio.startDrone({ id: 'sing', frequency: 220 });
+  await new Promise(r => setImmediate(r));
+  audio.stopAll();
+  await resume();
+  assert.equal(await first, false);
+  assert.equal(started.length, 0);
+  assert.equal(await audio.startDrone({ id: 'sing', frequency: 220 }), true);
+  assert.equal(started.length, 2, 'main and colour oscillators of the new drone');
+});
+
+test('of two starts for one drone while resuming, only the newest sounds', async () => {
+  const { audio, started, resume } = slowResume();
+  const older = audio.startDrone({ id: 'sing', frequency: 220 });
+  const newer = audio.startDrone({ id: 'sing', frequency: 330 });
+  await new Promise(r => setImmediate(r));
+  await resume();
+  assert.equal(await older, false);
+  assert.equal(await newer, true);
+  assert.equal(started.length, 2);
+  assert.equal(started[0].frequency.value, 330);
+});
