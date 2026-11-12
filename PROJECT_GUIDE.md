@@ -159,13 +159,13 @@ The complete-loop MVP is phases 1 to 6; phase 7 starts expansion with MOS.
 
 | Phase | Deliverable | Status |
 | --- | --- | --- |
-| 1 | Existing-code and dependency audit | Done |
-| 2 | Shared math and musical-data foundation | In progress |
-| 3 | Shared audio engine (arbitrary pitch, polyphony, drones, scheduling) | Not recorded |
-| 4 | Minimal standalone workstation: drone, ratio-aware sequencing, editing, playback, persistence | Not recorded |
-| 5 | Classroom integration: JI lab on the shared engine, focused workstation view in the composition stage | Not recorded |
-| 6 | End-to-end check: explore ratios in the lab, use them in a composition, save, continue in the workstation | Not recorded |
-| 7 | Expansion, starting with MOS | Not recorded |
+| 1 | Existing-code and dependency audit | Done (see ROADMAP.md) |
+| 2 | Shared math and musical-data foundation | Done for the MVP |
+| 3 | Shared audio engine (arbitrary pitch, polyphony, drones, scheduling) | Working; to be moved into `shared/` |
+| 4 | Minimal standalone workstation: drone, ratio-aware sequencing, editing, playback, persistence | Done |
+| 5 | Classroom integration: JI lab on the shared engine, focused workstation view in the composition stage | Done for JI |
+| 6 | End-to-end check: explore ratios in the lab, use them in a composition, save, continue in the workstation | Done for JI |
+| 7 | Expansion, starting with MOS | Not started |
 
 ## Related projects
 
