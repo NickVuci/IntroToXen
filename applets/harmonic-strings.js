@@ -1,23 +1,20 @@
-(function () {
-  'use strict';
-  const gcd = (a, b) => b ? gcd(b, a % b) : a;
-  function ratio(n) {
-    const d = 2 ** Math.floor(Math.log2(n)), g = gcd(n, d);
-    return `${n / g}/${d / g}`;
+// Harmonic strings: drawing and colour for the harmonic series lab. Interval math is shared/xen/ji.js.
+import * as J from '../shared/xen/ji.js';
+
+  /** Harmonic n brought into the octave above 1/1, as ratio text: 3 -> "3/2". */
+  export function ratio(n) {
+    const [num, den] = J.octaveReduce(n, 1);
+    return J.ratioKey(num, den);
   }
-  function displacement(n, x, time) {
+  export function displacement(n, x, time) {
     return Math.sin(n * Math.PI * x) * Math.cos(2 * Math.PI * n * time);
   }
   // Match hInfo/lpf in the original workbench prototype.
-  function colourToken(n) {
-    let largest = 1;
-    for (let factor = 2; factor * factor <= n; factor++) {
-      while (n % factor === 0) { largest = factor; n /= factor; }
-    }
-    if (n > 1) largest = n;
+  export function colourToken(n) {
+    const largest = J.primeLimit(n, 1);
     return largest <= 2 ? '--ink' : [3,5,7,11,13].includes(largest) ? `--p${largest}` : '--muted';
   }
-  function draw(canvas, n, time, amplitude = 0, selected = false) {
+  export function draw(canvas, n, time, amplitude = 0, selected = false) {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
     const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -46,7 +43,7 @@
       c.beginPath(); c.arc(6 + width * k / n, mid, Math.min(h*.22,k === 0 || k === n ? 2.5 : 1.3), 0, Math.PI * 2); c.fill();
     }
   }
-  function theme() {
+  export function theme() {
     try { const saved = localStorage.getItem('theme'); if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved; } catch (_) {}
     window.addEventListener('message', event => {
       if (event.source === parent && event.origin === location.origin && event.data?.type === 'lesson-theme') {
@@ -54,5 +51,5 @@
       }
     });
   }
-  window.HarmonicStrings = { ratio, displacement, colourToken, draw, theme };
-}());
+  // harmonic-series.js reads these as a global.
+  if (typeof window !== 'undefined') window.HarmonicStrings = { ratio, displacement, colourToken, draw, theme };

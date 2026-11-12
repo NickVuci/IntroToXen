@@ -168,7 +168,8 @@
     </section>
   </main>
 
-  <script>
+  <script type="module">
+    import * as J from "../shared/xen/ji.js"; // shared interval math
     const names = {
       "1/1": "unison",
       "8/7": "septimal whole tone",
@@ -195,15 +196,8 @@
       series.appendChild(node);
     }
 
-    function gcd(a, b) {
-      return b ? gcd(b, a % b) : a;
-    }
-
     function normalize(numerator, denominator) {
-      while (numerator < denominator) numerator *= 2;
-      while (numerator >= 2 * denominator) denominator *= 2;
-      const factor = gcd(numerator, denominator);
-      return `${numerator / factor}/${denominator / factor}`;
+      return J.ratioKey(...J.octaveReduce(numerator, denominator));
     }
 
     function meaning(denominator) {

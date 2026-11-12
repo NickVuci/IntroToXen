@@ -404,7 +404,8 @@
   </main>
 
   <script src="../audio/synth.js"></script>
-  <script>
+  <script type="module">
+    import * as J from "../shared/xen/ji.js"; // shared interval math
     const intervals = [
       { ratio: "1/1", name: "Unison", value: 1 },
       { ratio: "16/15", name: "Minor second", value: 16 / 15 },
@@ -421,7 +422,7 @@
       { ratio: "7/4", name: "Harmonic seventh", value: 7 / 4 },
       { ratio: "15/8", name: "Major seventh", value: 15 / 8 },
       { ratio: "2/1", name: "Octave", value: 2 }
-    ].map(item => ({ ...item, cents: 1200 * Math.log2(item.value), exact: true }));
+    ].map(item => ({ ...item, cents: J.cents(...item.ratio.split("/").map(Number)), exact: true }));
 
     // Every 15-odd-limit ratio from 1/1 to 2/1, built exactly from odd numbers up to 15.
     const ODD_LIMIT = 15;
@@ -429,24 +430,10 @@
     const SNAP_CENTS = 5;    // dragging with the mouse or finger snaps onto a ratio this close
     const FINE_STEP = 0.1, COARSE_STEP = 1, PAGE_STEP = 10;
     let lastFrameTime = performance.now();
-    function gcd(a, b) { return b ? gcd(b, a % b) : a; }
-    const lockTargets = (() => {
-      const seen = new Map();
-      for (let a = 1; a <= ODD_LIMIT; a += 2) {
-        for (let b = 1; b <= ODD_LIMIT; b += 2) {
-          let n = a, d = b;
-          while (n < d) n *= 2;
-          while (n >= 2 * d) d *= 2;
-          const g = gcd(n, d); n /= g; d /= g;
-          seen.set(`${n}/${d}`, { n, d });
-        }
-      }
-      seen.set("2/1", { n: 2, d: 1 });
-      return [...seen.entries()].map(([ratio, { n, d }]) => {
-        const named = intervals.find(item => item.ratio === ratio);
-        return { ratio, n, d, value: n / d, cents: 1200 * Math.log2(n / d), name: named ? named.name : ratio, exact: true };
-      }).sort((x, y) => x.cents - y.cents);
-    })();
+    const lockTargets = [...J.oddLimitIntervals(ODD_LIMIT), { n: 2, d: 1, key: "2/1", cents: 1200 }].map(({ n, d, key, cents }) => {
+      const named = intervals.find(item => item.ratio === key);
+      return { ratio: key, n, d, value: n / d, cents, name: named ? named.name : key, exact: true };
+    });
 
     const keyboardKeys = ["a", "s", "d", "f", "g", "h", "j", "k"];
     const bpm = 90;

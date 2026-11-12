@@ -200,14 +200,14 @@ test('partials enter every two seconds with softer high-harmonic levels', () => 
   assert.ok(vm.runInContext('stateAt(SERIES_START+.1).strings[2].droneGain < stateAt(SERIES_START+.3).strings[2].droneGain',context));
 });
 
-test('harmonic modes have fixed nodes and correct octave ratios', () => {
-  const window = {};
-  vm.runInNewContext(source('applets/harmonic-strings.js'), { window });
-  const model = window.HarmonicStrings;
+test('harmonic modes have fixed nodes and correct octave ratios', async () => {
+  const model = await import('../applets/harmonic-strings.js');
   for (let n = 1; n <= 64; n++) {
     for (let k = 0; k <= n; k++) assert.ok(Math.abs(model.displacement(n,k/n,.17)) < 1e-12);
   }
   assert.equal(model.ratio(3),'3/2');
   assert.equal(model.ratio(5),'5/4');
   assert.equal(model.ratio(16),'1/1');
+  // colours follow each harmonic's largest prime
+  assert.deepEqual([1,2,3,6,7,10,11,13,17].map(model.colourToken),['--ink','--ink','--p3','--p3','--p7','--p5','--p11','--p13','--muted']);
 });

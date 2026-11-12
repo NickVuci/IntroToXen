@@ -503,11 +503,14 @@ h2,h3{color:var(--nv-burgundy-ink)}
   <div class="dock-in" id="dock"></div>
 </aside>
 
-<script>
+<script src="../audio/synth.js"></script>
+<script type="module">
+// Math: shared/xen/ji.js (on xen-tune-core). Sound: audio/synth.js (XenAudio). No page-local copies.
+import * as J from "../shared/xen/ji.js";
 (function(){
 "use strict";
 const ODDS=[1,3,5,7,9,11,13,15];
-const PR=[2,3,5,7,11,13];
+const PR=[...J.PRIMES];
 const EDO_SHOW=[12,17,19,22,24,31,41,46,53,72];
 const NAMES={
  "1/1":"unison","2/1":"octave","3/2":"perfect fifth","4/3":"perfect fourth","5/4":"major third","8/5":"minor sixth",
@@ -530,20 +533,18 @@ try{const s=JSON.parse(localStorage.getItem("fla")||"{}");
 function save(){try{localStorage.setItem("fla",JSON.stringify({lim:S.lim,base:S.base,rich:S.rich,thr:S.thr}))}catch(e){}}
 
 /* ---------- math ---------- */
-function gcd(a,b){while(b){const t=a%b;a=b;b=t}return a}
-function red(n,d){const g=gcd(n,d);return[n/g,d/g]}
-function octRed(n,d){while(n>=2*d)d*=2;while(n<d)n*=2;return red(n,d)}
-function oddPart(x){while(x%2===0)x/=2;return x}
-function factor(x){const f={};let p=2;while(x>1&&p<=x){while(x%p===0){f[p]=(f[p]||0)+1;x/=p}p++}return f}
-function monzo(n,d){const a=factor(n),b=factor(d);return PR.map(p=>(a[p]||0)-(b[p]||0))}
-function cents(n,d){return 1200*Math.log2(n/d)}
-function key(n,d){return n+"/"+d}
-function pLimit(n,d){const m=monzo(n,d);for(let i=PR.length-1;i>0;i--)if(m[i])return PR[i];return 2}
-function oLimit(n,d){return Math.max(oddPart(n),oddPart(d))}
+const red=J.reduce;
+const oddPart=J.oddPart;
+const octRed=J.octaveReduce;
+const monzo=(n,d)=>J.monzo(n,d,PR);
+const cents=J.cents;
+const key=J.ratioKey;
+const pLimit=(n,d)=>Math.max(2,J.primeLimit(n,d)); // this page shows 1/1 and 2/1 as 2-limit
+const oLimit=J.oddLimit;
 function fmtC(c){return c.toFixed(1)}
 function monzoStr(m){return "|"+m.join(" ")+"⟩"}
-function patent(n){return PR.map(p=>Math.round(n*Math.log2(p)))}
-function vanishes(m){const out=[];for(let n=5;n<=72;n++){const v=patent(n);let s=0;for(let i=0;i<PR.length;i++)s+=v[i]*m[i];if(s===0)out.push(n)}return out}
+const patent=n=>J.patentVal(n,PR);
+function vanishes(m){const out=[];for(let n=5;n<=72;n++)if(J.tempersOut(n,m,PR))out.push(n);return out}
 function odds(){return ODDS.filter(o=>o<=S.lim)}
 
 let SET=[],MAP=new Map();
@@ -558,41 +559,27 @@ function build(){
 }
 
 /* ---------- audio ---------- */
-let ac=null,master=null,wave=null;
-function audio(){
-  if(!ac){
-    const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return null;
-    ac=new AC();
-    const comp=ac.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=6;
-    master=ac.createGain();master.gain.value=0.5;master.connect(comp);comp.connect(ac.destination);
-    const real=new Float32Array([0,0,0,0,0,0,0,0,0]);
-    const imag=new Float32Array([0,1,0.55,0.32,0.2,0.13,0.08,0.05,0.03]);
-    wave=ac.createPeriodicWave(real,imag);
-  }
-  if(ac.state==="suspended")ac.resume();
-  return ac;
+/* Sound comes from the shared engine (audio/synth.js). This page adds its two timbres to it. */
+const A=window.XenAudio;
+const AUDIO_GAIN=0.5; // this page's former master level, so loudness stays as it was
+if(A){
+  A.defineVoice("library-rich",{harmonics:[1,0.55,0.32,0.2,0.13,0.08,0.05,0.03],attack:0.03,decay:0,sustain:1,release:0.25,filterFrequency:20000});
+  A.defineVoice("library-sine",{waveform:"sine",attack:0.03,decay:0,sustain:1,release:0.25,filterFrequency:20000});
+  A.configurePlayback({maxVoices:1024}); // long passages are scheduled ahead in one go
 }
-const ACTIVE=new Set();
+function audio(){return A&&A.isAvailable()?A:null}
 /* Visual cues follow the audio clock, not wall time: each cue fires when its sound actually reaches the speakers,
    which absorbs output latency (large on Bluetooth and some laptops). */
 const VISQ=[];let visRAF=0;
-function audibleTime(){if(!ac)return 0;try{if(ac.getOutputTimestamp){const ts=ac.getOutputTimestamp();if(ts&&ts.contextTime>0)return ts.contextTime}}catch(e){}
-  return ac.currentTime-(ac.outputLatency||0)-(ac.baseLatency||0)}
+function audibleTime(){return A?A.outputTime():0}
 function visTick(){visRAF=0;const now=audibleTime();VISQ.sort((a,b)=>a.at-b.at);
   while(VISQ.length&&VISQ[0].at<=now){const e=VISQ.shift();try{e.fn()}catch(err){}}
   if(VISQ.length)visRAF=requestAnimationFrame(visTick)}
-function vis(fn,ms){const c=audio();VISQ.push({at:(c?c.currentTime:0)+ms/1000,fn});if(!visRAF)visRAF=requestAnimationFrame(visTick);return 0}
-function stopAll(){VISQ.length=0;TIMERS.forEach(clearTimeout);TIMERS=[];document.querySelectorAll(".schip.now").forEach(x=>x.classList.remove("now"));document.querySelectorAll(".rcol").forEach(x=>x.setAttribute("opacity","0"));if(!ac)return;const t=ac.currentTime;ACTIVE.forEach(n=>{try{n.g.gain.cancelScheduledValues(t);n.g.gain.setValueAtTime(n.g.gain.value,t);n.g.gain.linearRampToValueAtTime(0,t+0.04);n.o.stop(t+0.06)}catch(e){}});ACTIVE.clear()}
+function vis(fn,ms){const c=audio();VISQ.push({at:(c?c.currentTime():0)+ms/1000,fn});if(!visRAF)visRAF=requestAnimationFrame(visTick);return 0}
+function stopAll(){VISQ.length=0;TIMERS.forEach(clearTimeout);TIMERS=[];document.querySelectorAll(".schip.now").forEach(x=>x.classList.remove("now"));document.querySelectorAll(".rcol").forEach(x=>x.setAttribute("opacity","0"));if(A)A.stopNotes()}
 function tone(f,t0,dur,amp){
   const c=audio();if(!c)return;
-  const o=c.createOscillator(),g=c.createGain();
-  if(S.rich)o.setPeriodicWave(wave);else o.type="sine";
-  o.frequency.value=f;
-  const t=c.currentTime+t0;
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(amp,t+0.03);
-  g.gain.setValueAtTime(amp,t+Math.max(0.05,dur-0.25));g.gain.linearRampToValueAtTime(0,t+dur);
-  o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.05);
-  const node={o,g};ACTIVE.add(node);o.onended=()=>ACTIVE.delete(node);
+  c.playTone({frequency:f,when:c.currentTime()+t0,duration:dur,gain:amp*AUDIO_GAIN,voice:S.rich?"library-rich":"library-sine"});
 }
 function playTogether(n,d){const b=S.base;tone(b,0,0.7,0.22);tone(b,0.75,2.2,0.2);tone(b*n/d,0.75,2.2,0.2)}
 function playApart(n,d){const b=S.base;tone(b,0,0.75,0.25);tone(b*n/d,0.8,1.1,0.25)}
@@ -788,19 +775,18 @@ function initCommas(){
 
 
 /* ---------- schemata ---------- */
-const L2=PR.map(p=>Math.log2(p));
 const Z6=()=>[0,0,0,0,0,0];
 function mAdd(a,b){return a.map((x,i)=>x+b[i])}
 function mSub(a,b){return a.map((x,i)=>x-b[i])}
 function mMul(a,k){return a.map(x=>x*k)}
 function odd(m){const r=m.slice();r[0]=0;return r}
-function mC(m){let s=0;for(let i=0;i<6;i++)s+=m[i]*L2[i];return s*1200}
+const mC=m=>J.monzoCents(m,PR);
 function oKey(m){return m.slice(1).join(",")}
 function isZero(m){for(let i=1;i<6;i++)if(m[i])return false;return true}
 function normM(m){const r=odd(m);r[0]=-Math.floor((mC(r)+600)/1200);return r}
 function unitM(m){const r=odd(m);r[0]=-Math.floor(mC(r)/1200+1e-9);return r}
 function pcC(m){const c=mC(odd(m));return((c%1200)+1200)%1200}
-function mStr(m){let n=1n,d=1n;m.forEach((e,i)=>{const p=BigInt(PR[i]);if(e>0)n*=p**BigInt(e);else if(e<0)d*=p**BigInt(-e)});return n+"/"+d}
+const mStr=m=>J.monzoRatio(m,PR);
 function dotV(v,m){let s=0;for(let i=0;i<6;i++)s+=v[i]*m[i];return s}
 
 const CH={
@@ -1873,7 +1859,7 @@ function runFinder(){
   const m=/^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(FC.text);
   if(!m){msg.textContent="Type a comma as a ratio, like 225/224.";list.innerHTML="";return}
   const n=+m[1],d=+m[2];if(!n||!d||n===d){msg.textContent="That ratio is 1/1. Enter a small interval such as 81/80.";list.innerHTML="";return}
-  if(Object.keys(factor(n*d)).some(p=>+p>13)){msg.textContent="Only primes up to 13 are supported.";list.innerHTML="";return}
+  if(J.primeLimit(n,d)>13){msg.textContent="Only primes up to 13 are supported.";list.innerHTML="";return}
   const c=Math.abs(mC(normM(monzo(n,d))));if(c>100){msg.textContent=`${n}/${d} is ${fmtC(c)}¢ from the nearest unison or octave, larger than a comma. Try something under 100¢.`;list.innerHTML="";return}
   msg.textContent=`Searching for pumps of ${n}/${d}…`;list.innerHTML="";
   setTimeout(()=>{const r=pumpsForComma(n,d,8);

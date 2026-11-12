@@ -139,3 +139,51 @@ test('every accepted template navigation pauses animation and updates frame acti
     'pause', [0, false], [1, false], [2, true],
     'pause', [0, true], [1, false], [2, false], 'reset']);
 });
+
+test('pages can define voices; a harmonic spectrum becomes a periodic wave', async () => {
+  const { audio, oscillators } = setup();
+  audio.defineVoice('rich-test', { harmonics: [1, 0.5, 0.25], attack: 0.03, decay: 0, sustain: 1, release: 0.25 });
+  assert.throws(() => audio.defineVoice('bad', { attack: -1 }));
+  assert.throws(() => audio.defineVoice('bad', { harmonics: [] }));
+  assert.throws(() => audio.defineVoice('', {}));
+  // without createPeriodicWave the voice falls back to its waveform rather than failing
+  await audio.playTone({ frequency: 330, voice: 'rich-test' });
+  const main = oscillators.at(-2);
+  assert.equal(main.type, 'sine');
+});
+
+test('a harmonic voice uses one cached periodic wave per context', async () => {
+  const oscillators = [];
+  const made = [];
+  const param = () => ({ value: 0, setValueAtTime() {}, setTargetAtTime() {}, linearRampToValueAtTime() {}, cancelScheduledValues() {} });
+  class Context {
+    constructor() { this.currentTime = 1; this.state = 'running'; }
+    createGain() { return { context: this, gain: param(), connect() {}, disconnect() {} }; }
+    createWaveShaper() { return { connect() {} }; }
+    createDynamicsCompressor() { return { threshold: param(), knee: param(), ratio: param(), attack: param(), release: param(), connect() {} }; }
+    createBiquadFilter() { return { frequency: param(), Q: param(), connect() {} }; }
+    createPeriodicWave(real, imag) { const wave = { real: Array.from(real), imag: Array.from(imag) }; made.push(wave); return wave; }
+    createOscillator() { const node = { frequency: param(), connect() {}, start() {}, stop() {}, setPeriodicWave(w) { node.wave = w; } }; oscillators.push(node); return node; }
+  }
+  const window = { AudioContext: Context, dispatchEvent() {} };
+  vm.runInNewContext(source, { window, Event });
+  const audio = window.XenAudio;
+  audio.defineVoice('rich-test', { harmonics: [1, 0.5, 0.25] });
+  await audio.playTone({ frequency: 220, voice: 'rich-test' });
+  await audio.playTone({ frequency: 330, voice: 'rich-test' });
+  await audio.startDrone({ id: 'd', frequency: 110, voice: 'rich-test' });
+  assert.equal(made.length, 1);
+  assert.deepEqual(made[0].imag, [0, 1, 0.5, 0.25]);
+  const mains = oscillators.filter(o => o.wave);
+  assert.equal(mains.length, 3);
+  assert.ok(mains.every(o => o.wave === made[0]));
+});
+
+test('long schedules can raise the voice limit, and the audible clock is never ahead of the context', async () => {
+  const { audio, oscillators } = setup();
+  audio.configurePlayback({ maxVoices: 400 });
+  for (let i = 0; i < 300; i++) await audio.playTone({ frequency: 220 + i, when: 1 + i * 0.1, duration: 0.2 });
+  const released = oscillators.filter(o => o.stops.length > 1);
+  assert.equal(released.length, 0, 'no scheduled note was cut to make room');
+  assert.ok(audio.outputTime() <= audio.currentTime());
+});
