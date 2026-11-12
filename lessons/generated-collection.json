@@ -7,26 +7,7 @@
       "label": "Title",
       "heading": "Generator",
       "body": "A generated collection is made by repeatedly applying one interval, called a generator, and folding the results into a period. This is a compact way to build scales with strong internal structure.",
-      "startButton": "Start lesson",
-      "prerequisites": [
-        {
-          "label": "Period",
-          "body": "The period is the frame that the generator folds into.",
-          "href": "template.html?lesson=lessons/period.json"
-        }
-      ],
-      "relatedConcepts": [
-        {
-          "label": "Intervals",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/intervals.json"
-        },
-        {
-          "label": "MOS",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/moments-of-symmetry.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

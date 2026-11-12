@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "Commas",
       "body": "Tiny intervals that appear when two routes through JI reach almost the same pitch.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Just Intonation",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        },
-        {
-          "label": "Temperament",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/temperaments.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

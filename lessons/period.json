@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "Period",
       "body": "A period is the interval after which a tuning pattern repeats or is treated as equivalent. The octave is the most familiar period, but xenharmonic systems can use non-octave periods too.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Intervals",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/intervals.json"
-        },
-        {
-          "label": "MOS",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/moments-of-symmetry.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

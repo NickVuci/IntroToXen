@@ -1,6 +1,6 @@
 # Roadmap
 
-Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (main at 171cdda). The MVP loop (phases 2 to 6) works for the JI lesson. Most remaining work is breadth: real videos, labs and tasks for the other lessons, moving the Library and Practice Room onto the shared core, and folding in the prototypes and other repos.
+Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (main at 171cdda). The MVP loop (phases 2 to 6) works for the JI lesson. Most remaining work is breadth: real videos, labs and tasks for the other lessons, moving the Reference Library and Practice Room onto the shared core, and folding in the prototypes and other repos.
 
 ## Phase status
 
@@ -23,21 +23,21 @@ Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (ma
 - [x] Every MVP concept has a lesson file built on the JI lesson's shape; the 12 new ones (pitch, notes, intervals, chords, scales, harmonies, melodies, otonal/utonal, commas, NEJI, RTT, well-temperament) were added with placeholders.
 - [ ] Replace placeholders with real videos and labs: every lesson except JI uses `animations/placeholder.html` or `applets/placeholder.html` somewhere (harmonic series keeps its own video and lab, subharmonic series its own lab).
 - [ ] Write each lesson's real composition task; today every lesson except JI has a placeholder task (write one note, save).
-- [ ] Move the lesson format to the five stages: animation becomes video, exercises become the composition stage, Q&A becomes confirmation, and a completion slide is added (links to the map, Studio, Xen Wiki and Library). Old lesson files must keep loading.
+- [ ] Move the lesson format to the five stages: animation becomes video, exercises become the composition stage, Q&A becomes confirmation, and a completion slide is added (links to the map, Studio, Xen Wiki and Reference Library). Old lesson files must keep loading.
 - [ ] Generalise the JI lab's one-off `lesson-handoff` message into `shared/lab-bridge.js` (`ready`, `progress`, `complete`).
 
 ### Storage
 
 - [ ] Add a whole-session export/import (map progress, task progress, saved scales and projects). Today only single projects export (.xenproj.json).
 
-### Library
+### Reference Library
 
-- [x] The fifteen-limit atlas is the Library MVP at `library/index.html`, linked from the map.
+- [x] The fifteen-limit atlas, renamed the Reference Library, is at `library/index.html`, linked from the map page's header.
 - [ ] Move it onto the shared core.
 
 ### Practice Room
 
-- [x] The odd-limit ear trainer (copied from NickVuci/OddLimitEarTrainer at 95695ee) is the Practice Room MVP at `practice/index.html`, linked from the map.
+- [x] The odd-limit ear trainer (copied from NickVuci/OddLimitEarTrainer at 95695ee) is the Practice Room MVP at `practice/index.html`, linked from the map page's header.
 - [ ] Move it onto the shared core, and decide whether the separate repo and site are retired or kept in sync.
 
 ### Studio
@@ -64,7 +64,7 @@ Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (ma
 1. Concept map nodes and links as data.
 2. Five-stage lesson format and the lab bridge, proven on the JI lesson.
 3. Whole-session export/import.
-4. Library and Practice Room onto the shared core.
+4. Reference Library and Practice Room onto the shared core.
 5. Remaining lessons, then the Practice Room and the other repos.
 
 ## Testing

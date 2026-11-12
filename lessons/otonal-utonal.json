@@ -7,24 +7,7 @@
       "label": "Title",
       "heading": "Otonal and Utonal",
       "body": "Chords drawn from the harmonic series (otonal) and from its mirror, the subharmonic series (utonal).",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Harmonic Series",
-          "body": "Leads here",
-          "href": "harmonic-series.html"
-        },
-        {
-          "label": "Subharmonic Series",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/subharmonic-series.json"
-        },
-        {
-          "label": "Tonality Diamond",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/tonality-diamond.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

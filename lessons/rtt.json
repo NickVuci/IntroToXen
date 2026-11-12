@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "Regular Temperament Theory",
       "body": "A systematic way to describe temperaments by the commas they temper out and how they map JI intervals.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Temperament",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/temperaments.json"
-        },
-        {
-          "label": "Equal Tunings",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/equal-tuning.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

@@ -7,31 +7,7 @@
       "label": "Title",
       "heading": "Equal Tunings",
       "body": "Equal tuning divides a chosen period into equal logarithmic steps. In xenharmonic music this often means EDOs, but the period can be an octave, a tritave, or another repeating interval.",
-      "startButton": "Start lesson",
-      "prerequisites": [
-        {
-          "label": "Period",
-          "body": "The period defines what span is being divided equally.",
-          "href": "template.html?lesson=lessons/period.json"
-        }
-      ],
-      "relatedConcepts": [
-        {
-          "label": "Regular Temperament Theory",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/rtt.json"
-        },
-        {
-          "label": "Well-Temperament",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/well-temperament.json"
-        },
-        {
-          "label": "NEJI",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/neji.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

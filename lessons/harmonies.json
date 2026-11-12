@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "Harmonies",
       "body": "Chords sounding together and moving from one to the next.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Chords",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/chords.json"
-        },
-        {
-          "label": "Just Intonation",
-          "body": "Related idea",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

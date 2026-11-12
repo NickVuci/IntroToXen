@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "Well-Temperament",
       "body": "Unequal temperaments that spread the Pythagorean comma unevenly, so every key is usable and each keeps its own colour.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Temperament",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/temperaments.json"
-        },
-        {
-          "label": "Equal Tunings",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/equal-tuning.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

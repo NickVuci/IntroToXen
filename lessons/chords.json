@@ -7,24 +7,7 @@
       "label": "Title",
       "heading": "Chords",
       "body": "Three or more pitches sounded together.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Intervals",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/intervals.json"
-        },
-        {
-          "label": "Harmonies",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/harmonies.json"
-        },
-        {
-          "label": "Just Intonation",
-          "body": "Related idea",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

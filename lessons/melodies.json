@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "Melodies",
       "body": "Single notes moving one after another in time.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Scales",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/scales.json"
-        },
-        {
-          "label": "Just Intonation",
-          "body": "Related idea",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

@@ -7,31 +7,7 @@
       "label": "Title",
       "heading": "Temperament",
       "body": "A temperament intentionally treats certain small ratio differences, called commas, as negligible. This lets a tuning system simplify just-intonation relationships into practical mappings and repeatable musical patterns.",
-      "startButton": "Start lesson",
-      "prerequisites": [
-        {
-          "label": "Just Intonation",
-          "body": "Temperaments start from ratio relationships and decide which differences to merge.",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        }
-      ],
-      "relatedConcepts": [
-        {
-          "label": "Commas",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/commas.json"
-        },
-        {
-          "label": "Regular Temperament Theory",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/rtt.json"
-        },
-        {
-          "label": "Well-Temperament",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/well-temperament.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,
