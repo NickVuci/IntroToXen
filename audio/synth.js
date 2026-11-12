@@ -22,6 +22,7 @@
 
   function stopAll() {
     playbackGeneration += 1;
+    pendingDrones.clear();
     stopNotes();
     drones.forEach(drone => {
       releaseVoice(drone);
@@ -422,10 +423,19 @@
     });
   }
 
+  // Drone starts still waiting on resume(), by id. stopDrone() or a newer start for the same id
+  // replaces the token, so a start that was cancelled while the context resumed never sounds.
+  const pendingDrones = new Map();
+
   async function startDrone(options = {}) {
     const generation = playbackGeneration;
-    if (!(await resume()) || !active || generation !== playbackGeneration) return false;
     const id = String(options.id || "drone");
+    const token = {};
+    pendingDrones.set(id, token);
+    const ready = await resume();
+    if (pendingDrones.get(id) !== token) return false; // stopped or superseded while resuming
+    pendingDrones.delete(id);
+    if (!ready || !active || generation !== playbackGeneration) return false;
     const preset = voicePreset(options.voice || "drone");
     if (drones.has(id)) {
       updateDrone({
@@ -493,8 +503,9 @@
 
   function stopDrone(id = "drone", rampTime = 0.05) {
     const key = String(id);
+    const cancelledStart = pendingDrones.delete(key);
     const drone = drones.get(key);
-    if (!drone || !audioContext) return false;
+    if (!drone || !audioContext) return cancelledStart;
     const now = audioContext.currentTime;
     drone.gain.gain.cancelScheduledValues(now);
     drone.gain.gain.setTargetAtTime(0.000001, now, Number(rampTime) || 0.05);

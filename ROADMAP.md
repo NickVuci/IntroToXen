@@ -71,4 +71,4 @@ Audit of IntroToXen against [PROJECT_GUIDE.md](PROJECT_GUIDE.md), 2026-11-11 (ma
 
 ## Testing
 
-`node --test tests/*.test.*` runs 8 test files, 71 tests, all passing on Node 22. `tests/browser-flow.mjs` is a manual Playwright walk through the JI lesson.
+`node --test tests/*.test.*` runs 8 test files, 74 tests, all passing on Node 22. `tests/browser-flow.mjs` is a manual Playwright walk through the JI lesson.

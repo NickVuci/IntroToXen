@@ -187,3 +187,58 @@ test('long schedules can raise the voice limit, and the audible clock is never a
   assert.equal(released.length, 0, 'no scheduled note was cut to make room');
   assert.ok(audio.outputTime() <= audio.currentTime());
 });
+
+// A context that stays suspended until the test lets resume() finish, to reach the window
+// between asking for a drone and the engine registering it.
+function slowResume() {
+  const started = [];
+  const waiting = [];
+  const param = () => ({ value: 0, setValueAtTime() {}, setTargetAtTime() {}, linearRampToValueAtTime() {}, cancelScheduledValues() {} });
+  class Context {
+    constructor() { this.currentTime = 1; this.state = 'suspended'; }
+    resume() { return new Promise(done => waiting.push(() => { this.state = 'running'; done(); })); }
+    createGain() { return { context: this, gain: param(), connect() {}, disconnect() {} }; }
+    createWaveShaper() { return { connect() {} }; }
+    createDynamicsCompressor() { return { threshold: param(), knee: param(), ratio: param(), attack: param(), release: param(), connect() {} }; }
+    createBiquadFilter() { return { frequency: param(), Q: param(), connect() {} }; }
+    createOscillator() { const node = { frequency: param(), connect() {}, start() { started.push(node); }, stop() {} }; return node; }
+  }
+  const window = { AudioContext: Context, dispatchEvent() {} };
+  vm.runInNewContext(source, { window, Event });
+  return { audio: window.XenAudio, started, resume: () => { waiting.splice(0).forEach(go => go()); return new Promise(r => setImmediate(r)); } };
+}
+
+test('a drone stopped while the context is still resuming never starts', async () => {
+  const { audio, started, resume } = slowResume();
+  const starting = audio.startDrone({ id: 'sing', frequency: 220 });
+  await new Promise(r => setImmediate(r));
+  assert.equal(audio.stopDrone('sing'), true, 'stopping a pending start counts as stopping it');
+  await resume();
+  assert.equal(await starting, false);
+  assert.equal(started.length, 0, 'no oscillator sounds after the stop');
+  assert.equal(audio.stopDrone('sing'), false, 'nothing is left to stop');
+});
+
+test('stopAll also cancels a pending drone, and a later start still works', async () => {
+  const { audio, started, resume } = slowResume();
+  const first = audio.startDrone({ id: 'sing', frequency: 220 });
+  await new Promise(r => setImmediate(r));
+  audio.stopAll();
+  await resume();
+  assert.equal(await first, false);
+  assert.equal(started.length, 0);
+  assert.equal(await audio.startDrone({ id: 'sing', frequency: 220 }), true);
+  assert.equal(started.length, 2, 'main and colour oscillators of the new drone');
+});
+
+test('of two starts for one drone while resuming, only the newest sounds', async () => {
+  const { audio, started, resume } = slowResume();
+  const older = audio.startDrone({ id: 'sing', frequency: 220 });
+  const newer = audio.startDrone({ id: 'sing', frequency: 330 });
+  await new Promise(r => setImmediate(r));
+  await resume();
+  assert.equal(await older, false);
+  assert.equal(await newer, true);
+  assert.equal(started.length, 2);
+  assert.equal(started[0].frequency.value, 330);
+});

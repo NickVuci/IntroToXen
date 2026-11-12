@@ -1450,7 +1450,9 @@ function sgHear(){
   SG.blocked=performance.now()+d*1000+500;hexFlip(document.querySelector(".bighex"),d);
 }
 function sgDrone(on){
-  if(on&&!SG.drone&&A){A.startDrone({id:"practice-sing-drone",frequency:S.sgRoot,gain:.13*AUDIO_GAIN,voice:voiceOf(tbase()),rampTime:.13});SG.drone=true}
+  if(on&&!SG.drone&&A){const mine=SG.drone={};
+    A.startDrone({id:"practice-sing-drone",frequency:S.sgRoot,gain:.13*AUDIO_GAIN,voice:voiceOf(tbase()),rampTime:.13})
+      .then(ok=>{if(!ok&&SG.drone===mine){SG.drone=null;$("sgDrone").setAttribute("aria-pressed","false")}})}
   else if(!on&&SG.drone){if(A)A.stopDrone("practice-sing-drone",.08);SG.drone=null}
   $("sgDrone").setAttribute("aria-pressed",String(!!SG.drone));SG.blocked=Math.max(SG.blocked,performance.now()+600);
 }
