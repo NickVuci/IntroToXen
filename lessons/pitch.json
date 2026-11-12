@@ -1,0 +1,82 @@
+{
+  "title": "Pitch",
+  "description": "How high or low a sound is, set by its frequency.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Pitch",
+      "body": "How high or low a sound is, set by its frequency.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Notes",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/notes.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Pitch",
+      "word": "pitch",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Pitch",
+      "prompt": "The Pitch lab will go here.",
+      "ariaLabel": "Pitch lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What sets the pitch of a steady tone?",
+      "choices": [
+        {
+          "text": "Its frequency: how many times per second it vibrates.",
+          "correct": true
+        },
+        {
+          "text": "Its loudness.",
+          "correct": false
+        },
+        {
+          "text": "How long it lasts.",
+          "correct": false
+        },
+        {
+          "text": "Which instrument plays it.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "pitch-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "pitch"
+}

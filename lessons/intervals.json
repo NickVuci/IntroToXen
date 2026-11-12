@@ -1,0 +1,107 @@
+{
+  "title": "Intervals",
+  "description": "The distance between two pitches, measured as a ratio of their frequencies.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Intervals",
+      "body": "The distance between two pitches, measured as a ratio of their frequencies.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Notes",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/notes.json"
+        },
+        {
+          "label": "Chords",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/chords.json"
+        },
+        {
+          "label": "Scales",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/scales.json"
+        },
+        {
+          "label": "Just Intonation",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/just-intonation.json"
+        },
+        {
+          "label": "Generator",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/generated-collection.json"
+        },
+        {
+          "label": "Period",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/period.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Intervals",
+      "word": "intervals",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Intervals",
+      "prompt": "The Intervals lab will go here.",
+      "ariaLabel": "Intervals lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "How is the interval between two pitches measured most exactly?",
+      "choices": [
+        {
+          "text": "As the ratio of their frequencies.",
+          "correct": true
+        },
+        {
+          "text": "As the difference of their frequencies in hertz.",
+          "correct": false
+        },
+        {
+          "text": "By counting piano keys.",
+          "correct": false
+        },
+        {
+          "text": "By how loud the upper note is.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "intervals-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "intervals"
+}

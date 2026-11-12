@@ -1,11 +1,11 @@
 {
-  "title": "Temperaments",
+  "title": "Temperament",
   "description": "Systems that tune or identify ratios by tempering small differences.",
   "backHref": "index.html",
   "sections": {
     "title": {
       "label": "Title",
-      "heading": "Temperaments",
+      "heading": "Temperament",
       "body": "A temperament intentionally treats certain small ratio differences, called commas, as negligible. This lets a tuning system simplify just-intonation relationships into practical mappings and repeatable musical patterns.",
       "startButton": "Start lesson",
       "prerequisites": [
@@ -17,28 +17,37 @@
       ],
       "relatedConcepts": [
         {
-          "label": "Equal Tuning",
-          "body": "Equal tunings can realize temperament mappings in concrete step systems.",
-          "href": "template.html?lesson=lessons/equal-tuning.json"
+          "label": "Commas",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/commas.json"
         },
         {
-          "label": "Moments of Symmetry",
-          "body": "Temperaments often produce useful generated and MOS scale patterns.",
-          "href": "template.html?lesson=lessons/moments-of-symmetry.json"
+          "label": "Regular Temperament Theory",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/rtt.json"
+        },
+        {
+          "label": "Well-Temperament",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/well-temperament.json"
         }
       ]
     },
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/example.html",
-      "word": "commas",
+      "file": "animations/placeholder.html?concept=Temperament",
+      "word": "temperament",
       "durationMs": 7800,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
     "lab": {
-      "enabled": false
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Temperament",
+      "prompt": "The Temperament lab will go here.",
+      "ariaLabel": "Temperament lab placeholder"
     },
     "qa": {
       "enabled": true,
@@ -75,8 +84,24 @@
         {
           "title": "Relate to an EDO",
           "body": "Choose an equal tuning and describe how it might approximate a family of ratios."
+        },
+        {
+          "kind": "make",
+          "task": "temperaments-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
         }
       ]
     }
-  }
+  },
+  "node": "temperaments"
 }

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta
     name="description"
-    content="An interactive concept map for learning xenharmonic music: the harmonic series, just intonation, equal tunings, generated scales and temperaments."
+    content="An interactive concept map for learning xenharmonic music, from pitch and intervals to just intonation, MOS scales and temperaments, with a library, practice room and studio."
   />
   <title>Intro to Xen · Nick Vuci</title>
   <script>
@@ -42,7 +42,7 @@
       </button>
     </div>
     <div class="standing" aria-label="Your progress">
-      <span class="standingText"><b class="completeCount">0</b> of <b class="totalCount">9</b> concepts complete</span>
+      <span class="standingText"><b class="completeCount">0</b> of <b class="totalCount">21</b> concepts complete</span>
       <span class="track" aria-hidden="true"><i class="trackFill"></i></span>
       <button type="button" class="btn danger small mapResetButton">Reset progress</button>
     </div>
@@ -64,6 +64,11 @@
           </div>
           <p class="mapHint">Choose a concept to see its key ideas. Drag concepts to arrange the map.</p>
         </div>
+        <nav class="hubLinks" aria-label="Rooms">
+          <a class="hubLink" href="library/index.html"><span class="hubName">Library</span><span class="hubNote">Fifteen-limit atlas: intervals, commas, pumps</span></a>
+          <a class="hubLink" href="practice/index.html"><span class="hubName">Practice Room</span><span class="hubNote">Odd-limit ear trainer</span></a>
+          <a class="hubLink" href="studio/index.html"><span class="hubName">Studio</span><span class="hubNote">Scale builder and piano roll</span></a>
+        </nav>
         <div class="prototypes">
           <label class="prototypesLabel" for="prototypeSelect">Prototype applets</label>
           <div class="prototypesRow">
@@ -71,7 +76,6 @@
               <option value="">Choose a prototype to examine…</option>
               <optgroup label="Just intonation">
                 <option value="applets/prototypes/ji-explorer.html">JI Explorer</option>
-                <option value="applets/prototypes/fifteen-limit-atlas.html">Fifteen-Limit Atlas</option>
               </optgroup>
               <optgroup label="Equal tunings">
                 <option value="applets/prototypes/edo-explorer.html">EDO Explorer</option>
@@ -91,7 +95,6 @@
                 <option value="applets/prototypes/mos-versette.html">MOS Versette</option>
               </optgroup>
               <optgroup label="Ear training">
-                <option value="https://nickvuci.github.io/OddLimitEarTrainer/">Odd-Limit Ear Trainer</option>
                 <option value="applets/prototypes/ear-trainer-classic.html">Ear Trainer Classic</option>
               </optgroup>
             </select>
@@ -107,15 +110,27 @@
         <h2>Lessons</h2>
         <p>The interactive map needs JavaScript. The lessons are still available.</p>
         <ul class="lessonList">
-          <li><a href="harmonic-series.html">Harmonic Series</a></li>
-          <li><a href="template.html?lesson=lessons/just-intonation.json">Just Intonation</a></li>
-          <li><a href="template.html?lesson=lessons/subharmonic-series.json">Subharmonic Series</a></li>
-          <li><a href="template.html?lesson=lessons/tonality-diamond.json">Tonality Diamond</a></li>
+          <li><a href="template.html?lesson=lessons/pitch.json">Pitch</a></li>
+          <li><a href="template.html?lesson=lessons/notes.json">Notes</a></li>
+          <li><a href="template.html?lesson=lessons/intervals.json">Intervals</a></li>
+          <li><a href="template.html?lesson=lessons/generated-collection.json">Generator</a></li>
+          <li><a href="template.html?lesson=lessons/moments-of-symmetry.json">MOS</a></li>
+          <li><a href="template.html?lesson=lessons/chords.json">Chords</a></li>
+          <li><a href="template.html?lesson=lessons/scales.json">Scales</a></li>
           <li><a href="template.html?lesson=lessons/period.json">Period</a></li>
-          <li><a href="template.html?lesson=lessons/equal-tuning.json">Equal Tuning</a></li>
-          <li><a href="template.html?lesson=lessons/generated-collection.json">Generated Collection</a></li>
-          <li><a href="template.html?lesson=lessons/moments-of-symmetry.json">Moments of Symmetry</a></li>
-          <li><a href="template.html?lesson=lessons/temperaments.json">Temperaments</a></li>
+          <li><a href="template.html?lesson=lessons/harmonies.json">Harmonies</a></li>
+          <li><a href="template.html?lesson=lessons/just-intonation.json">Just Intonation</a></li>
+          <li><a href="template.html?lesson=lessons/melodies.json">Melodies</a></li>
+          <li><a href="harmonic-series.html">Harmonic Series</a></li>
+          <li><a href="template.html?lesson=lessons/commas.json">Commas</a></li>
+          <li><a href="template.html?lesson=lessons/neji.json">NEJI</a></li>
+          <li><a href="template.html?lesson=lessons/temperaments.json">Temperament</a></li>
+          <li><a href="template.html?lesson=lessons/otonal-utonal.json">Otonal and Utonal</a></li>
+          <li><a href="template.html?lesson=lessons/subharmonic-series.json">Subharmonic Series</a></li>
+          <li><a href="template.html?lesson=lessons/equal-tuning.json">Equal Tunings</a></li>
+          <li><a href="template.html?lesson=lessons/tonality-diamond.json">Tonality Diamond</a></li>
+          <li><a href="template.html?lesson=lessons/rtt.json">Regular Temperament Theory</a></li>
+          <li><a href="template.html?lesson=lessons/well-temperament.json">Well-Temperament</a></li>
         </ul>
       </section>
     </noscript>

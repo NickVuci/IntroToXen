@@ -1,11 +1,11 @@
 {
-  "title": "Equal Tuning",
+  "title": "Equal Tunings",
   "description": "Tuning systems built by dividing a period into equal steps.",
   "backHref": "index.html",
   "sections": {
     "title": {
       "label": "Title",
-      "heading": "Equal Tuning",
+      "heading": "Equal Tunings",
       "body": "Equal tuning divides a chosen period into equal logarithmic steps. In xenharmonic music this often means EDOs, but the period can be an octave, a tritave, or another repeating interval.",
       "startButton": "Start lesson",
       "prerequisites": [
@@ -17,23 +17,37 @@
       ],
       "relatedConcepts": [
         {
-          "label": "Temperaments",
-          "body": "Equal tunings often approximate or realize temperament mappings.",
-          "href": "template.html?lesson=lessons/temperaments.json"
+          "label": "Regular Temperament Theory",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/rtt.json"
+        },
+        {
+          "label": "Well-Temperament",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/well-temperament.json"
+        },
+        {
+          "label": "NEJI",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/neji.json"
         }
       ]
     },
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/example.html",
-      "word": "steps",
+      "file": "animations/placeholder.html?concept=Equal+Tunings",
+      "word": "equal tunings",
       "durationMs": 7800,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
     "lab": {
-      "enabled": false
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Equal+Tunings",
+      "prompt": "The Equal Tunings lab will go here.",
+      "ariaLabel": "Equal Tunings lab placeholder"
     },
     "qa": {
       "enabled": true,
@@ -70,8 +84,24 @@
         {
           "title": "Pick a target ratio",
           "body": "Choose a simple ratio and think about how an equal tuning might approximate it."
+        },
+        {
+          "kind": "make",
+          "task": "equal-tuning-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
         }
       ]
     }
-  }
+  },
+  "node": "equal-tuning"
 }

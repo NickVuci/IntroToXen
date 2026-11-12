@@ -1,0 +1,87 @@
+{
+  "title": "Regular Temperament Theory",
+  "description": "A systematic way to describe temperaments by the commas they temper out and how they map JI intervals.",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Regular Temperament Theory",
+      "body": "A systematic way to describe temperaments by the commas they temper out and how they map JI intervals.",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Temperament",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/temperaments.json"
+        },
+        {
+          "label": "Equal Tunings",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/equal-tuning.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Regular+Temperament+Theory",
+      "word": "regular temperament theory",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Regular+Temperament+Theory",
+      "prompt": "The Regular Temperament Theory lab will go here.",
+      "ariaLabel": "Regular Temperament Theory lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What does regular temperament theory describe?",
+      "choices": [
+        {
+          "text": "Temperaments, by the commas they temper out and how they map JI intervals.",
+          "correct": true
+        },
+        {
+          "text": "Only historical well-temperaments.",
+          "correct": false
+        },
+        {
+          "text": "How to play in strict JI.",
+          "correct": false
+        },
+        {
+          "text": "The rhythm of a piece.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "rtt-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "rtt"
+}

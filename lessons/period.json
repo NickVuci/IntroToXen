@@ -10,28 +10,32 @@
       "startButton": "Start lesson",
       "relatedConcepts": [
         {
-          "label": "Equal Tuning",
-          "body": "Equal tunings divide a chosen period into equal steps.",
-          "href": "template.html?lesson=lessons/equal-tuning.json"
+          "label": "Intervals",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/intervals.json"
         },
         {
-          "label": "Generated Collection",
-          "body": "Generated collections stack a generator inside a period.",
-          "href": "template.html?lesson=lessons/generated-collection.json"
+          "label": "MOS",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/moments-of-symmetry.json"
         }
       ]
     },
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/example.html",
+      "file": "animations/placeholder.html?concept=Period",
       "word": "period",
       "durationMs": 7800,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
     "lab": {
-      "enabled": false
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Period",
+      "prompt": "The Period lab will go here.",
+      "ariaLabel": "Period lab placeholder"
     },
     "qa": {
       "enabled": true,
@@ -68,8 +72,24 @@
         {
           "title": "Name a repeat span",
           "body": "Choose a ratio, such as 2/1 or 3/1, and describe what repeats at that span."
+        },
+        {
+          "kind": "make",
+          "task": "period-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
         }
       ]
     }
-  }
+  },
+  "node": "period"
 }

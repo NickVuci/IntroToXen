@@ -17,23 +17,27 @@
       ],
       "relatedConcepts": [
         {
-          "label": "Subharmonic Series",
-          "body": "Compare utonal diamond relationships with inverted ratio families.",
-          "href": "template.html?lesson=lessons/subharmonic-series.json"
+          "label": "Otonal and Utonal",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/otonal-utonal.json"
         }
       ]
     },
     "animation": {
       "enabled": true,
       "label": "Animation",
-      "file": "animations/example.html",
-      "word": "diamond",
+      "file": "animations/placeholder.html?concept=Tonality+Diamond",
+      "word": "tonality diamond",
       "durationMs": 7800,
       "startButton": "Start animation",
       "nextButton": "Next section"
     },
     "lab": {
-      "enabled": false
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Tonality+Diamond",
+      "prompt": "The Tonality Diamond lab will go here.",
+      "ariaLabel": "Tonality Diamond lab placeholder"
     },
     "qa": {
       "enabled": true,
@@ -70,8 +74,24 @@
         {
           "title": "Compare two sides",
           "body": "Describe how an otonal set and a utonal set can feel related but inverted."
+        },
+        {
+          "kind": "make",
+          "task": "tonality-diamond-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
         }
       ]
     }
-  }
+  },
+  "node": "tonality-diamond"
 }

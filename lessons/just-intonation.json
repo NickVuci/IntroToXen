@@ -8,7 +8,49 @@
       "showLabel": false,
       "heading": "Just Intonation",
       "body": "",
-      "startButton": "Start lesson"
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Intervals",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/intervals.json"
+        },
+        {
+          "label": "Harmonic Series",
+          "body": "Comes next",
+          "href": "harmonic-series.html"
+        },
+        {
+          "label": "Commas",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/commas.json"
+        },
+        {
+          "label": "NEJI",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/neji.json"
+        },
+        {
+          "label": "Chords",
+          "body": "Related idea",
+          "href": "template.html?lesson=lessons/chords.json"
+        },
+        {
+          "label": "Scales",
+          "body": "Related idea",
+          "href": "template.html?lesson=lessons/scales.json"
+        },
+        {
+          "label": "Harmonies",
+          "body": "Related idea",
+          "href": "template.html?lesson=lessons/harmonies.json"
+        },
+        {
+          "label": "Melodies",
+          "body": "Related idea",
+          "href": "template.html?lesson=lessons/melodies.json"
+        }
+      ]
     },
     "animation": {
       "enabled": true,
@@ -62,7 +104,7 @@
           "criteria": {
             "minScale": 5
           },
-          "workstation": {
+          "studio": {
             "view": "scale"
           }
         },
@@ -75,7 +117,7 @@
             "minMelodyNotes": 8,
             "minMelodyIntervals": 4
           },
-          "workstation": {
+          "studio": {
             "view": "roll",
             "lane": "melody",
             "bars": 8,
@@ -90,7 +132,7 @@
           "criteria": {
             "minChord": 3
           },
-          "workstation": {
+          "studio": {
             "view": "roll",
             "lane": "chords",
             "bars": 4,

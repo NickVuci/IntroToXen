@@ -1,0 +1,92 @@
+{
+  "title": "Otonal and Utonal",
+  "description": "Chords drawn from the harmonic series (otonal) and from its mirror, the subharmonic series (utonal).",
+  "backHref": "index.html",
+  "sections": {
+    "title": {
+      "label": "Title",
+      "heading": "Otonal and Utonal",
+      "body": "Chords drawn from the harmonic series (otonal) and from its mirror, the subharmonic series (utonal).",
+      "startButton": "Start lesson",
+      "relatedConcepts": [
+        {
+          "label": "Harmonic Series",
+          "body": "Leads here",
+          "href": "harmonic-series.html"
+        },
+        {
+          "label": "Subharmonic Series",
+          "body": "Leads here",
+          "href": "template.html?lesson=lessons/subharmonic-series.json"
+        },
+        {
+          "label": "Tonality Diamond",
+          "body": "Comes next",
+          "href": "template.html?lesson=lessons/tonality-diamond.json"
+        }
+      ]
+    },
+    "animation": {
+      "enabled": true,
+      "label": "Animation",
+      "file": "animations/placeholder.html?concept=Otonal+and+Utonal",
+      "word": "otonal and utonal",
+      "durationMs": 7800,
+      "startButton": "Start animation",
+      "nextButton": "Next section"
+    },
+    "lab": {
+      "enabled": true,
+      "label": "Lab",
+      "file": "applets/placeholder.html?concept=Otonal+and+Utonal",
+      "prompt": "The Otonal and Utonal lab will go here.",
+      "ariaLabel": "Otonal and Utonal lab placeholder"
+    },
+    "qa": {
+      "enabled": true,
+      "label": "Q&A",
+      "questionTitle": "Question",
+      "question": "What is a utonal chord?",
+      "choices": [
+        {
+          "text": "A chord drawn from the subharmonic series, the mirror image of an otonal chord.",
+          "correct": true
+        },
+        {
+          "text": "A chord tuned in 12-EDO.",
+          "correct": false
+        },
+        {
+          "text": "A chord with no root.",
+          "correct": false
+        },
+        {
+          "text": "Any chord with a seventh.",
+          "correct": false
+        }
+      ]
+    },
+    "exercises": {
+      "enabled": true,
+      "label": "Exercises",
+      "items": [
+        {
+          "kind": "make",
+          "task": "otonal-utonal-compose",
+          "title": "Composition (placeholder)",
+          "body": "This lesson's composition task is still to be written. For now, open the piano roll, write at least one note and save to finish.",
+          "criteria": {
+            "minMelodyNotes": 1
+          },
+          "studio": {
+            "view": "roll",
+            "lane": "melody",
+            "bars": 4,
+            "completeOn": "save"
+          }
+        }
+      ]
+    }
+  },
+  "node": "otonal-utonal"
+}
