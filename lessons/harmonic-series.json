@@ -7,31 +7,7 @@
       "label": "Title",
       "heading": "Harmonic Series",
       "body": "The harmonic series is the ladder of overtones above a fundamental pitch. Each partial adds a whole-number multiple of the base frequency, which is why it is so useful for understanding consonance and tuning.",
-      "startButton": "Start lesson",
-      "prerequisites": [
-        {
-          "label": "Just Intonation",
-          "body": "Review how simple frequency ratios become intervals, triads, and tuning systems.",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        }
-      ],
-      "relatedConcepts": [
-        {
-          "label": "Just Intonation",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        },
-        {
-          "label": "Subharmonic Series",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/subharmonic-series.json"
-        },
-        {
-          "label": "Otonal and Utonal",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/otonal-utonal.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "Subharmonic Series",
       "body": "The subharmonic series mirrors the harmonic series by stepping downward through whole-number divisions of a reference pitch. It is often used to think about undertones, inversional relationships, and alternate chordal colors.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Harmonic Series",
-          "body": "Leads here",
-          "href": "harmonic-series.html"
-        },
-        {
-          "label": "Otonal and Utonal",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/otonal-utonal.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

@@ -7,29 +7,7 @@
       "label": "Title",
       "heading": "Scales",
       "body": "A set of pitches ordered by height, usually repeating at a period.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Intervals",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/intervals.json"
-        },
-        {
-          "label": "MOS",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/moments-of-symmetry.json"
-        },
-        {
-          "label": "Melodies",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/melodies.json"
-        },
-        {
-          "label": "Just Intonation",
-          "body": "Related idea",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

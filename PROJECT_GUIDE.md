@@ -11,7 +11,7 @@ A platform on nickvuci.com for learning, exploring, practicing, researching and 
 1. **Classroom.** A nonlinear concept map. Each concept is one short lesson, and students may enter in any order; prerequisites guide but never lock.
 2. **Studio** (formerly the workstation, at `studio/`). The central creative space, exploration-first rather than a conventional DAW. Discovery comes before arrangement. Piano roll, notation, trackers, lattices and HexBoard layouts are views of the same shared musical objects.
 3. **Practice Room** (`practice/`). Focused training tools (interval, chord and scale recognition, pitch, rhythm, instrument practice) with adaptive difficulty and tracking. Musicianship lives here, not in separate concept nodes. The odd-limit ear trainer is its first tool.
-4. **Library** (the Reference Library, `library/`). Searchable, filterable and computational: JI intervals, limits, EDOs, temperaments and commas, MOS, chords, comma pumps. It answers constrained queries with lazy computation rather than huge fixed lists, and its objects transfer into the Studio. Its MVP is the whole 15-odd-limit atlas.
+4. **Reference Library** (`library/`). Searchable, filterable and computational: JI intervals, limits, EDOs, temperaments and commas, MOS, chords, comma pumps. It answers constrained queries with lazy computation rather than huge fixed lists, and its objects transfer into the Studio. Its MVP is the whole 15-odd-limit atlas.
 
 ### Framework
 
@@ -29,7 +29,7 @@ Every lesson is built from the JI lesson as its template, is bite-sized and teac
 2. **Lab:** a playful, focused interactive demonstration.
 3. **Composition:** a creative task in a lesson-configured view of the real Studio.
 4. **Confirmation:** questions or a practical assessment.
-5. **Completion:** a last slide linking to the map, the Studio, the concept's Xen Wiki page and its Library pages.
+5. **Completion:** a last slide linking to the map, the Studio, the concept's Xen Wiki page and its Reference Library pages.
 
 Labs are purpose-built (sliders, drones, Lissajous figures) and need not resemble the Studio; they only share its math and audio. The composition stage is a real Studio project, so a student can open it unchanged in the full Studio. Labs can hand selected discoveries to it.
 
@@ -130,7 +130,7 @@ Every musical object keeps three things apart: its mathematical identity, its ma
 - **Storage:** progress and saved work live client-side. Single projects already export and import (.xenproj.json); a whole-session export/import is still to build.
 - **Lab completion:** each lab defines its own completion task.
 - **Wiki:** the Xen Wiki is the only wiki linked.
-- **Site layout (IntroToXen):** concept map at `index.html`, lessons in `lessons/` (rendered by `template.html`), labs in `applets/`, videos in `animations/`, rooms in `library/`, `practice/` and `studio/`, shared code in `shared/`. The concept map page links to all three rooms. `workstation/` only redirects to `studio/`.
+- **Site layout (IntroToXen):** concept map at `index.html`, lessons in `lessons/` (rendered by `template.html`), labs in `applets/`, videos in `animations/`, rooms in `library/`, `practice/` and `studio/`, shared code in `shared/`. The concept map page's header links to all three rooms. `workstation/` only redirects to `studio/`.
 - **Repo:** the MVP is built here in IntroToXen, then copied into `Directory/playground/`.
 - **Licences:** MIT for IntroToXen, xen-tun-core, TemperamentExplorer and Directory.
 - **Pitch rule:** degree notes over an exact-text scale, with direct-interval notes allowed.

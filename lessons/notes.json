@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "Notes",
       "body": "A pitch given a place in time and in a tuning.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Pitch",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/pitch.json"
-        },
-        {
-          "label": "Intervals",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/intervals.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

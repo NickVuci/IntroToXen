@@ -7,14 +7,7 @@
       "label": "Title",
       "heading": "Pitch",
       "body": "How high or low a sound is, set by its frequency.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Notes",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/notes.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

@@ -7,39 +7,7 @@
       "label": "Title",
       "heading": "Intervals",
       "body": "The distance between two pitches, measured as a ratio of their frequencies.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Notes",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/notes.json"
-        },
-        {
-          "label": "Chords",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/chords.json"
-        },
-        {
-          "label": "Scales",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/scales.json"
-        },
-        {
-          "label": "Just Intonation",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        },
-        {
-          "label": "Generator",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/generated-collection.json"
-        },
-        {
-          "label": "Period",
-          "body": "Comes next",
-          "href": "template.html?lesson=lessons/period.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,

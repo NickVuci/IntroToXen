@@ -7,19 +7,7 @@
       "label": "Title",
       "heading": "NEJI",
       "body": "Near-equal just intonation: a JI scale whose steps are nearly equal, approximating an equal tuning.",
-      "startButton": "Start lesson",
-      "relatedConcepts": [
-        {
-          "label": "Just Intonation",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/just-intonation.json"
-        },
-        {
-          "label": "Equal Tunings",
-          "body": "Leads here",
-          "href": "template.html?lesson=lessons/equal-tuning.json"
-        }
-      ]
+      "startButton": "Start lesson"
     },
     "animation": {
       "enabled": true,
